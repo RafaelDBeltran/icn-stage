@@ -4,6 +4,7 @@ ICN-Stage is a open plataform to ICN reseachers make your experimental evaluatio
 
 # To-run
 You need clone the repository and add the follow files:
+
     - Apache Zookeeper 3.6.1 (The name of file must be apache-zookeeper-3.6.1).
     - Remove the .example of file config.json.example and edit for you execution env.
 
