@@ -1,0 +1,15 @@
+apache-zookeeper-3.6.1/
+scripts_de_falha/
+~/
+__pycache__/
+webservice/
+config.json
+*tar.gz
+mynfd.conf 
+*.tgz
+*.log
+*.pyc
+*.info
+*.err
+*.out
+*.dat

@@ -1,0 +1,9 @@
+django==1.10.5
+#kazoo==2.4
+kazoo==2.7
+#paramiko==2.2.1
+paramiko==2.7.1
+scp
+netifaces
+pyfiglet
+tqdm
