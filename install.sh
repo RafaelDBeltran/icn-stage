@@ -154,6 +154,7 @@ function ndn_install {
     popd
 }
 
+
 function ndn {
     if [[ updated != true ]]; then
         $update
@@ -190,6 +191,21 @@ function mininet {
     git clone --depth 1 https://github.com/mininet/mininet
     pushd mininet
     sudo ./util/install.sh -nv
+    popd
+}
+
+function icn-stage {
+    if [[ updated != true ]]; then
+        $update
+        updated="true"
+    fi
+
+    if [[ $pysetup != true ]]; then
+        pysetup="true"
+    fi
+
+    git clone --depth 1 https://github.com/RafaelDBeltran/ICNStage
+    pushd ICNStage
     popd
 }
 
@@ -356,6 +372,7 @@ function usage {
     printf -- ' -n: install NDN dependencies of mini-ndn including infoedit\n' >&2
     printf -- ' -p: patch ndn-cxx with dummy key chain\n' >&2
     printf -- ' -q: quiet install (must be specified first)\n' >&2
+    printf -- ' -r: install icn-stage\n' >&2
     #TODO# icnstage
     exit 2
 }
@@ -363,14 +380,14 @@ function usage {
 if [[ $# -eq 0 ]]; then
     usage
 else
-    while getopts 'acdhimnpq' OPTION
+    while getopts 'acdhimnpqs' OPTION
     do
         case $OPTION in
         a)
         ndn
         mininet
-        minindn
         commonClientLibraries
+        icn-stage
         break
         ;;
         c)    commonClientLibraries;;
@@ -381,7 +398,7 @@ else
         n)    ndn;;
         p)    patchDummy;;
         q)    quiet_install;;
-        #TODO# s) icnstage;;
+        s)    icn-stage;;
         ?)    usage;;
         esac
     done
