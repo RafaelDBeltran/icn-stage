@@ -1,5 +1,11 @@
 
 import psutil
+import time
+import logging
+import os
+import subprocess
+import sys
+
 from threading import Thread
 
 DEFAULT_SLEEP_SECONDS = 60
@@ -11,6 +17,7 @@ class Controller_ICNStage:
                     # conectar com todos workers e reconfigurar info.cfg
                     # atualizar a lista através do zookeeper
                     # será possível alterar a lista de diretores com experimento rodando? (eu acho que não)
+    
     def __init__(self):
         
         LoopControllerProcess = Thread(target=self.LoopController)                 
@@ -135,58 +142,6 @@ class Controller_ICNStage:
         
 
 
-
-
-def main():
-    # arguments
-    parser = argparse.ArgumentParser(description='Manager tool for the EasyExp Controller')
-
-    help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
-    parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
-
-    cmd_choices = ['restart', 'status', 'install', 'start', 'stop', 'test-tcp', 'test-ndn', 'test-hicn', 'w']
-    parser.add_argument('cmd', choices=cmd_choices)
-
-    # parser.print_help()
-
-    # read arguments from the command line
-    args = parser.parse_args()
-
-    # setup the logging facility
-
-    if args.log == logging.DEBUG:
-        logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-                            datefmt=TIME_FORMAT, level=args.log)
-
-    else:
-        logging.basicConfig(format='%(asctime)s %(message)s',
-                            datefmt=TIME_FORMAT, level=args.log)
-
-    # shows input parameters
-    logging.info("")
-    logging.info("INPUT")
-    logging.info("---------------------")
-    logging.info("\t logging level : %s" % args.log)
-    logging.info("\t command option: %s" % args.cmd)
-    logging.info("")
-
-    # process input parameters
-    if args.cmd == "status":
-        #zookeeper_status()
-        x = ControllerClient()
-        for worker in sorted(x.worker_get_all(), key=lambda x: x.hostname):
-            print(worker)
-    elif args.cmd == "restart":
-        zookeeper_restart()
-    elif args.cmd == "install":
-        zookeeper_install()
-    elif args.cmd == "start":
-        Controller_ICNStage()
-    elif args.cmd == "stop":
-        zookeeper_stop()
-    elif args.cmd == "test-tcp":
-        test_tcp()
-    elif args.cmd == "test-ndn":
-        test_ndn()
-    else:
-        logging.error("command is not valid: %s" % args.cmd)
+#  Para utilizar as configurações do modo distribuído do controlador deve-se.
+        # importar essa classe
+        # instaciar o controlador.
