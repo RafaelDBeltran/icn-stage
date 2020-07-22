@@ -13,3 +13,8 @@ mynfd.conf
 *.err
 *.out
 *.dat
+.idea/vcs.xml
+.idea/modules.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/ICNStage.iml
+.idea/workspace.xml
