@@ -13,7 +13,7 @@ ln -s /vagrant /home/vagrant/icn-stage
 #  git clone --depth 1 https://github.com/RafaelDBeltran/icn-stage.git
 #  #pushd icn-stage
 #fi
-./install.sh -qa
+./icn-stage/install.sh -qa
 
 SCRIPT
 
