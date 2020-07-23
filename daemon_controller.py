@@ -583,6 +583,7 @@ class ControllerDaemon(Daemon):
 				self.exit = True
 			else:
 				logging.info("ERRO")
+
 	def run(self):
 
 		self.cclient = ControllerClient()
@@ -612,6 +613,7 @@ class ControllerDaemon(Daemon):
 		#stops webservice
 		subprocess.call('pkill -f "python webservice/manage.py runserver 0:3181"', shell=True)
 
+
 if __name__ == '__main__':
 	daemon_cmd = sys.argv[1]
 	daemon = ControllerDaemon("/tmp/daemon_controller.pid", stdout="daemon_controller.out", stderr="daemon_controller.err")
@@ -626,7 +628,7 @@ if __name__ == '__main__':
 			print(datetime.datetime.now(), "Daemon is running [PID=%d]" % daemon_pid)
 
 	elif daemon_cmd == 'stop':
-		print(datetime.datetime.now(), "Stoping daemon")
+		print(datetime.datetime.now(), "Stopping daemon")
 		daemon.stop()
 
 	elif daemon_cmd == 'restart':

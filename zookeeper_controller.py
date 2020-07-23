@@ -8,32 +8,49 @@ from modules.conlib.remote_access import Channel
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 
+
 def nowStr():
-	return time.strftime(TIME_FORMAT, time.localtime())
+    return time.strftime(TIME_FORMAT, time.localtime())
+
+
 def get_tabs(n):
-	s = ""
-	for i in range(n):
-		s += "\t"
-	return s
+    s = ""
+    for i in range(n):
+        s += "\t"
+    return s
+
 
 def get_diff_tabs(n, word):
-	s = ""
-	for i in range(50-len(word)):
-		s += " "
+    s = ""
+    for i in range(50 - len(word)):
+        s += " "
 
-	#for i in range(8-n):
-	#	s += "\t"
-	return s
-
+    # for i in range(8-n):
+    #	s += "\t"
+    return s
 
 
 class Zookeeper_Controller:
+
     def __init__(self):
         try:
             self.controller_client = ControllerClient()
         except:
             self.zookeeper_start()
         print('start zookeeper controller')
+
+    @staticmethod
+    def am_i_the_leader():
+        status = os.popen('./apache-zookeeper-3.6.1/bin/zkServer.sh status').read()
+        try:
+            if status.index('leader'):
+                return True
+
+            else:
+                return False
+
+        except:
+            return False
 
     def zookeeper_status(self):
         logging.info("STATUS ZK")
@@ -51,9 +68,9 @@ class Zookeeper_Controller:
         logging.info("STARTING ZK")
         # subprocess.call("./zookeeper-3.4.9/bin/zkServer.sh start", shell=True)
         subprocess.call("./apache-zookeeper-3.6.1/bin/zkServer.sh start", shell=True)
-        
+
         logging.info("CONNECTING ZK")
-        #controller_client = ControllerClient()
+        # controller_client = ControllerClient()
         self.controller_client = ControllerClient()
 
         logging.info("CREATING BASIC ZNODES ZK")
@@ -64,7 +81,8 @@ class Zookeeper_Controller:
             os.mkdir("./experiments")
 
         subprocess.call("%s daemon_controller.py restart" % sys.executable, shell=True)
-    #TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
+
+    # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
         print(nowStr(), "Reseting workers...\n")
 
@@ -122,7 +140,8 @@ class Zookeeper_Controller:
         for w in self.controller_client.zk.get_children('/registered/workers'):
             try:
                 print(nowStr(), "\t\tCreating channel with worker: ", w, " ... ", end=' ')
-                channel = Channel(hostname=w, username=remote_user, password=remote_password, pkey=remote_pkey, timeout=30)
+                channel = Channel(hostname=w, username=remote_user, password=remote_password, pkey=remote_pkey,
+                                  timeout=30)
                 print(" done.")
                 print(nowStr(), "\t\tKilling python process at worker: ", w, " ... ", end=' ')
                 channel.run("killall python")
@@ -133,13 +152,12 @@ class Zookeeper_Controller:
                 print(e)
 
         print(nowStr(), "\tKilling done. \n")
-    
 
     def print_zk_tree(self, tree_node, node, n, count_=1):
 
         if node is not None:
 
-            print("%02d:%02d"%(n,count_), get_tabs(n), node, get_diff_tabs(n, node), " : ", end=' ')
+            print("%02d:%02d" % (n, count_), get_tabs(n), node, get_diff_tabs(n, node), " : ", end=' ')
             try:
                 value = self.controller_client.zk.get(tree_node)
                 if value is None:
@@ -150,12 +168,12 @@ class Zookeeper_Controller:
             except Exception as e:
                 print("Exception: ", e)
 
-
             try:
                 count = 1
                 for t in self.controller_client.zk.get_children(tree_node, include_data=False):
-                    self.print_zk_tree(tree_node+"/"+t, t, n+1, count)
-                    count +=1
-                    #print t
+                    self.print_zk_tree(tree_node + "/" + t, t, n + 1, count)
+                    count += 1
+                    # print t
             except Exception as e:
-                print("Exception: ", e)
+                print("Exception: ",
+ e)

@@ -2,16 +2,16 @@
 # vi: set ft=ruby :
 
 $script = <<SCRIPT
-ln -s /vagrant /home/vagrant/ICNStage
+ln -s /vagrant /home/vagrant/icn-stage
 
 # Check if install.sh is present or someone just copied the Vagrantfile directly
-if [[ -f /home/vagrant/ICNStage/install.sh ]]; then
-  pushd /home/vagrant/ICNStage
+if [[ -f /home/vagrant/icn-stage/install.sh ]]; then
+  # pushd /home/vagrant/icn-stage
 else
   # Remove the symlink
-  rm /home/vagrant/ICNStage
-  git clone --depth 1 https://github.com/RafaelDBeltran/ICNStage.git
-  pushd ICNStage
+  rm /home/vagrant/icn-stage
+  git clone --depth 1 https://github.com/RafaelDBeltran/icn-stage.git
+  #pushd icn-stage
 fi
 ./install.sh -qa
 
@@ -22,8 +22,8 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", privileged: false, inline: $script
   config.vm.provider "virtualbox" do |vb|
     vb.name = "icn-stage_box"
-    vb.memory = 4096
-    vb.cpus = 4
+    vb.memory = 2048
+    vb.cpus = 2
 	vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end
 end

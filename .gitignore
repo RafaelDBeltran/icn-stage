@@ -113,3 +113,4 @@ ndn-src/jndn/
 ndn-src/infoedit/
 ndn-src/ChronoSync/
 mininet/
+.idea/misc.xml

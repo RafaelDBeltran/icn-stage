@@ -13,7 +13,6 @@ import argparse
 import datetime
 import logging
 import subprocess
-from tqdm import trange
 from time import sleep
 
 # specific bibs
@@ -21,13 +20,15 @@ try:
     import kazoo
     import paramiko
     import scp
+    from tqdm import trange
+
 
 except ImportError as error:
     print(error)
     print()
     print("1. Setup a virtual environment: ")
-    print("  python3 - m venv ~/Python3env/ExtendedEasyExp ")
-    print("  source ~/Python3env/ExtendedEasyExp/bin/activate ")
+    print("  python3 - m venv ~/Python3env/icn-stage ")
+    print("  source ~/Python3env/icn-stage/bin/activate ")
     print()
     print("2. Install requirements:")
     print("  pip3 install --upgrade pip")

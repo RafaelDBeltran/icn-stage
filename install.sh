@@ -204,8 +204,11 @@ function icn-stage {
         pysetup="true"
     fi
 
-    git clone --depth 1 https://github.com/RafaelDBeltran/ICNStage
-    pushd ICNStage
+    pushd icn-stage
+	sudo apt install python3-pip
+	pip3 install --upgrade pip
+  	pip3 install -r requirements.txt
+	cp config.json.example config.json
     popd
 }
 
@@ -373,7 +376,6 @@ function usage {
     printf -- ' -p: patch ndn-cxx with dummy key chain\n' >&2
     printf -- ' -q: quiet install (must be specified first)\n' >&2
     printf -- ' -r: install icn-stage\n' >&2
-    #TODO# icnstage
     exit 2
 }
 
