@@ -40,13 +40,15 @@ def daemon_controller_is_running():
 
 
 def run_daemon_controller(arg_):
+    # cmd = [sys.executable, "daemon_controller.py", "arg_"]
+    # subprocess.call(cmd)
     subprocess.call("%s daemon_controller.py %s " % (sys.executable, arg_), shell=True)
 
 
 class DirectorEnsembleDaemon(Daemon):
 
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
-        super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
+        super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
         self.zookeeper_controller = Zookeeper_Controller()
         self.sleep_secs = DEFAULT_SLEEP_SECONDS
 
@@ -58,16 +60,17 @@ class DirectorEnsembleDaemon(Daemon):
         while True:
                 
             if self.zookeeper_controller.am_i_the_leader():
-                print('\n(My Status) LEADER\n')
+                logging.info('\n(My Status) LEADER\n')
    
                 if not daemon_controller_is_running():
                     logging.info("\nDaemonController isn't running\n")
                     run_daemon_controller("start")
+
                 else:
                     logging.debug("\nDaemonController is already running!\n")
 
             else:
-                print('\n(MY Status) FOLLOWER\n')
+                logging.info('\n(MY Status) FOLLOWER\n')
                 
                 if daemon_controller_is_running():
                     logging.info("DaemonController is running")

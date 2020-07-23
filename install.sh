@@ -205,10 +205,12 @@ function icn-stage {
     fi
 
     pushd icn-stage
-	sudo apt install python3-pip
-	pip3 install --upgrade pip
+	  sudo apt install python3-pip
+	  pip3 install --upgrade pip
   	pip3 install -r requirements.txt
-	cp config.json.example config.json
+	  cp config.json.example config.json
+	  cp settings.json.example settings.json
+	  #python3 icn-stage_install vagrant
     popd
 }
 

@@ -13,6 +13,7 @@ mynfd.conf
 *.err
 *.out
 *.dat
+*.json
 .idea/vcs.xml
 .idea/modules.xml
 .idea/inspectionProfiles/profiles_settings.xml
@@ -114,3 +115,5 @@ ndn-src/infoedit/
 ndn-src/ChronoSync/
 mininet/
 .idea/misc.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/icn-stage.iml

@@ -175,5 +175,4 @@ class Zookeeper_Controller:
                     count += 1
                     # print t
             except Exception as e:
-                print("Exception: ",
- e)
+                print("Exception: ", e)
