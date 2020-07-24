@@ -90,7 +90,7 @@ def main():
     help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
     parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
 
-    help_msg = "unique id (str) for multiple daemons"
+    help_msg = "unique id (str), required for running multiple daemons on the host"
     parser.add_argument("--id", "-i", help=help_msg, default="default", type=str)
 
     help_msg = "loop sleep seconds (int)"

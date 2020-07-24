@@ -205,12 +205,16 @@ function icn-stage {
     fi
 
     pushd icn-stage
-	  sudo apt install python3-pip
+	  $install python3-pip
 	  pip3 install --upgrade pip
   	pip3 install -r requirements.txt
 	  cp config.json.example config.json
 	  cp settings.json.example settings.json
-	  #python3 icn-stage_install vagrant
+	  #TODO replace with something as python3 icn-stage_install vagrant
+	  wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
+	  tar zxf apache-zookeeper-3.6.1-bin.tar.gz
+	  mv apache-zookeeper-3.6.1-bin  apache-zookeeper-3.6.1
+	  rm apache-zookeeper-3.6.1-bin.tar.gz
     popd
 }
 
@@ -377,7 +381,7 @@ function usage {
     printf -- ' -n: install NDN dependencies of mini-ndn including infoedit\n' >&2
     printf -- ' -p: patch ndn-cxx with dummy key chain\n' >&2
     printf -- ' -q: quiet install (must be specified first)\n' >&2
-    printf -- ' -r: install icn-stage\n' >&2
+    printf -- ' -s: install icn-stage\n' >&2
     exit 2
 }
 

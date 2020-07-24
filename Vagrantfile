@@ -2,17 +2,15 @@
 # vi: set ft=ruby :
 
 $script = <<SCRIPT
+# Create a symlink between host and VM
 ln -s /vagrant /home/vagrant/icn-stage
 
 # Check if install.sh is present or someone just copied the Vagrantfile directly
-#if [[ -f /home/vagrant/icn-stage/install.sh ]]; then
-#  # pushd /home/vagrant/icn-stage
-#else
-#  # Remove the symlink
-#  rm /home/vagrant/icn-stage
-#  git clone --depth 1 https://github.com/RafaelDBeltran/icn-stage.git
-#  #pushd icn-stage
-#fi
+if [[ ! -f /home/vagrant/icn-stage/install.sh ]]; then
+  # Remove the symlink
+  rm /home/vagrant/icn-stage
+  git clone --depth 1 https://github.com/RafaelDBeltran/icn-stage.git
+fi
 ./icn-stage/install.sh -qa
 
 SCRIPT
