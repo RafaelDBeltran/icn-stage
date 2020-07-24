@@ -4,26 +4,35 @@ ICN-Stage is an open plataform for orchestrating fault-tolerant ICN experimental
 
 # To-run
 You can run ICN-stage in your machine:
-    ./install.sh -qa
+    ```sh
+    ./install.sh -s
+    ```   
 
-We strongly suggest you use a Vagrant + VirtualBox based VM 
-    1. Configure you VM (this step may take ~2 hours)
+We strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mininet testbed for the developing purposes.
+
+1. Configure you VM (this step may take ~2 hours)
+    ```sh
     local-host$ vagrant up 
-    2. login in the VM    
+    ```
+
+2. login in the VM    
+    ```sh
     local-host$ vagrant ssh 
-    3. run ICN-Stage
+    ```
+    
+3. run ICN-Stage
+    ```sh
     vagrant$ ./icn-stage.py
-    4. in another terminal, run mininet
+    ```
+    
+4. in another terminal, run mininet
+    ```sh
     local-host$ vagrant ssh 
      vagrant$ sudo mn --nat --topo linear,3
+     ```
 
-    - Apache Zookeeper 3.6.1 (The name of file must be apache-zookeeper-3.6.1).
-    - Remove the .example of file config.json.example and edit for you execution env.
+    
 
-In your terminal type:
-```sh
-$ python new_controller.py
-```
 
 # IN Building !!!
 
