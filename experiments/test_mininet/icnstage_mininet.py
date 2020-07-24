@@ -1,4 +1,7 @@
-"""Exemplos de topologias
+"""
+   Dictionary with topologies for testing ICN-Stage with Mininet
+
+   usage example: sudo mn --custom icnstage_mininet.py --topo=dumbbell
 
    Adding the 'topos' dict with a key/value pair to generate our newly defined
 	topology enables one to pass in '--topo=mytopo' from the command line.
@@ -17,12 +20,12 @@ from subprocess import call
 from mininet.nodelib import NAT
 
 
-class MyTopo(Topo):
-	"""Simple topology example.
+class Dumbbell(Topo):
+	"""Dumbbell topology example.
 	Two directly connected switches plus a host for each switch:
 
 	   host --- switch --- switch --- host
-
+	   host --- /               \ --- host
 	Adding the 'topos' dict with a key/value pair to generate our newly defined
 	topology enables one to pass in '--topo=mytopo' from the command line.
 	"""
@@ -34,21 +37,27 @@ class MyTopo(Topo):
 		Topo.__init__(self)
 
 		# Add hosts and switches
-		leftHost = self.addHost('h1')
-		rightHost = self.addHost('h2')
-		leftSwitch = self.addSwitch('s3')
-		rightSwitch = self.addSwitch('s4')
+		leftHost1 = self.addHost('h1', cls=Host, ip='10.0.0.1', defaultRoute=None)
+		leftHost2 = self.addHost('h3', cls=Host, ip='10.0.0.3', defaultRoute=None)
+		rightHost1 = self.addHost('h2', cls=Host, ip='10.0.0.2', defaultRoute=None)
+		rightHost2 = self.addHost('h4', cls=Host, ip='10.0.0.4', defaultRoute=None)
+
+		leftSwitch = self.addSwitch('s1')
+		rightSwitch = self.addSwitch('s2')
 
 		# Add links
-		self.addLink(leftHost, leftSwitch)
+		self.addLink(leftHost1, leftSwitch)
+		self.addLink(leftHost2, leftSwitch)
+
+		self.addLink(rightSwitch, rightHost1)
+		self.addLink(rightSwitch, rightHost2)
+
 		self.addLink(leftSwitch, rightSwitch)
-		self.addLink(rightSwitch, rightHost)
+
 
 
 class Linear_3s3h(Topo):
-	"""Exemplo do trabalho
-	3 switches, cada um com um host atrelado
-
+	"""
 	 switch1 --- switch2 --- switch3
 		|           |           |
 	  host1       host2       host3
@@ -83,10 +92,8 @@ class Linear_3s3h(Topo):
 		self.addLink(s2, s3)
 
 
-class Linear_3s2h1n(Topo):
-	"""Exemplo do trabalho
-	3 switches: dois primeiros com um host atrelado e o terceiro com a NAT
-
+class Linear_3s2h1nat(Topo):
+	"""
 	 switch1 --- switch2 ---  switch3
 	   |           |            |
 	 host1       host2        nat1
@@ -169,7 +176,7 @@ class Star_1s3h(Topo):
 		# self.addLink(h2, s2, cls=TCLink , **h2s2)
 
 
-topos = {'mytopo': (lambda: MyTopo()),
+topos = {'dumbbell': (lambda: Dumbbell()),
 		 'l3s3h': (lambda: Linear_3s3h()),
-		 'l3s2h1n': (lambda: Linear_3s2h1n()),
+		 'l3s2h1n': (lambda: Linear_3s2h1nat()),
 		 'star': (lambda: Star_1s3h())}

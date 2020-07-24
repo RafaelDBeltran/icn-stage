@@ -60,8 +60,11 @@ from cryptography.hazmat.primitives import serialization
 import tarfile
 import os
 
-class sundry():
-    def get_pkey(self, path):
+
+class Sundry:
+
+    @staticmethod
+    def get_pkey(path):
         with open(path, "rb") as key_file:
             private_key = serialization.load_pem_private_key(
                 key_file.read(),
@@ -75,8 +78,9 @@ class sundry():
             encryption_algorithm=serialization.NoEncryption())
 
         return pem.decode('utf-8')
-    
-    def compress_dir(self, input_dir_, output_file_):
+
+    @staticmethod
+    def compress_dir(input_dir_, output_file_):
 
         tar_file = tarfile.open(output_file_, "w:gz")
         current_dir = os.getcwd()

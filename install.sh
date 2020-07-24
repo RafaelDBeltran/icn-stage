@@ -204,18 +204,23 @@ function icn-stage {
         pysetup="true"
     fi
 
-    pushd icn-stage
+    #pushd icn-stage
 	  $install python3-pip
 	  pip3 install --upgrade pip
   	pip3 install -r requirements.txt
+  	# cp settings_actors_vagrant.json.example settings_actors.json
+  	# cp settings_actors_fibre.json.example settings_actors.json
 	  cp config.json.example config.json
 	  cp settings.json.example settings.json
-	  #TODO replace with something as python3 icn-stage_install vagrant
+	  # cp settings_director_local.json.example settings_director.json
+	  # cp settings_director_ensemble.json.example settings_director.json
+	  #TODO replace with something as $ ./install_director.py vagrant
 	  wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
 	  tar zxf apache-zookeeper-3.6.1-bin.tar.gz
-	  mv apache-zookeeper-3.6.1-bin  apache-zookeeper-3.6.1
+	  mv apache-zookeeper-3.6.1-bin apache-zookeeper-3.6.1
+	  #ls -s apache-zookeeper-3.6.1-bin zookeeper
 	  rm apache-zookeeper-3.6.1-bin.tar.gz
-    popd
+    #popd
 }
 
 function infoedit {

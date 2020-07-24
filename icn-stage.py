@@ -47,14 +47,14 @@ from modules.model.worker import Worker
 #load tools
 from modules.util.tools import ConfigHelper
 from modules.util.tools import View
-from modules.util.tools import sundry
+from modules.util.tools import Sundry
 #root imports
 from zookeeper_controller import Zookeeper_Controller
 from experiments_resources import call_tcpserver
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-Instance_sundry = sundry()
+sundry = Sundry()
 #Load config file
 data = json.load(open('config.json'))
 
@@ -64,15 +64,18 @@ Instance_FixIP.create_zookeeper_config_file()
 logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
                             datefmt=TIME_FORMAT,filename='new_controller.info',level=logging.INFO)
 
+
 def add_worker(controller_client):
     logging.info("Adding Workers...")
     for i in data['workers']:
-        controller_client.task_add(COMMANDS.NEW_WORKER, worker=Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], pkey=Instance_sundry.get_pkey(i["remote_pkey_path"])))
+        controller_client.task_add(COMMANDS.NEW_WORKER, worker=Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], pkey=sundry.get_pkey(i["remote_pkey_path"])))
         logging.info("Worker {} added.".format(i["remote_hostname"]))
     for i in trange(120):
         sleep(1)
     logging.info("Adding Workers...DONE")
-#TODO Adicionar loading time no add workers
+
+
+# TODO Adicionar loading time no add workers
 def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, controller_client, func = None):
     logging.info("\t Executing experiment {} \t".format(experiment_name))
 
@@ -85,7 +88,7 @@ def experiment_skeleton(experiment_name, commands, experiment_file_name, experim
     roles = [simple_role]
 
     dir_source = _local_experiments_dir + experiment_dir
-    Instance_sundry.compress_dir(dir_source, experiment_file_name)
+    sundry.compress_dir(dir_source, experiment_file_name)
     logging.info("Sending experiment... ")
     experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
     logging.debug("Experiment %s", experiment_)
@@ -100,86 +103,126 @@ def experiment_skeleton(experiment_name, commands, experiment_file_name, experim
         func()
 
     controller_client.config_stop
-    logging.debug("\tExperiment done.\n")
+    logging.info("\tExperiment done.\n")
 
+
+def help_msg():
+    return '''
+    Available commands
+    ------------------
+    start   : 
+    stop    :
+    restart :
+    status  :
+    towork  :
+    test    :
+    help, ? : prints this message
+    print   :
+    printc  :
+    printd  :
+    '''
+
+
+def run_command(zc, command):
+
+    if command == 'start':
+        zc.zookeeper_start()
+    elif command == 'stop':
+        zc.zookeeper_stop()
+    elif command == 'restart':
+        zc.zookeeper_restart()
+    elif command == 'status':
+        zc.zookeeper_status()
+    elif command == 'towork':
+        add_worker(zc.controller_client)
+    elif command == 'test':
+        try:
+            experiment_skeleton('first fly', ['python {}'.format('tcp_client.py'),
+                                              '--host {}'.format(Instance_FixIP.get_ip_adapter()),
+                                              '--port {}'.format('10000')],
+                                "test_tcp.tar.gz", "experiments/test_tcp/", zc.controller_client)
+
+            # TODO o call_tcpserver deveria funcionar sendo chamado dentro do experiment_skeleton
+            call_tcpserver(Instance_FixIP.get_ip_adapter(), 10000)
+
+        except:
+            msg = "Don't forget to add the workers!"
+            logging.error(msg)
+            print(msg)
+
+    elif command == 'reset':
+        for i in data['workers']:
+            zc.kill_worker_daemon(i["remote_username"], i["remote_password"],
+                                  sundry.get_pkey(i["remote_pkey_path"]))
+            zc.reset_workers()
+
+    elif command == 'printc':
+        try:
+            root = "/connected/"
+            zc.print_zk_tree(root, root, 0)
+
+        except:
+            pass
+        # zc.controller_client.zk.stop()
+        # sys.exit(0)
+
+    elif command == 'printd':
+        try:
+            root = "/disconnected/"
+            zc.print_zk_tree(root, root, 0)
+
+        except:
+            pass
+        # zc.controller_client.zk.stop()
+    # sys.exit(0)
+
+    elif command == 'print':
+        try:
+            if len(sys.argv) > 2:
+                root = sys.argv[2]
+                # print root, "/" + root.split("/")[len(root.split("/")) - 1]
+                zc.print_zk_tree(root, root, 0)
+            else:
+                zc.print_zk_tree("/", "/", 0)
+
+        except:
+            pass
+        # zc.controller_client.zk.stop()
+        # sys.exit(0)
+
+    elif command == 'exit' or command == 'quit':
+        subprocess.call("fixNoNodeError.sh", shell=True)
+        subprocess.call("clean.sh", shell=True)
+        print('Goodbye!')
+        sys.exit()
+
+    elif command == 'help' or command == '?':
+        print(help_msg())
+
+    else:
+        print("Command '%s' is not recognized"%command)
+        print(help_msg())
 
 
 def main():
-    #Inicialize view
-    Instance_view = View()
-    Instance_view.print_view()
-    #Inicialize Zookeeper Controller
+
+    # Initialize the Zookeeper Controller (API)
     zc = Zookeeper_Controller()
 
-    while True:
-        comand = input('ICN_Stage_command >> ')
+    if len(sys.argv) > 1:
+        # single command mode
+        command = sys.argv[1]
+        run_command(zc, command)
 
-        if comand == 'start':
-            zc.zookeeper_start()
-        elif comand == 'stop':
-            zc.zookeeper_stop()
-        elif comand == 'restart':
-            zc.zookeeper_restart()
-        elif comand == 'status':
-            zc.zookeeper_status()
-        elif comand == 'towork':
-            add_worker(zc.controller_client)
-        elif comand == 'test':
-            try:
-                experiment_skeleton('firts fly', ['python {}'.format('tcp_client.py'),'--host {}'.format(Instance_FixIP.get_ip_adapter()),'--port {}'.format('10000')],
-                "test_tcp.tar.gz", "experiments/test_tcp/", zc.controller_client)
+    else:
+        # interactive mode
+        # Initialize view
+        view = View()
+        view.print_view()
+        while True:
+            command = input('ICN-Stage >> ')
+            run_command(zc, command)
 
-                #TODO o call_tcpserver deveria funcionar sendo chamado dentro do experiment_skeleton
-                call_tcpserver(Instance_FixIP.get_ip_adapter(), 10000)
-            except:
-                logging.error('Dont forgive add the workers')
-        
-        elif comand == 'reset':
-            for i in data['workers']:
-                zc.kill_worker_daemon(i["remote_username"],i["remote_password"],Instance_sundry.get_pkey(i["remote_pkey_path"]))
-                zc.reset_workers()
-        
-        elif comand == 'printc':
-            try:
-                root = "/connected/"
-                zc.print_zk_tree(root, root, 0)
 
-            except:
-                pass
-            #zc.controller_client.zk.stop()
-            #sys.exit(0)
-
-        elif comand == 'printd':
-            try:
-                root = "/disconnected/"
-                zc.print_zk_tree(root, root, 0)
-
-            except:
-                pass
-            #zc.controller_client.zk.stop()
-		#sys.exit(0)
-
-        elif comand == 'print':
-            try:
-                if len(sys.argv) > 2:
-                    root = sys.argv[2]
-                    #print root, "/" + root.split("/")[len(root.split("/")) - 1]
-                    zc.print_zk_tree(root, root, 0)
-                else:
-                    zc.print_zk_tree("/", "/", 0)
-
-            except:
-                pass
-            #zc.controller_client.zk.stop()
-            #sys.exit(0)
-
-        elif comand == 'exit' or comand == 'quit':
-            subprocess.call("fixNoNodeError.sh", shell=True)
-            subprocess.call("clean.sh", shell=True)
-            print('Goodbye!!!')
-            sys.exit()
-        else:
-            print('Command no recognize')
 if __name__ == '__main__':
-
     sys.exit(main())
