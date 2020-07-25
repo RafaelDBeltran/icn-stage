@@ -19,7 +19,7 @@ from modules.util.tools import ConfigHelper
 from modules.util.tools import View
 from modules.util.tools import Sundry
 # root imports
-from zookeeper_controller import Zookeeper_Controller
+from zookeeper_controller import ZookeeperController
 from experiments_resources import call_tcpserver
 
 # Variables Define
@@ -69,8 +69,8 @@ def run_experiments(n_actors=DEFAULT_NUMBER_ACTORS):
 	results = {}
 	n_experiments = 2
 
-	zc = Zookeeper_Controller()
-	zc.zookeeper_start()
+	zc = ZookeeperController()
+	zc.start_zookeeper_service()
 	add_workers(zc, n_actors)
 	zc.zookeeper_stop()
 

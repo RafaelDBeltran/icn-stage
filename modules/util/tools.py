@@ -1,48 +1,37 @@
 
-import netifaces as ni
+
 import json
 import logging
 import os
 import sys
 
-my_config_file = '''tickTime=5000\n\
-minSessionTimeout=30000\n\
-maxSessionTimeout=60000\n\
-initLimit=10\n\
-syncLimit=5\n\
-dataDir=~/.zk/datadir\n\
-clientPort=2181\n\
-clientPortAddress=NEW_IP\n\
-maxClientCnxns=200\n\
-'''
 
-
-class ConfigHelper:
-
-    DEFAULT_CONFIG_FILE = "config.json"
-
-    def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
-
-        if os.path.isfile(config_file_):
-            self.config_data = json.load(open(config_file_))
-            self.adapter = self.config_data["zookeeper_adapter"]
-
-        else:
-            print("Config file not found! Config file name: '%s'" % config_file_)
-            print("You may want to create a config file from the available example: cp %s.example %s" % (ConfigHelper.DEFAULT_CONFIG_FILE, config_file_))
-            sys.exit(-1)
-
-
-    def get_ip_adapter(self):
-        # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
-        ni.ifaddresses(self.adapter)
-        return ni.ifaddresses(self.adapter)[ni.AF_INET][0]['addr']
-
-    def create_zookeeper_config_file(self):
-        new_my_config_file = my_config_file.replace('NEW_IP', self.get_ip_adapter())
-        text_file = open("apache-zookeeper-3.6.1/conf/zoo.cfg", "w")
-        text_file.write(new_my_config_file)
-        text_file.close()
+# class ConfigHelper:
+#
+#     DEFAULT_CONFIG_FILE = "config.json"
+#
+#     def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
+#
+#         if os.path.isfile(config_file_):
+#             self.config_data = json.load(open(config_file_))
+#             self.adapter = self.config_data["zookeeper_adapter"]
+#
+#         else:
+#             print("Config file not found! Config file name: '%s'" % config_file_)
+#             print("You may want to create a config file from the available example: cp %s.example %s" % (ConfigHelper.DEFAULT_CONFIG_FILE, config_file_))
+#             sys.exit(-1)
+#
+#
+#     def get_ip_adapter(self):
+#         # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
+#         ni.ifaddresses(self.adapter)
+#         return ni.ifaddresses(self.adapter)[ni.AF_INET][0]['addr']
+#
+#     def create_zookeeper_config_file(self):
+#         new_my_config_file = my_config_file.replace('NEW_IP', self.get_ip_adapter())
+#         text_file = open("apache-zookeeper-3.6.1/conf/zoo.cfg", "w")
+#         text_file.write(new_my_config_file)
+#         text_file.close()
 
 #./apache-zookeeper-3.6.1/bin/zkServer.sh start
 

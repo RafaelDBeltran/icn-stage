@@ -8,6 +8,7 @@ __credits__ = ['PPGA', 'LEA', 'Unipampa@Alegrete']
 
 #general bibs
 import sys
+
 import json
 import argparse
 import datetime
@@ -16,12 +17,14 @@ import subprocess
 from time import sleep
 
 # specific bibs
+import daemon_director
+
 try:
     import kazoo
     import paramiko
     import scp
     from tqdm import trange
-
+    import logreset
 
 except ImportError as error:
     print(error)
@@ -45,25 +48,58 @@ from modules.model.experiment import Experiment
 from modules.model.role import Role
 from modules.model.worker import Worker
 #load tools
-from modules.util.tools import ConfigHelper
 from modules.util.tools import View
 from modules.util.tools import Sundry
 #root imports
-from zookeeper_controller import Zookeeper_Controller
+from zookeeper_controller import ZookeeperController
 from experiments_resources import call_tcpserver
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+DEFAULT_LOG_LEVEL = logging.INFO
+_log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
 data = json.load(open('config.json'))
 
-Instance_FixIP = ConfigHelper()
-Instance_FixIP.create_zookeeper_config_file()
 
-logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-                            datefmt=TIME_FORMAT,filename='new_controller.info',level=logging.INFO)
 
+
+def reset_logging():
+    manager = logging.root.manager
+    manager.disabled = logging.NOTSET
+    for logger in manager.loggerDict.values():
+        if isinstance(logger, logging.Logger):
+            logger.setLevel(logging.NOTSET)
+            logger.propagate = True
+            logger.disabled = False
+            logger.filters.clear()
+            handlers = logger.handlers.copy()
+            for handler in handlers:
+                # Copied from `logging.shutdown`.
+                try:
+                    handler.acquire()
+                    handler.flush()
+                    handler.close()
+                except (OSError, ValueError):
+                    pass
+                finally:
+                    handler.release()
+                logger.removeHandler(handler)
+
+def set_logging(level=DEFAULT_LOG_LEVEL):
+
+    logreset.reset_logging()
+    _log_level = level
+    #logging.root.handlers = []
+    if _log_level == logging.DEBUG:
+         format = '%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s'
+    else:
+        format = '%(asctime)s %(message)s',
+    logging.basicConfig(format=format, datefmt=TIME_FORMAT, level=_log_level)
+    # if level > 0:
+    #     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+    print("current log level: %d (DEBUG=%d, INFO=%d)" % (_log_level, logging.DEBUG, logging.INFO))
 
 def add_worker(controller_client):
     logging.info("Adding Workers...")
@@ -120,30 +156,40 @@ def help_msg():
     print   :
     printc  :
     printd  :
-    '''
+    log     : setup logging level (default=%d, current=%d)
+    ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
-def run_command(zc, command):
+def run_command(zookeeper_controller, command):
 
     if command == 'start':
-        zc.zookeeper_start()
+        #zookeeper_controller.start_zookeeper_service()
+        daemon_director.start()
+
     elif command == 'stop':
-        zc.zookeeper_stop()
+        #zookeeper_controller.zookeeper_stop()
+        daemon_director.stop()
+
     elif command == 'restart':
-        zc.zookeeper_restart()
+        #zookeeper_controller.zookeeper_restart()
+        daemon_director.restart()
+
     elif command == 'status':
-        zc.zookeeper_status()
+        #zookeeper_controller.zookeeper_status()
+        daemon_director.status()
+
     elif command == 'towork':
-        add_worker(zc.controller_client)
+        add_worker(zookeeper_controller.controller_client)
+
     elif command == 'test':
         try:
             experiment_skeleton('first fly', ['python {}'.format('tcp_client.py'),
-                                              '--host {}'.format(Instance_FixIP.get_ip_adapter()),
+                                              '--host {}'.format(zookeeper_controller.get_ip_adapter()),
                                               '--port {}'.format('10000')],
-                                "test_tcp.tar.gz", "experiments/test_tcp/", zc.controller_client)
+                                "test_tcp.tar.gz", "experiments/test_tcp/", zookeeper_controller.controller_client)
 
             # TODO o call_tcpserver deveria funcionar sendo chamado dentro do experiment_skeleton
-            call_tcpserver(Instance_FixIP.get_ip_adapter(), 10000)
+            call_tcpserver(zookeeper_controller.get_ip_adapter(), 10000)
 
         except:
             msg = "Don't forget to add the workers!"
@@ -152,28 +198,28 @@ def run_command(zc, command):
 
     elif command == 'reset':
         for i in data['workers']:
-            zc.kill_worker_daemon(i["remote_username"], i["remote_password"],
-                                  sundry.get_pkey(i["remote_pkey_path"]))
-            zc.reset_workers()
+            zookeeper_controller.kill_worker_daemon(i["remote_username"], i["remote_password"],
+                                                    sundry.get_pkey(i["remote_pkey_path"]))
+            zookeeper_controller.reset_workers()
 
     elif command == 'printc':
         try:
             root = "/connected/"
-            zc.print_zk_tree(root, root, 0)
+            zookeeper_controller.print_zk_tree(root, root, 0)
 
         except:
             pass
-        # zc.controller_client.zk.stop()
+        # zookeeper_controller.controller_client.zk.stop()
         # sys.exit(0)
 
     elif command == 'printd':
         try:
             root = "/disconnected/"
-            zc.print_zk_tree(root, root, 0)
+            zookeeper_controller.print_zk_tree(root, root, 0)
 
         except:
             pass
-        # zc.controller_client.zk.stop()
+        # zookeeper_controller.controller_client.zk.stop()
     # sys.exit(0)
 
     elif command == 'print':
@@ -181,13 +227,13 @@ def run_command(zc, command):
             if len(sys.argv) > 2:
                 root = sys.argv[2]
                 # print root, "/" + root.split("/")[len(root.split("/")) - 1]
-                zc.print_zk_tree(root, root, 0)
+                zookeeper_controller.print_zk_tree(root, root, 0)
             else:
-                zc.print_zk_tree("/", "/", 0)
+                zookeeper_controller.print_zk_tree("/", "/", 0)
 
         except:
             pass
-        # zc.controller_client.zk.stop()
+        # zookeeper_controller.controller_client.zk.stop()
         # sys.exit(0)
 
     elif command == 'exit' or command == 'quit':
@@ -199,20 +245,29 @@ def run_command(zc, command):
     elif command == 'help' or command == '?':
         print(help_msg())
 
+    elif command.split(' ')[0] == 'log':
+        try:
+            command_option = int(command.split(' ')[1])
+            set_logging(command_option)
+
+        except Exception as e:
+            print("Log value invalid '%s'" % command )
+
+
     else:
         print("Command '%s' is not recognized"%command)
         print(help_msg())
 
 
 def main():
-
+    set_logging()
     # Initialize the Zookeeper Controller (API)
-    zc = Zookeeper_Controller()
+    zookeeper_controller = ZookeeperController()
 
     if len(sys.argv) > 1:
         # single command mode
         command = sys.argv[1]
-        run_command(zc, command)
+        run_command(zookeeper_controller, command)
 
     else:
         # interactive mode
@@ -221,7 +276,7 @@ def main():
         view.print_view()
         while True:
             command = input('ICN-Stage >> ')
-            run_command(zc, command)
+            run_command(zookeeper_controller, command)
 
 
 if __name__ == '__main__':

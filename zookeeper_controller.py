@@ -2,12 +2,13 @@ import logging
 import subprocess
 import sys
 import os
-
-from modules.conlib.controller_client import *
+import netifaces
+import json
+import time
+from modules.conlib.controller_client import ControllerClient
 from modules.conlib.remote_access import Channel
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-
 
 def nowStr():
     return time.strftime(TIME_FORMAT, time.localtime())
@@ -30,18 +31,81 @@ def get_diff_tabs(n, word):
     return s
 
 
-class Zookeeper_Controller:
+class ZookeeperController:
+    DEFAULT_ZOOKEEPER_PATH = "./apache-zookeeper-3.6.1/"
+    DEFAULT_CONFIG_FILE = "config.json"
+    DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
+    minSessionTimeout=30000\n\
+    maxSessionTimeout=60000\n\
+    initLimit=10\n\
+    syncLimit=5\n\
+    dataDir=~/.zk/datadir\n\
+    clientPort=2181\n\
+    clientPortAddress=NEW_IP\n\
+    maxClientCnxns=200\n\
+    '''
+    ZK_CMD = ['%s/bin/zkServer.sh' % DEFAULT_ZOOKEEPER_PATH]
 
-    def __init__(self):
-        try:
-            self.controller_client = ControllerClient()
-        except:
-            self.zookeeper_start()
-        print('start zookeeper controller')
+    def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
+
+        if os.path.isfile(config_file_):
+            self.config_data = json.load(open(config_file_))
+            self.adapter = self.config_data["zookeeper_adapter"]
+
+        else:
+            print("Config file not found! Config file name: '%s'" % config_file_)
+            print("You may want to create a config file from the available example: cp %s.example %s" % (
+                ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
+            sys.exit(-1)
+
+        zookeeper_ip_port = self.get_ip_adapter() + ':2181'
+        print(zookeeper_ip_port)
+        if not self.is_running():
+            print("Zookeeper Service is not running.")
+            self.start_zookeeper_service()
+            logging.info("CONNECTING ZK")
+            self.controller_client = ControllerClient(zookeeper_ip_port)
+
+            logging.info("CREATING BASIC ZNODES ZK")
+            self.controller_client.config_create_missing_paths()
+
+            if not os.path.isdir("./experiments"):
+                logging.info("CREATING EXPERIMENTS FOLDER")
+                os.mkdir("./experiments")
+        else:
+            self.controller_client = ControllerClient(zookeeper_ip_port)
+
+    def get_ip_adapter(self):
+        # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
+        netifaces.ifaddresses(self.adapter)
+        return netifaces.ifaddresses(self.adapter)[netifaces.AF_INET][0]['addr']
+
+    def create_zookeeper_config_file(self):
+        new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
+        zookeeper_config_file = "%s/conf/zoo.cfg"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        text_file = open(zookeeper_config_file, "w")
+        text_file.write(new_my_config_file)
+        text_file.close()
+
+    @staticmethod
+    def get_status():
+        cmd = '%s/bin/zkServer.sh status' % ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        return os.popen(cmd).read()
+
+    @staticmethod
+    def is_running():
+        cmd = ZookeeperController.ZK_CMD
+        cmd.append('status')
+        return_code = subprocess.run(cmd).returncode
+        if return_code == 0:
+            return True
+        else:
+            return False
 
     @staticmethod
     def am_i_the_leader():
-        status = os.popen('./apache-zookeeper-3.6.1/bin/zkServer.sh status').read()
+        cmd = '%s/bin/zkServer.sh status'%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        status = os.popen(cmd).read()
         try:
             if status.index('leader'):
                 return True
@@ -52,35 +116,33 @@ class Zookeeper_Controller:
         except:
             return False
 
-    def zookeeper_status(self):
-        logging.info("STATUS ZK")
-        subprocess.call("%s daemon_controller.py status" % sys.executable, shell=True)
+    # RM: isso não faz sentido! o controlador do zookeeper deveria controlar apenas o ZK, não o diretor
+    # def zookeeper_status(self):
+    #     logging.info("STATUS ZK")
+    #     subprocess.call("%s daemon_director.py status" % sys.executable, shell=True)
+    #
+    # def zookeeper_restart(self):
+    #     logging.info("RESTART ZK")
+    #     subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
+    #
+    # def zookeeper_stop(self):
+    #     logging.info("STOP ZK")
+    #     subprocess.call("%s daemon_director.py stop" % sys.executable, shell=True)
 
-    def zookeeper_restart(self):
-        logging.info("RESTART ZK")
-        subprocess.call("%s daemon_controller.py restart" % sys.executable, shell=True)
-
-    def zookeeper_stop(self):
-        logging.info("STOP ZK")
-        subprocess.call("%s daemon_controller.py stop" % sys.executable, shell=True)
-
-    def zookeeper_start(self):
+    @staticmethod
+    def start_zookeeper_service():
         logging.info("STARTING ZK")
-        # subprocess.call("./zookeeper-3.4.9/bin/zkServer.sh start", shell=True)
-        subprocess.call("./apache-zookeeper-3.6.1/bin/zkServer.sh start", shell=True)
+        cmd = "%s/bin/zkServer.sh start"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        subprocess.call(cmd, shell=True)
 
-        logging.info("CONNECTING ZK")
-        # controller_client = ControllerClient()
-        self.controller_client = ControllerClient()
+    @staticmethod
+    def stop_zookeeper_service():
+        logging.info("STOPPING ZK")
+        cmd = "%s/bin/zkServer.sh stop" % ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        subprocess.call(cmd, shell=True)
 
-        logging.info("CREATING BASIC ZNODES ZK")
-        self.controller_client.config_create_missing_paths()
+        #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
 
-        if not os.path.isdir("./experiments"):
-            logging.info("CREATING EXPERIMENTS FOLDER")
-            os.mkdir("./experiments")
-
-        subprocess.call("%s daemon_controller.py restart" % sys.executable, shell=True)
 
     # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
@@ -146,6 +208,7 @@ class Zookeeper_Controller:
                 print(nowStr(), "\t\tKilling python process at worker: ", w, " ... ", end=' ')
                 channel.run("killall python")
                 print(" done.")
+
             except Exception as e:
                 print("\n\n")
                 print(" error while killing worker ", w)
@@ -156,7 +219,6 @@ class Zookeeper_Controller:
     def print_zk_tree(self, tree_node, node, n, count_=1):
 
         if node is not None:
-
             print("%02d:%02d" % (n, count_), get_tabs(n), node, get_diff_tabs(n, node), " : ", end=' ')
             try:
                 value = self.controller_client.zk.get(tree_node)
@@ -174,5 +236,6 @@ class Zookeeper_Controller:
                     self.print_zk_tree(tree_node + "/" + t, t, n + 1, count)
                     count += 1
                     # print t
+
             except Exception as e:
                 print("Exception: ", e)

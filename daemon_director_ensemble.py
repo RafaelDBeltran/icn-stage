@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 from modules.extralib.daemon import Daemon
-from zookeeper_controller import Zookeeper_Controller
+from zookeeper_controller import ZookeeperController
 
 DEFAULT_SLEEP_SECONDS = 60
 LOG_LEVEL = logging.DEBUG
@@ -31,7 +31,7 @@ def zookeeper_is_running():
 
 
 def daemon_controller_is_running():
-    process_status = [ proc for proc in psutil.process_iter() if proc.name() == 'daemon_controller.py']
+    process_status = [ proc for proc in psutil.process_iter() if proc.name() == 'daemon_director.py']
 
     if process_status:
         return True
@@ -40,16 +40,16 @@ def daemon_controller_is_running():
 
 
 def run_daemon_controller(arg_):
-    # cmd = [sys.executable, "daemon_controller.py", "arg_"]
+    # cmd = [sys.executable, "daemon_director.py", "arg_"]
     # subprocess.call(cmd)
-    subprocess.call("%s daemon_controller.py %s " % (sys.executable, arg_), shell=True)
+    subprocess.call("%s daemon_director.py %s " % (sys.executable, arg_), shell=True)
 
 
 class DirectorEnsembleDaemon(Daemon):
 
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
         super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
-        self.zookeeper_controller = Zookeeper_Controller()
+        self.zookeeper_controller = ZookeeperController()
         self.sleep_secs = DEFAULT_SLEEP_SECONDS
 
     def set_sleep_secs(self, sleep_secs):

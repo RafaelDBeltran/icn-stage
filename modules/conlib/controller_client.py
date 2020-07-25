@@ -8,15 +8,8 @@ import kazoo.client, kazoo, kazoo.retry, ast, random, time, sys
 from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
-from modules.util.tools import ConfigHelper
 
 import logging
-import json
-import os
-
-CONFIG_JSON_FILE = './config.json'
-#STATIC PATHS
-
 
 class PATHS(object):
 
@@ -39,7 +32,7 @@ class PATHS(object):
 
 
 class COMMANDS(object):
-	'''This class contains all the COMMANDS that the daemon_controller.py module can handle.
+	'''This class contains all the COMMANDS that the daemon_director.py module can handle.
 	All the arguments must be passed as strings to the task_add() method'''
 
 	EXIT = "EXIT"
@@ -81,19 +74,31 @@ class COMMANDS(object):
 		"worker"=<worker_model>
 	'''
 
-config_helper = ConfigHelper()
 
-class ControllerClient(object):
+class ControllerClient:
 	"""docstring for ControllerClient"""
 	#logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s\t%(message)s', datefmt="%Y-%m-%d %H:%M:%S",filename='daemon_controller.log', filemode='w')
 
-
-#### SERVER CONFIGURATION METHODS
+	#### SERVER CONFIGURATION METHODS
 	#rafael
 	# def __init__(self, zk_addr="127.0.0.1:2181"):
-	def __init__(self, zk_addr=config_helper.get_ip_adapter() + ':2181'):
+	def __init__(self, zk_addr):
+
+		#status = zookeeper_controller.get_status()
+		#print(status)
+		#print ("dsadsasas \n\n\n\n\n")
+		#print("is running? ",zookeeper_controller.is_running())
+		# print("dsadsasas \n\n\n\n\n")
+		# print("is getstatus? 1 ", zookeeper_controller.get_status())
+		# print("dsadsasas \n\n\n\n\n")
+		# print("is getstatus? 2 ", zookeeper_controller.get_status2())
+		# print("dsadsasas \n\n\n\n\n")
+
 		self.zk = kazoo.client.KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=180))
-		self.zk.start()
+		try:
+			self.zk.start()
+		except Exception as e:
+			print("Exception while connecting with Zookeeper:\n\n",e)
 
 	def config_stop(self):
 		return self.zk.stop()
