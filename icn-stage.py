@@ -64,41 +64,18 @@ data = json.load(open('config.json'))
 
 
 
-
-def reset_logging():
-    manager = logging.root.manager
-    manager.disabled = logging.NOTSET
-    for logger in manager.loggerDict.values():
-        if isinstance(logger, logging.Logger):
-            logger.setLevel(logging.NOTSET)
-            logger.propagate = True
-            logger.disabled = False
-            logger.filters.clear()
-            handlers = logger.handlers.copy()
-            for handler in handlers:
-                # Copied from `logging.shutdown`.
-                try:
-                    handler.acquire()
-                    handler.flush()
-                    handler.close()
-                except (OSError, ValueError):
-                    pass
-                finally:
-                    handler.release()
-                logger.removeHandler(handler)
-
 def set_logging(level=DEFAULT_LOG_LEVEL):
 
     logreset.reset_logging()
     _log_level = level
-    #logging.root.handlers = []
     if _log_level == logging.DEBUG:
-         format = '%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s'
+        logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
+                            datefmt=TIME_FORMAT, level=_log_level)
+
     else:
-        format = '%(asctime)s %(message)s',
-    logging.basicConfig(format=format, datefmt=TIME_FORMAT, level=_log_level)
-    # if level > 0:
-    #     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        logging.basicConfig(format='%(asctime)s %(message)s',
+                            datefmt=TIME_FORMAT, level=_log_level)
+
     print("current log level: %d (DEBUG=%d, INFO=%d)" % (_log_level, logging.DEBUG, logging.INFO))
 
 def add_worker(controller_client):
