@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: iso-8859-15 -*-
-# Kayuã@Collaborator%LEA(Unipampa) %ICN-Stage
+# Kayuã@Collaborator%LEA(Unipampa*) %ICN-Stage
 
 import argparse
 import os
@@ -30,6 +30,7 @@ except ImportError as error:
     print("  pip3 install -r requirements.txt \n")
     quit()
 
+# % Values default.
 
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -42,13 +43,13 @@ DEFAULT_REPOSIT_DEPENDENCES = []
 DEFAULT_ZK_DIR = 'apache-zookeeper-3.6.1'
 DEFAULT_REPOSIT_ZK = 'http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz'
 DEFAULT_REPOSIT_ICNSTAGE = 'https://github.com/RafaelDBeltran/icn-stage'
+DEFAULT_SERVER_SETTINGS = ['ID', 'Host', 'User', 'Password']
+DEFAULT_DEPENDENCES = ['kazoo', 'paramiko', 'scp', 'netifaces', 'pyfiglet', 'tqdm', 'psutil']
 DEFAULT_ZK_SETTINGS = ['TickTime', 'MinSessionTimeOut', 'MaxSessionTimeOut', 'InitLimit', 'SyncLimit', 'ClientPort',
                        'MaxClientCnxns']
-DEFAULT_SERVER_SETTINGS = ['ID','Host','User','Password']
 
 
 class ZookeeperEnsembleSettings:
-
     OutPutSettings = """
     
 #         File Settings Apache-Zookeeper.
@@ -68,9 +69,6 @@ class ZookeeperEnsembleSettings:
 """
     ListServers = []
 
-# Pronto, já foi testado. Colocar mensagens mais
-# profissionais e alterar os nomes  de variáveis.
-#   -----------------------------------------------------
     def __init__(self):
 
         self.read_settings_file()
@@ -102,51 +100,50 @@ class ZookeeperEnsembleSettings:
                         logging.info('ICN-Stage Servers Directors:\n')
 
                     for IdParameter, Parameter in enumerate(DEFAULT_ZK_SETTINGS):
-
                         DEFAULT_VALUE_SETTINGS[IdParameter] = (SettingsFile['Settings'][0][Parameter])
-                        print(' '*20, DEFAULT_ZK_SETTINGS[IdParameter], DEFAULT_VALUE_SETTINGS[IdParameter])
+                        print(' ' * 20, DEFAULT_ZK_SETTINGS[IdParameter], DEFAULT_VALUE_SETTINGS[IdParameter])
 
                     for Iterator in SettingsFile['Server']:
-
-                        logging.info('  '+'Server ID: '+Iterator['Id']+' Host: '+Iterator['Host'])
+                        log = ('  ' + 'Server ID: ' + Iterator['Id'] + ' Host: ' + Iterator['Host'])
+                        logging.info(log)
                         NewServer = [{DEFAULT_SERVER_SETTINGS[0]: Iterator['Id']},
                                      {DEFAULT_SERVER_SETTINGS[1]: Iterator['Host']},
-                                     {DEFAULT_SERVER_SETTINGS [2]: Iterator['UserName']},
+                                     {DEFAULT_SERVER_SETTINGS[2]: Iterator['UserName']},
                                      {DEFAULT_SERVER_SETTINGS[3]: Iterator['Password']}]
                         self.ListServers.append(NewServer)
-                    print('\n')
-                except:
 
-                    logging.debug('\nERROR: The configuration Settings.json file may be corrupted.')
+                    print('\n')
+
+                except ValueError:
+
+                    logging.error('The configuration Settings.json file may be corrupted.', ValueError)
         else:
 
-            logging.info('\nERROR: The configuration Settings.json file not found.')
+            logging.error('The configuration Settings.json file not found.')
             quit()
+
     def write_settings_in_file(self):
 
+        for key, parameters in enumerate(DEFAULT_ZK_SETTINGS):
+            self.OutPutSettings += (str(parameters) + '=' + str(DEFAULT_VALUE_SETTINGS[key]) + '\n')
 
-        for key, Parameters in enumerate(DEFAULT_ZK_SETTINGS):
-
-            self.OutPutSettings += (str(Parameters) + '=' + str(DEFAULT_VALUE_SETTINGS[key]) + '\n')
-
-
-        for Server in self.ListServers:
-
-            self.OutPutSettings += ('Server.' + Server[0]['ID'] + '=' + Server[1]['Host'] + ':2888:3888\n')
+        for server in self.ListServers:
+            self.OutPutSettings += ('Server.' + server[0]['ID'] + '=' + server[1]['Host'] + ':2888:3888\n')
 
         return self.OutPutSettings
-#   -----------------------------------------------------
 
-class ConnectServers:
+    @staticmethod
+    def define_director_id(server):
 
+        return server[DEFAULT_SERVER_SETTINGS[0]]
+
+
+class Connect:
     State = False
 
-# Pronto, já foi testado. Colocar mensagens mais
-# profissionais e alterar os nomes  de variáveis.
-#   -----------------------------------------------------
-    def __init__(self, Server):
+    def __init__(self, server):
 
-        logging.info(' Contacting Server ID: %s' %Server[0]['ID'])
+        logging.info(' Contacting Server ID: %s' % server[0]['ID'])
         logging.info(' Awaiting Response.Please wait...')
         self.ssh = SSHClient()
         self.ssh.load_system_host_keys()
@@ -154,48 +151,45 @@ class ConnectServers:
 
         try:
 
-            self.ssh.connect(hostname=Server[1]['Host'], username=Server[2]['User'],
+            self.ssh.connect(hostname=Server[1]['Host'], username=server[2]['User'],
                              password=str(Server[3]['Password']))
             logging.info('\n Server Reached. Connection established.\n')
             self.State = True
 
-        except:
+        except ValueError:
 
-            logging.info('\nERROR: Connection refused.')
+            logging.error(' Connection refused.', ValueError)
             self.State = False
 
-    def GetStateConnection(self):
+    def get_state_connection(self):
 
         return self.State
 
-    def CloseConnection(self):
+    def close_connection(self):
 
         self.State = False
         self.ssh.close()
 
-    def Command(self, cmd):
+    def cmd(self, cmd):
 
         try:
 
-            stdin, stdout, stderr = self.ssh.exec_command(cmd)
+            std, stdout, stderr = self.ssh.exec_command(cmd)
             return stdout.read()
 
-        except:
+        except ValueError:
 
             self.State = False
-#   -----------------------------------------------------
+
 
 class Installer:
-
-    DependencesMissing = []
-
-    # Pronto, já foi testado. Colocar mensagens mais
-    # profissionais e alterar os nomes  de variáveis.
-#   -----------------------------------------------------
+    DependenceMissing = []
 
     def __init__(self):
 
         self.settings = ZookeeperEnsembleSettings()
+        self.zookeeper_settings = self.settings.OutPutSettings
+
     def local_install(self):
 
         logging.info('-' * 32 + '\n')
@@ -205,15 +199,15 @@ class Installer:
 
             self.local_install_zookeeeper()
             self.local_install_dependences()
-            self.zookeeper_settings = self.settings.OutPutSettings
             self.local_settings_zookeeper()
             logging.info('Done.')
 
-        except:
+        except ValueError:
 
-           logging.info('ERROR: Error during installation')
-    def local_install_zookeeeper(self):
+            logging.error('Error during installation.', ValueError)
 
+    @staticmethod
+    def local_install_zookeeeper():
 
         logging.info('  Starting Zookeeper installer.\n')
         logging.info('     > Downloading Apache-Zookeeper-3.6.1\n')
@@ -231,13 +225,13 @@ class Installer:
             subprocess.run(cmd)
             logging.info('-' * 32 + '\n')
 
-        except:
+        except ValueError:
 
-            logging.info('Error: It is not possible to install Apache-Zookeeper')
+            logging.error('It is not possible to install Apache-Zookeeper', ValueError)
             quit()
 
-        # Pronto, já foi testado
-    def local_install_dependences(self):
+    @staticmethod
+    def local_install_dependences():
 
         logging.info('Starting dependency installer. Please wait...\n')
 
@@ -251,123 +245,129 @@ class Installer:
             logging.info('     > Install requirements.\n')
             cmd = ['pip3', 'install', '-r', 'requirements.txt']
             subprocess.run(cmd)
-            logging.info('Done. Dependences installed.\n')
+            logging.info('Done. Dependence installed.\n')
             logging.info('-' * 32 + '\n')
 
-        except:
+        except ValueError:
 
-            logging.info('Error: It is not possible to install dependences.')
+            logging.error('It is not possible to install dependence.', ValueError)
             quit()
+
     def local_settings_zookeeper(self):
 
         logging.info('Generating Apache-Zookeeper settings file. Please wait...')
 
         try:
 
-            with open(DEFAULT_ZK_SETTINGS_FILE_DIR,'w') as zooconfig:
-                zooconfig.write(self.zookeeper_settings)
+            with open(DEFAULT_ZK_SETTINGS_FILE_DIR, 'w') as zoo_config:
 
-        except:
+                zoo_config.write(self.zookeeper_settings)
+                zoo_config.close()
 
-            logging.info('Error. Settings Apache-Zookeeper file.')
+            with open(DEFAULT_ZK_LOCAL_MYID, 'w') as zoo_id:
+
+                zoo_id.write('1')
+                zoo_id.close()
+
+        except ValueError:
+
+            logging.error('Settings Apache-Zookeeper file.', ValueError)
             quit()
 
-#   ------------------------------------------------------
+    #   ------------------------------------------------------
 
+    def remote_install(self):
 
-    def remote_install(self,settings):
+        logging.info('\n\n Starting remote installer. Please wait...')
 
-        logging.info('\n\n Starting remote installer . Please wait...')
+        for server in self.settings.ListServers:
 
-        for server in settings.ListServers:
+            connection = Connect(server)
 
-            connection = ConnectServers(server)
-
-            if connection.GetStateConnection():
+            if connection.get_state_connection():
 
                 try:
 
                     self.remote_install_icn_stage(connection)
-                    self.remote_install_zookeeper(connection,server,settings)
-                    #self.remote_install_dependences(connection,self.remote_list_dependences(connection))
-                    connection.CloseConnection()
+                    self.remote_install_zookeeper(connection)
+                    self.remote_list_dependences(connection)
+                    self.remote_install_dependences(connection, self.remote_list_dependences(connection))
+                    connection.close_connection()
 
-                except:
+                except ValueError:
 
-                    logging.info('ERROR: Error during installation')
+                    logging.error('Error during installation', ValueError)
 
             else:
 
-                logging.info('Error: Connection Refused')
+                logging.error('Connection Refused')
 
         logging.info('Sucessfull instalation.')
+
     def remote_list_dependences(self, connection):
 
         DependencesMissingCommand = []
         DependencesInstaled = []
 
-        ServerResponse = connection.Command('apt list --installed ')
+        cmd = ('apt ', 'list', '--installed')
+        server_response = connection.cmd(cmd)
 
-        if not connection.GetStateConnection():
-            logging.info('\nERROR: Server not reached.')
+        if not connection.get_state_connection():
+            logging.error('Connection refused.')
 
-        for Requirements in DEFAULT_REPOSIT_DEPENDENCES[0]:
+        for requirements in DEFAULT_DEPENDENCES:
 
-            if type(re.search(Requirements, str(ServerResponse))) == type(None):
+            if isinstance(re.search(requirements, str(server_response)), type(None)):
 
-                self.DependencesMissing.append(Requirements)
-                DependencesMissingCommand.append(Settings.ListRequirements[0][Requirements])
+                self.DependencesMissing.append(requirements)
 
             else:
 
-                DependencesInstaled.append(Requirements)
+                DependencesInstaled.append(requirements)
 
-        logging.info('\nERROR: Error while generating the settings file remotely.')
+        logging.info('    Installed Dependences:\n')
 
-        for NumDep, Dependences in enumerate(Settings.ListRequirements[0]):
+        for NumDep, Dependence in enumerate(Settings.ListRequirements[0]):
+            logging.info('    %s - %s    ' % NumDep % Dependence)
 
-            logging.info('    %s - %s    ' %NumDep %Dependences)
+        logging.info('    Missing Dependences:\n')
 
-
-        logging.info('\n    Missing Dependences:\n\n')
-
-        for NumDep, Dependences in enumerate(self.DependencesMissing):
-
-            logging.info('    %s - %s    ' %NumDep %Dependences)
+        for NumDep, Dependence in enumerate(self.DependencesMissing):
+            logging.info('    %s - %s    ' % NumDep % Dependence)
 
         return DependencesMissingCommand
-    def remote_install_dependences(self, connection, dependenceslist):
 
-        if len(dependenceslist):
+    @staticmethod
+    def remote_install_dependences(connection, dependence_list):
 
-            if str(input()) == 'YES':
+        if len(dependence_list):
 
-                dir = str(connection.Command('pwd'))
-                dir = ('/' + dir[3:dir.index('n') - 1] + '/ICN-Stage')
+            logging.info('Starting dependency installer. Please wait...\n')
 
-                for position, Command in enumerate(dependenceslist):
+            try:
 
-                    logging.info('\nDownloading. %s Please wait...' % Command[10:])
-                    connection.Command(Command)
-                    DependenceName= self.DependencesMissing[position]
-                    cmd = 'mv ' + DependenceName[8:] + '/' + DependenceName[8:] + ' ' + dir
-                    connection.Command(cmd)
-                    logging.info('Done.')
+                logging.info('     > Update python3-pip\n')
+                cmd = ['apt-get', 'install', 'python3-pip']
+                connection.cmd(cmd)
+                cmd = ['pip3', 'install', '--upgrade', 'pip']
+                connection.cmd(cmd)
+                logging.info('     > Install requirements.\n\n')
 
-            else:
+                for requirements in dependence_list:
+                    logging.info('          > Instaling: ' + requirements + '\n')
+                    cmd = ['pip3', 'install', requirements]
+                    connection.cmd(cmd)
 
-                logging.info('\nERROR: Server unavailable for use.')
-        else:
+                logging.info('  Done. Dependence installed.\n')
+                logging.info('-' * 32 + '\n')
 
-            logging.info('\n It has been detected that currently all dependencies are already installed.\n')
+            except ValueError:
 
+                logging.error('It is not possible to install dependences.', ValueError)
+                quit()
 
-
-
-
-
-
-    def remote_install_icn_stage(self, connection):
+    @staticmethod
+    def remote_install_icn_stage(connection):
 
         logging.info('  Starting ICN-Stage remote installer.\n')
         logging.info('     > Downloading ICN-Stage\n')
@@ -376,17 +376,19 @@ class Installer:
 
             logging.info('     > Downloading ICN-Stage.Please wait...\n')
             logging.info('     >  Settings git clone.\n')
-            cmd = ('apt-get '+'install '+'git ')
-            connection.Command(cmd)
-            cmd = ('git clone '+DEFAULT_REPOSIT_ICNSTAGE)
-            connection.Command(cmd)
+            cmd = ('apt-get ' + 'install ' + 'git ')
+            connection.cmd(cmd)
+            cmd = ('git clone ' + DEFAULT_REPOSIT_ICNSTAGE)
+            connection.cmd(cmd)
             logging.info('Done\n\n ICN-Stage download completed.\n')
 
-        except:
+        except ValueError:
 
-            logging.info('\nERROR: Downloading of ICN-Stage failed!.')
+            logging.error('Downloading of ICN-Stage failed!.', ValueError)
             quit()
-    def remote_install_zookeeper(self, connection, server, settings):
+
+    @staticmethod
+    def remote_install_zookeeper(connection):
 
         logging.info('  Starting Apache-Zookeeper-3.6.1 remote installer.\n')
         logging.info('     > Downloading Apache-Zookeeper-3.6.1.tar.gz\n')
@@ -394,28 +396,71 @@ class Installer:
         try:
 
             cmd = ('wget ', DEFAULT_REPOSIT_ZK)
-            connection.Command(cmd)
+            connection.cmd(cmd)
             logging.info('      > Extracting files from Apache Zookeeper.\n')
             cmd = ('tar ', 'zxf ', 'apache-zookeeper-3.6.1-bin.tar.gz')
-            connection.Command(cmd)
+            connection.cmd(cmd)
             cmd = ('mv ', 'apache-zookeeper-3.6.1-bin ', 'apache-zookeeper-3.6.1')
-            connection.Command(cmd)
+            connection.cmd(cmd)
             cmd = ('rm', 'apache-zookeeper-3.6.1-bin.tar.gz')
             subprocess.run(cmd)
             logging.info('-' * 32 + '\n')
 
-        except:
+        except ValueError:
 
-            logging.info('\nERROR: Error Apache-Zookeeper install.')
+            logging.error('Error Apache-Zookeeper install.', ValueError)
 
+    def remote_settings_zookeeper(self, connection):
 
-    # Editar vagrant_inbox_install
-    def vagrant_inbox_install(self):
+        logging.info('Generating Apache-Zookeeper settings file. Please wait...')
+
+        try:
+
+            cmd = ('echo "', self.zookeeper_settings, '" > ', 'apache-zookeeper-3.6.1/conf/zoo.cfg')
+            connection.cmd(cmd)
+            cmd = ('echo "', self.zookeeper_settings, '" > ', DEFAULT_ZK_LOCAL_MYID)
+            connection.cmd(cmd)
+
+        except ValueError:
+
+            logging.error('Settings Apache-Zookeeper file.', ValueError)
+            quit()
+
+    @staticmethod
+    def vagrant_inbox_install():
+
         print('config')
 
-def main():
 
-    # arguments
+def help_inst():
+
+    info = ('   \n'
+            '   ICN-Stage install:   \n\n'
+            '       This software is responsible for installing the ICN-Stage.    \n'
+            '       In addition, it is possible to install the ICN-Stage    \n'
+            '       locally, in the Vagrant box and remotely, in addition   \n'
+            '       to the dependencies necessary for its operation    \n'
+            '     \n'
+            '       The equipment settings file is possible to define   \n'
+            '       a topology of the directories responsible for the   \n'
+            '       control and recovery of the ICN-Stage.   \n'
+            '     \n'  
+            '   OPTIONS:\n'
+            '    \n'
+            '       -lc, --local    | Used for local installation.    \n'
+            '       -vg, --vagrant  | Used for vagrant-box installation.   \n'
+            '       -rm, --remote   | Used for remote installation.    \n'
+            '       -l,  --log      | Used to define logging level info.   \n'
+            '       -s,  --settings | Used to define an internal settings file.    \n'
+            '       -i,  --id       | Used to define unique id for multiple daemons.   \n'
+            '       -r,  --req      | Used to define an external requirements file.    \n'
+            '       -h,  --help     | Used to show this information.   \n'
+            '    \n')
+
+    logging.info(info)
+
+
+def main():
     parser = argparse.ArgumentParser(description='Daemon Worker')
     help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
     parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
@@ -454,15 +499,8 @@ def main():
     logging.info("\t settings file     : %s" % args.settings)
     logging.info("")
 
-#  Instalação local
-
-    # 1- Ler o arquivo de configurações
-    # 2- Listar as dependencias da máquina atual
-    # 3- instalar as dependencias
-    # 4- instalar o ICN-Stage
-    # 5- instalar o zookeeper
-    # 6- adicionar as configurações
     installer = Installer()
+
     if args.install == 'local':
         installer.local_install()
 
@@ -471,29 +509,7 @@ def main():
         installer.vagrant_config()
 
     elif args.install == 'remote':
-        # logging.info("Stopping worker daemon")
-        # worker_daemon.stop()
         installer.remote_install()
-
-
-    elif args.install == 'help':
-        print('Ajuda')
-
-
-# worker_daemon.stop()
-
-#
-# elif args.cmd == 'restart':
-# 	logging.info("Restarting worker daemon")
-# 	worker_daemon.restart()
-#
-# elif args.cmd == 'status':
-# 	daemon_pid = worker_daemon.getpid()
-#
-# 	if not daemon_pid:
-# 		logging.info("Worker Daemon (id='%s') isn't running" % (args.id))
-# 	else:
-# 		logging.info("Worker Daemon (id='%s') is running [PID=%d]" % (args.id, daemon_pid))
 
 
 if __name__ == '__main__':
