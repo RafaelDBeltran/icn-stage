@@ -87,13 +87,12 @@ class ZookeeperEnsembleSettings:
                 try:
 
                     SettingsFile = json.load(Settings)
+                    print('\n' + (' ' * 20) + ('-' * 32) + '\n')
                     logging.info('Zookeeper Settings:\n')
 
                     if len(SettingsFile['Server']) == 1:
 
                         print(' ' * 21 + 'Mode: Single.\n')
-                        logging.info('-' * 32 + '\n')
-                        logging.info('ICN-Stage Server Director:\n')
 
                     else:
 
@@ -104,7 +103,7 @@ class ZookeeperEnsembleSettings:
                         DEFAULT_VALUE_SETTINGS[IdParameter] = (SettingsFile['Settings'][0][Parameter])
                         print(' ' * 20, DEFAULT_ZK_SETTINGS[IdParameter], DEFAULT_VALUE_SETTINGS[IdParameter])
 
-                    logging.info('-' * 32 + '\n')
+                    print('\n')
                     logging.info('ICN-Stage Servers Directors:\n')
 
                     for Iterator in SettingsFile['Server']:
@@ -117,7 +116,8 @@ class ZookeeperEnsembleSettings:
                                      {DEFAULT_SERVER_SETTINGS[3]: Iterator['Password']}]
                         self.server_list.append(NewServer)
 
-                    print('\n')
+                    print('')
+                    logging.info('-' * 32 + '\n\n')
 
                 except ValueError:
 
@@ -146,7 +146,6 @@ class Connect:
 
     def __init__(self, server):
 
-        logging.info('-' * 32 + '\n')
         logging.info('Contacting Server ID: ' + str(server[0]['ID']) + ' Host: ' + server[1]['Host'])
         logging.info('Awaiting Response.Please wait...')
         self.ssh = SSHClient()
@@ -157,7 +156,7 @@ class Connect:
             self.ssh.connect(hostname=server[1]['Host'], username=server[2]['User'],
                              password=str(server[3]['Password']))
             self.State = True
-            logging.info('')
+            print('')
         except ValueError:
 
             logging.error(' Connection refused.', ValueError)
@@ -290,7 +289,7 @@ class Installer:
 
     def remote_install(self):
 
-        logging.info('Starting remote installer. Please wait...')
+        logging.info('Starting remote installer. Please wait...\n')
 
         for server in self.settings.server_list:
 
@@ -419,7 +418,7 @@ class Installer:
         try:
 
             cmd = 'wget '+DEFAULT_REPOSIT_ZK
-            #connection.cmd(cmd)
+            connection.cmd(cmd)
             logging.info('     > Extracting files from Apache Zookeeper. Please wait...\n')
             cmd = 'tar zxf apache-zookeeper-3.6.1-bin.tar.gz'
             connection.cmd(cmd)
@@ -440,10 +439,9 @@ class Installer:
         try:
 
             cmd = 'echo "' + self.zookeeper_settings + '" > icn-stage/'+DEFAULT_ZK_SETTINGS_FILE_DIR
-            print(cmd)
-            print(connection.cmd(cmd))
-            cmd = 'echo "' + str(server[1]['Host']) + '" > icn-stage/' + DEFAULT_ZK_LOCAL_MYID
-            print(connection.cmd(cmd))
+            connection.cmd(cmd)
+            cmd = 'echo "' + str(server[0]['ID']) + '" > icn-stage/' + DEFAULT_ZK_LOCAL_MYID
+            connection.cmd(cmd)
             logging.info('Settings file generated.')
 
         except ValueError:
@@ -510,7 +508,7 @@ def main():
 
     logging.info("")
     logging.info("INPUT")
-    logging.info("---------------------")
+    logging.info("-"*32)
     logging.info("\t logging level     : %s" % args.log)
     logging.info("\t unique id         : %s" % args.id)
     logging.info("\t install option    : %s" % args.install)
