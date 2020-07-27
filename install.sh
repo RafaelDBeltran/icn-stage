@@ -214,7 +214,7 @@ function icn-stage {
 	  cp settings.json.example settings.json
 	  # cp settings_director_local.json.example settings_director.json
 	  # cp settings_director_ensemble.json.example settings_director.json
-	  #TODO replace with something as $ ./install_director.py vagrant
+	  #TODO replace with something as $ ./install_director.py vagrant-box
 	  wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
 	  tar zxf apache-zookeeper-3.6.1-bin.tar.gz
 	  mv apache-zookeeper-3.6.1-bin apache-zookeeper-3.6.1

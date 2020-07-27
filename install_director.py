@@ -14,6 +14,8 @@ import time
 import logging
 import time
 
+from zookeeper_controller import ZookeeperController
+
 try:
 
     from paramiko import SSHClient
@@ -72,7 +74,7 @@ class ZookeeperEnsembleSettings:
 """
     server_list = []
     def __init__(self):
-
+        #TODO revisar uso de metodos dentro do init. Tipicamente, isso não deveria acontecer
         self.read_settings_file()
         self.write_settings_in_file()
 
@@ -134,6 +136,7 @@ class ZookeeperEnsembleSettings:
 
         for server in self.server_list:
             self.demo_setting_zk += ('Server.' + server[0]['ID'] + '=' + server[1]['Host'] + ':2888:3888\n')
+        #TODO ZookeeperController.create_zookeeper_config_file()
 
     @staticmethod
     def define_director_id(server):
@@ -316,7 +319,7 @@ class Installer:
 
                 logging.error('Connection Refused')
 
-        logging.info('Sucessfull instalation.\n\n')
+        logging.info('Sucessfull installation.\n\n')
 
     @staticmethod
     def remote_create_dir(connection):
@@ -329,7 +332,7 @@ class Installer:
 
     def remote_list_dependence(self, connection):
 
-        logging.info('      > Starting a remote list dependences.\n')
+        logging.info('      > Starting a remote list dependencies.\n')
 
         cmd = 'apt list --installed'
         server_response = connection.cmd(cmd)
@@ -349,11 +352,11 @@ class Installer:
 
                 dependence_checked.append(requirements)
 
-        logging.info('      Installed Dependences:\n')
+        logging.info('      Installed Dependencies:\n')
         for num_dep, dependence in enumerate(dependence_checked):
             logging.info('              ' + str(num_dep) + ' - ' + dependence)
         logging.info('')
-        logging.info('      Missing Dependences:\n')
+        logging.info('      Missing Dependencies:\n')
 
         for num_dep, dependence in enumerate(self.DependenceMissing):
             logging.info('              ' + str(num_dep) + ' - ' + dependence)
@@ -365,7 +368,7 @@ class Installer:
 
         if len(dependence_list):
 
-            logging.info('     > Dependences installer. Please wait...\n')
+            logging.info('     > Dependencies installer. Please wait...\n')
 
             try:
 
@@ -378,7 +381,7 @@ class Installer:
 
                 for requirements in dependence_list:
 
-                    logging.info('            > Instaling: ' + requirements + '\n')
+                    logging.info('            > Installing: ' + requirements + '\n')
                     cmd = 'pip3 install' + requirements
                     connection.cmd(cmd)
 
@@ -386,7 +389,7 @@ class Installer:
 
             except ValueError:
 
-                logging.error('It is not possible to install dependences.', ValueError)
+                logging.error('It is not possible to install dependencies.', ValueError)
                 quit()
 
     @staticmethod
