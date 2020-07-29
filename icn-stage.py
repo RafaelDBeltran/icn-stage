@@ -81,7 +81,13 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
 def add_worker(controller_client):
     logging.info("Adding Actors...")
     for i in data['workers']:
-        controller_client.task_add(COMMANDS.NEW_WORKER, worker=Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], pkey=sundry.get_pkey(i["remote_pkey_path"])))
+        new_worker = Worker(i["remote_hostname"],
+                        i["remote_username"],
+                        password=i["remote_password"],
+                        actor_id=i["actor_id"],
+                        pkey=sundry.get_pkey(i["remote_pkey_path"]))
+
+        controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
     for i in trange(120):
         sleep(1)

@@ -2,6 +2,7 @@
 import argparse
 import sys
 
+
 from mininet.log import setLogLevel, info
 from mininet.topo import Topo
 
@@ -16,7 +17,7 @@ if __name__ == '__main__':
     setLogLevel('info')
 
     Minindn.cleanUp()
-    Minindn.verifyDependencies()
+    #Minindn.verifyDependencies()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--face-type', dest='faceType', default='udp', choices=['udp', 'tcp'])

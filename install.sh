@@ -232,7 +232,8 @@ function infoedit {
 }
 
 function minindn {
-
+    #old_dir=`pwd`
+    #cd ~
     git clone https://github.com/named-data/mini-ndn
     pushd mini-ndn
 
@@ -263,6 +264,8 @@ function minindn {
     sudo python setup.py develop
 
     popd
+
+    #cd $old_dir
 }
 
 function ndn_cpp {

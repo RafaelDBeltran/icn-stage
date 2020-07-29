@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-15 -*-
+
 import logging
 import subprocess
 import sys
@@ -118,7 +120,7 @@ class ZookeeperController:
         except:
             return False
 
-    # RM: isso n√£o faz sentido! o controlador do zookeeper deveria controlar apenas o ZK, n√£o o diretor
+    # RM: isso n„o faz sentido! o controlador do zookeeper deveria controlar apenas o ZK, n„o o diretor
     # def zookeeper_status(self):
     #     logging.info("STATUS ZK")
     #     subprocess.call("%s daemon_director.py status" % sys.executable, shell=True)
@@ -146,7 +148,7 @@ class ZookeeperController:
         #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
 
 
-    # TODO H√° varias etapas redundantes, da pra reduzir pela metade esse metodo.
+    # TODO H· varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
         print(nowStr(), "Reseting workers...\n")
 
@@ -224,28 +226,32 @@ class ZookeeperController:
             print("%02d:%02d" % (n, count_), get_tabs(n), node, get_diff_tabs(n, node), " : ", end=' ')
             try:
                 value = self.controller_client.zk.get(tree_node)
-
+                #print("\n\n --@@@@-- node '%s' ----" % (node))
                 if value is None:
                     print("")
-
+                elif node == "pkey":
+                   # print("\n\n --@@aaa@@-- node '%s' ----" % (node))
+                    #print("\n\n --@@@@-- node '%s' ----" % (node, value))
+                    #value_str = value.to_str()
+                    print(" RSA PRIVATE KEY ") #.format(value_str[:5],value_str[-5:]))
                 else:
 
-                    if node == "worker":
-                        print(value[0][:40], " ...")
-                        # d = value[0]
-                        # for k in d.keys():
-                        #     if k == "pkey":
-                        #         print("%s : %s" %(k, d[k][0:10]))
-                        #     else:
-                        #         print("%s : %s" %(k, d[k]))
-                    else:
+                    # if node == "worker":
+                    #     print(value[0][:40], " ...")
+                    #     # d = value[0]
+                    #     # for k in d.keys():
+                    #     #     if k == "pkey":
+                    #     #         print("%s : %s" %(k, d[k][0:10]))
+                    #     #     else:
+                    #     #         print("%s : %s" %(k, d[k]))
+                    # else:
                 #    print("\n\n\n\ tree_node: %s value: %s" % (tree_node, value[:20]))
                 # elif tree_node == "pkey":
                 #     print("%s ..." % value[:20])
                 # elif tree_node == "worker":
                 #     print("asdadsadsa")
                 # else:
-                        print(value[0])
+                    print(value[0])
 
             except Exception as e:
                 print("Exception: ", e)

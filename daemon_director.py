@@ -115,7 +115,7 @@ class RPM(multiprocessing.Process):
 			now = time.time()
 			try:
 				with open("rpm_activity.log","w+") as fa:
-					print("%16s, \t%50s, \t%13s, \t%24s, \t%24s" %('TEMPO ATIVO', 'HOSTNAME', 'ESTADO', 'ULTIMA VEZ QUE LIGOU', 'QUANDO DESCONECTOU'), file=fa)
+					print("%16s, \t%50s, \t%13s, \t%24s, \t%24s" %('ACTIVE_TIME', 'HOSTNAME', 'STATUS', 'LAST_CALL', 'WHEN_DISCONNECT'), file=fa)
 
 					for worker in sorted(self.controller_client.worker_get_all(), key=lambda x: x.hostname):
 
@@ -158,8 +158,8 @@ class RPM(multiprocessing.Process):
 			except Exception as e:
 
 				#TODO: mensagem mais profissional e com menos hack
-				print("download version1")
-				print("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.0/apache-zookeeper-3.6.0-bin.tar")
+				#print("download version1")
+				#print("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.0/apache-zookeeper-3.6.0-bin.tar")
 
 				with open("rpm_output.log","a+") as fo:
 					print(time.time(), worker.hostname, " exception: ", e, file=fo)
@@ -456,8 +456,12 @@ class DirectorDaemon(Daemon):
 						channel.close()
 
 					except Exception as e:
-						print(datetime.datetime.now(), worker.hostname, e)
+						#print(datetime.datetime.now(), worker.hostname, e)
+						msg = "Exception while connecting to actor '{}': {} ".format(worker.hostname, e)
+						logging.error(msg)
 						#Unable to connect
+						msg = "Actor '{}' will be removed due error.".format(worker.hostname)
+						logging.info(msg)
 						self.controller_client.worker_remove(worker)
 				else:
 					print(datetime.datetime.now(), worker.hostname, "hostname already registered!")
@@ -597,12 +601,12 @@ class DirectorDaemon(Daemon):
 					#rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 					#Rafael#channel = Channel(worker.hostname, username=worker.username, pkey = (worker.pkey).decode('utf-8'), password=worker.password, timeout=_timeout)
-					channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
+					channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey, password=worker.password, timeout=_timeout)
 					channel.chdir("worker")
-					stdout, stderr = channel.run("python3 %s stop" % (_worker_daemon))
+					stdout, stderr = channel.run("python3 %s --id %s stop" % (_worker_daemon, worker.actor_id))
 					#print datetime.datetime.now(), worker.hostname, "cmd: python %s stop" %(_worker_daemon), "stdout: ", stdout, "stderr: ", stderr
 					logging.debug('task_start_work: TRY p2')
-					stdout, stderr = channel.run("python3 %s start" % (_worker_daemon))
+					stdout, stderr = channel.run("python3 %s --id %s start" % (_worker_daemon, worker.actor_id))
 					logging.debug('task_start_work: TRY p3 {}'.format(stdout))
 					stderr_str = stderr.read().strip()
 					stdout_str = stdout.read().strip()
