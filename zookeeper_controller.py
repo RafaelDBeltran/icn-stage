@@ -60,6 +60,8 @@ class ZookeeperController:
 
         zookeeper_ip_port = self.get_ip_adapter() + ':2181'
         print(zookeeper_ip_port)
+        self.create_zookeeper_config_file()
+
         if not self.is_running():
             print("Zookeeper Service is not running.")
             self.start_zookeeper_service()
