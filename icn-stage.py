@@ -79,13 +79,13 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
     print("current log level: %d (DEBUG=%d, INFO=%d)" % (_log_level, logging.DEBUG, logging.INFO))
 
 def add_worker(controller_client):
-    logging.info("Adding Workers...")
+    logging.info("Adding Actors...")
     for i in data['workers']:
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], pkey=sundry.get_pkey(i["remote_pkey_path"])))
-        logging.info("Worker {} added.".format(i["remote_hostname"]))
+        logging.info("Actor {} added.".format(i["remote_hostname"]))
     for i in trange(120):
         sleep(1)
-    logging.info("Adding Workers...DONE")
+    logging.info("Adding Actors...DONE")
 
 
 # TODO Adicionar loading time no add workers
@@ -123,17 +123,18 @@ def help_msg():
     return '''
     Available commands
     ------------------
-    start   : 
-    stop    :
-    restart :
-    status  :
-    towork  :
-    test    :
-    help, ? : prints this message
-    print   :
-    printc  :
-    printd  :
-    log     : setup logging level (default=%d, current=%d)
+    start    : 
+    stop     :
+    restart  :
+    status   :
+    addactors:
+    test     :
+    help, ?  : prints this message
+    print    :
+    printc   :
+    printd   :
+    reset    : clean zookeeper tree
+    log      : setup logging level (default=%d, current=%d)
     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
@@ -155,7 +156,7 @@ def run_command(zookeeper_controller, command):
         #zookeeper_controller.zookeeper_status()
         daemon_director.status()
 
-    elif command == 'towork':
+    elif command == 'addactors':
         add_worker(zookeeper_controller.controller_client)
 
     elif command == 'test':
@@ -169,7 +170,7 @@ def run_command(zookeeper_controller, command):
             call_tcpserver(zookeeper_controller.get_ip_adapter(), 10000)
 
         except:
-            msg = "Don't forget to add the workers!"
+            msg = "Hint: don't forget to add actors!"
             logging.error(msg)
             print(msg)
 
