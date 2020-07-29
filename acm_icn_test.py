@@ -6,6 +6,7 @@ import os
 import logging
 import time
 import progressbar
+import datetime
 
 # project bibs
 from modules.conlib.controller_client import ControllerClient
@@ -23,7 +24,7 @@ from zookeeper_controller import ZookeeperController
 from experiments_resources import call_tcpserver
 
 # Variables Define
-_local_experiments_dir = "./"
+_LOCAL_EXPERIMENTS_DIR = "./"
 
 # general constants
 LOG_LEVEL = logging.DEBUG
@@ -64,6 +65,34 @@ def add_workers(zookeeper_controller, n_actors):
 
 	logging.info("Adding actors... DONE!")
 
+def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, zookeeper_controller, func = None):
+    logging.info("\t Executing experiment {} \t".format(experiment_name))
+
+    experiment_name = 'Experiment_%s' % datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-')
+
+    logging.info("\t Experiment_name: {}\t".format(experiment_name))
+    logging.info("\t Experiment comands: {}\t".format(' '.join(str(x) for x in commands)))
+
+    simple_role = Role(experiment_name, ' '.join(str(x) for x in commands), 1)
+    roles = [simple_role]
+
+    dir_source = _LOCAL_EXPERIMENTS_DIR + experiment_dir
+    Sundry.compress_dir(dir_source, experiment_file_name)
+    logging.info("Sending experiment... ")
+    experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
+    logging.debug("Experiment %s", experiment_)
+    
+    zookeeper_controller.controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
+    logging.debug("\tSending experiment done.\n")
+
+    #You can pass a function has a argument if your want run anything in this side of the experimente. If not keep this like None
+    if func == None:
+        pass
+    else:
+        func()
+
+    zookeeper_controller.controller_client.config_stop
+    logging.info("\tExperiment done.\n")
 
 def run_experiments(n_actors=DEFAULT_NUMBER_ACTORS):
 	results = {}
