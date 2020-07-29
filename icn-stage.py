@@ -240,7 +240,7 @@ def main():
     set_logging()
     # Initialize the Zookeeper Controller (API)
     zookeeper_controller = ZookeeperController()
-
+    zookeeper_controller.create_zookeeper_config_file()
     if len(sys.argv) > 1:
         # single command mode
         command = sys.argv[1]
