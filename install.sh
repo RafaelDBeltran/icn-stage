@@ -401,6 +401,7 @@ else
         mininet
         commonClientLibraries
         icn-stage
+        minindn
         break
         ;;
         c)    commonClientLibraries;;

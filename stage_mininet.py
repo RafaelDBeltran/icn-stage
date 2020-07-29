@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-15 -*-
 
 import argparse
 import sys
@@ -16,9 +18,16 @@ if __name__ == '__main__':
                          help='''Choose routing type, dry = link-state is used
                                  but hr is calculated for comparision.''')
     net = Mininet()
-    a = net.addHost('a',ip='10.0.0.1', inNamespace=False)
-    b = net.addHost('b',ip='10.0.0.2', inNamespace=False)
-    c = net.addHost('c',ip='10.0.0.3', inNamespace=False)
+    a = net.addHost('a',ip='10.0.0.1', inNamespace=True)
+    b = net.addHost('b',ip='10.0.0.2', inNamespace=True)
+    c = net.addHost('c',ip='10.0.0.3', inNamespace=True)
+
+    switch = net.addSwitch('s1')
+
+    # Add links
+    net.addLink(a, switch)
+    net.addLink(b, switch)
+    net.addLink(c, switch)
 
     net.start()
     CLI(net)
