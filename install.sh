@@ -232,6 +232,10 @@ function infoedit {
 }
 
 function minindn {
+
+    git clone https://github.com/named-data/mini-ndn
+    pushd mini-ndn
+
     $install libigraph0-dev tshark
     sudo pip install -r requirements.txt
 
@@ -257,6 +261,8 @@ function minindn {
     sudo cp topologies/geo_hyperbolic_test.conf "$install_dir"
     sudo cp topologies/geant.conf "$install_dir"
     sudo python setup.py develop
+
+    popd
 }
 
 function ndn_cpp {

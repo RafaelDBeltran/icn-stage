@@ -18,5 +18,6 @@ mynfd.conf
 node_modules/
 ndn-src/
 mininet/
+mini-ndn/
 .idea/
 apache-zookeeper-3.6.1-bin/
