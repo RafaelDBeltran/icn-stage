@@ -63,7 +63,6 @@ sundry = Sundry()
 data = json.load(open('config.json'))
 
 
-
 def set_logging(level=DEFAULT_LOG_LEVEL):
 
     logreset.reset_logging()
@@ -77,6 +76,7 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
                             datefmt=TIME_FORMAT, level=_log_level)
 
     print("current log level: %d (DEBUG=%d, INFO=%d)" % (_log_level, logging.DEBUG, logging.INFO))
+
 
 def add_worker(controller_client):
     logging.info("Adding Actors...")

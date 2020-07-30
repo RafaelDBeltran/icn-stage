@@ -9,6 +9,7 @@ from modules.worklib.worker_client import *
 
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+ACTOR_CONFIG = "info.cfg"
 
 if LOG_LEVEL == logging.DEBUG:
 	logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
@@ -24,7 +25,7 @@ class WorkerDaemon(Daemon):
 		sys.stdout.add(open('log.out', 'w+', 1))
 		sys.stderr = Printer()
 		sys.stderr.add(open('log.err', 'w+', 1))
-		cfg = WorkerClient.load_config_file("info.cfg")
+		cfg = WorkerClient.load_config_file(ACTOR_CONFIG)
 		wclient = WorkerClient(cfg["server"], cfg["hostname"])
 		wclient.exp_load()
 		sleep_interval = 30
@@ -134,9 +135,11 @@ def main():
 	logging.info("\t pid_file      : %s" % pid_file)
 	logging.info("\t stdout        : %s" % stdout)
 	logging.info("\t stderr        : %s" % stderr)
+	logging.info("\t config_file   : %s" % ACTOR_CONFIG)
 	logging.info("")
 
 	worker_daemon = WorkerDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
+
 
 	# process input parameters
 	if args.cmd == 'start':

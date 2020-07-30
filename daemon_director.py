@@ -260,7 +260,7 @@ class DirectorDaemon(Daemon):
 								#Rchannel = Channel(hostname=worker.hostname, username=worker.username, password=worker.password, pkey=worker.pkey, timeout=_timeout)
 								# channel = Channel(hostname='192.168.133.100', username=my_username, password=my_password, pkey=my_pkey, timeout=_timeout)
 								channel = Channel(hostname=worker.hostname, username=worker.username, password=worker.password, pkey=worker.pkey, timeout=_timeout)
-								remote_path = "worker/experiments"
+								remote_path = worker.get_remote_experiment_path()
 								channel.chdir(remote_path)
 								logging.debug("SEND_EXPERIMENT 8 {}".format(_local_experiments_dir+exp.filename))
 								channel.mkdir(exp.name)
@@ -338,7 +338,8 @@ class DirectorDaemon(Daemon):
 					#rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 					channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
-					channel.chdir("worker")
+					remote_path = worker.get_remote_path()
+					channel.chdir(remote_path)
 					channel.run("python3 %s stop" % (_worker_daemon))
 					stdout, stderr = channel.run("python3 %s restart" % (_worker_daemon))
 					stderr_str = stderr.read().strip()
@@ -370,7 +371,8 @@ class DirectorDaemon(Daemon):
 									#rmansilha channel = Channel(hostname=w.hostname, username=w.username, password=w.password, pkey=w.pkey, timeout=_timeout)
 									# channel = Channel(hostname=w.hostname, username=my_username, password=my_password, pkey=my_pkey, timeout=_timeout)
 									channel = Channel(hostname=w.hostname, username=w.username, password=w.password, pkey=w.pkey, timeout=_timeout)
-									remote_path = "worker/experiments"
+									#remote_path = "worker/experiments"
+									remote_path = worker.get_remote_experiment_path()
 									channel.chdir(remote_path)
 									logging.debug("[17]RecoverActor")
 									channel.run("mkdir -p %s" % exp.name)
@@ -439,10 +441,10 @@ class DirectorDaemon(Daemon):
 					try:
 						#rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 						# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
-						channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
+						channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey, password=worker.password, timeout=_timeout)
 						print(datetime.datetime.now(), worker.hostname,"is online")
 
-						remote_path = "worker"
+						remote_path = worker.get_remote_path()
 						channel.run("mkdir -p %s" %remote_path)
 						#rafael# colocando endereco estatico
 						# channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (get_ip(), _controllerport, worker.hostname, remote_path))
@@ -566,7 +568,7 @@ class DirectorDaemon(Daemon):
 
 					print(datetime.datetime.now(), worker.hostname, "sending daemon and API")
 
-					remote_path = "worker"
+					remote_path = worker.get_remote_path()
 					logging.debug('Install_Worker_Literal_Debug: TRY p9')
 					channel.run("mkdir -p %s/experiments" % remote_path)
 					logging.debug('Install_Worker_Literal_Debug: TRY p10')
@@ -602,7 +604,8 @@ class DirectorDaemon(Daemon):
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 					#Rafael#channel = Channel(worker.hostname, username=worker.username, pkey = (worker.pkey).decode('utf-8'), password=worker.password, timeout=_timeout)
 					channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey, password=worker.password, timeout=_timeout)
-					channel.chdir("worker")
+					remote_dir = worker.get_remote_path()
+					channel.chdir(remote_dir)
 					stdout, stderr = channel.run("python3 %s --id %s stop" % (_worker_daemon, worker.actor_id))
 					#print datetime.datetime.now(), worker.hostname, "cmd: python %s stop" %(_worker_daemon), "stdout: ", stdout, "stderr: ", stderr
 					logging.debug('task_start_work: TRY p2')

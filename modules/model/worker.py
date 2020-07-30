@@ -37,6 +37,12 @@ class Worker(object):
 
 		return worker
 
+	def get_remote_path(self):
+		return "actor_{}".format(self.actor_id)
+
+	def get_remote_experiment_path(self):
+		return "{}/experiments" % self.get_remote_path()
+
 	def id(self):
 		if self.path != "":
 			return self.path.split("/")[-1]
