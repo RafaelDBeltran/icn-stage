@@ -34,6 +34,7 @@ LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 30
 
+
 _controllerport = "2181"
 _pyvers = "3.6.9"
 _timeout = 30
@@ -245,51 +246,53 @@ class DirectorDaemon(Daemon):
 					logging.debug("SEND_EXPERIMENT 5")
 					for role in exp.roles:
 						remaining = role.no_workers
-						logging.debug("SEND_EXPERIMENT 6 %s", remaining)
+						tries = len(worker_path_list) # number of possible allocate workers
+						logging.debug("SEND_EXPERIMENT 6 %s" % remaining)
 						i = 0
 						#worker_path_list = [new_path.decode('utf-8') for new_path in worker_path_list]
-						while remaining:
+						while remaining and tries > 0:
 							try:
 								logging.debug("SEND_EXPERIMENT 6.5  {}".format(worker_path_list[last+i]))
 								worker = self.controller_client.worker_get(worker_path_list[last + i])
 
 								logging.debug("SEND_EXPERIMENT 7")
-								logging.info(" %s connecting"%worker.hostname)
-
-								#Send experiment
-								#Rchannel = Channel(hostname=worker.hostname, username=worker.username, password=worker.password, pkey=worker.pkey, timeout=_timeout)
-								# channel = Channel(hostname='192.168.133.100', username=my_username, password=my_password, pkey=my_pkey, timeout=_timeout)
+								logging.info(" connecting to %s " % worker.hostname)
 								channel = Channel(hostname=worker.hostname, username=worker.username, password=worker.password, pkey=worker.pkey, timeout=_timeout)
+
 								remote_path = worker.get_remote_experiment_path()
+								logging.debug("SEND_EXPERIMENT 7.1 changing dir to {} ".format(remote_path))
 								channel.chdir(remote_path)
-								logging.debug("SEND_EXPERIMENT 8 {}".format(_local_experiments_dir+exp.filename))
+
+								logging.info("SEND_EXPERIMENT 7.2 making dir {}".format(exp.name))
 								channel.mkdir(exp.name)
+
+								logging.info("SEND_EXPERIMENT 7.3 changing to dir {}".format(exp.name))
 								channel.chdir(exp.name)
-								logging.info(" %s sending experiment "%worker.hostname)
-								#TODO#
+
+								logging.debug("SEND_EXPERIMENT 8 file: {} to: {}".format(_local_experiments_dir+exp.filename, remote_path))
 								channel.put(_local_experiments_dir+exp.filename, exp.filename)
-								logging.debug("SEND_EXPERIMENT 9 {}".format(exp.filename))
-								#all experiments files must be gzipped
+
+								logging.debug("SEND_EXPERIMENT 9 unzipping file {}".format(exp.filename))
 								channel.run("tar -xzf %s" % exp.filename)
-								logging.debug("SEND_EXPERIMENT 10")
+								logging.debug("SEND_EXPERIMENT 10 unzipping done.")
 
 								actor_id = self.controller_client.exp_create_actor(exp.id, worker.path, role.id)
 								channel.run("echo \"parameters=%s\nexp_id=%s\nrole_id=%s\nactor_id=%s\nis_snapshot=%s\" > info.cfg" % (role.parameters, exp.id, role.id, actor_id, exp.is_snapshot))
 								logging.debug("SEND_EXPERIMENT 11")
 								channel.close()
-								remaining-=1
-								i+=1
-								ready.append((worker.path,actor_id))
+								remaining -= 1
+								i += 1
+								ready.append((worker.path, actor_id))
 
 							except Exception as e:
-
+								tries -= 1
 								# print(datetime.datetime.now(), " ##Exception: ", e)
-								logging.debug('6.5Exception: ' +str(e))
-								logging.debug("SEND_EXPERIMENT 12")
+								logging.error('SEND_EXPERIMENT Try: {} Exception: {}'.format(tries, e))
+								logging.error("SEND_EXPERIMENT 12")
 								new_worker = self.controller_client.worker_allocate(alloc_list=worker_path_list)
 								# print(datetime.datetime.now(), " New worker: ", new_worker)
-								logging.debug('6.5NewWorker {}'.format(new_worker))
-								logging.debug("SEND_EXPERIMENT 13")
+								logging.error('6.5NewWorker {}'.format(new_worker))
+								logging.error("SEND_EXPERIMENT 13")
 								if new_worker == []:
 									failed = True
 									break
@@ -323,21 +326,21 @@ class DirectorDaemon(Daemon):
 					logging.debug("SEND_EXPERIMENT 17")
 
 			elif task_cmd == COMMANDS.RECOVER_ACTOR:
-				print(datetime.datetime.now(), "RECOVER_ACTOR task_args: ", task_args)
+
 				logging.info("RECOVER_ACTOR task_args: %s"%str(task_args))
-				logging.debug("[7]RecoverActor")
+				logging.debug("RECOVER_ACTOR [1] RecoverActor")
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug("[8]RecoverActor")
+				logging.debug("RECOVER_ACTOR [2] RecoverActor")
 				exp_list = self.controller_client.worker_get_experiments(worker.hostname)
-				logging.debug("[9]RecoverActor")
+				logging.debug("RECOVER_ACTOR [3]RecoverActor")
 				channel = None
 
 				try:
-					print(datetime.datetime.now(), "\t", worker.hostname, "connecting")
+					logging.info("RECOVER_ACTOR [4] connecting to {}".format(worker.hostname))
 
 					#rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
-					channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
+					channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey, password=worker.password, timeout=_timeout)
 					remote_path = worker.get_remote_path()
 					channel.chdir(remote_path)
 					channel.run("python3 %s stop" % (_worker_daemon))
@@ -347,7 +350,7 @@ class DirectorDaemon(Daemon):
 					print(datetime.datetime.now(), "\t", worker.hostname, "cmd: python3 %s restart"%(_worker_daemon), "stdout: ", stdout_str, "stderr: ", stderr_str)
 
 					print(datetime.datetime.now(), "\t", worker.hostname, "daemon recovered")
-					logging.debug("[10]RecoverActor")
+					logging.debug("RECOVER_ACTOR [5] RecoverActor")
 					channel.close()
 
 				except:
@@ -424,9 +427,7 @@ class DirectorDaemon(Daemon):
 				exp.name = exp.name.replace(' ','_')
 
 				self.controller_client.exp_add(exp)
-
 				self.controller_client.task_add(COMMANDS.SEND_EXPERIMENT, experiment=exp)
-
 				self.controller_client.task_del(task_now)
 
 			elif task_cmd == COMMANDS.NEW_WORKER:
@@ -477,32 +478,32 @@ class DirectorDaemon(Daemon):
 				logging.info("INSTALL_WORKER task_args: %s" % str(task_args))
 
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug('Install_Worker_Literal_Debug: PASS !!!')
+				logging.debug('INSTALL_WORKER [1]')
 				#Install daemon
 
 				try:
-					logging.debug('Install_Worker_Literal_Debug: TRY p1')
+					logging.debug('INSTALL_WORKER [2]')
 
 					logging.info(str(datetime.datetime.now()) +' '+ str( worker.hostname) +" connecting")
-					logging.debug('logging.info_OK')
+					logging.debug('INSTALL_WORKER [2] logging.info_OK')
 					#rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 					channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 
-					logging.debug('Install_Worker_Literal_Debug: TRY p2')
+					logging.debug('INSTALL_WORKER [3] Install_Worker_Literal_Debug: TRY p2')
 
 					#INSTALL PYTHON (+ MAKE + GCC)
 
 					print(datetime.datetime.now(), worker.hostname,"downloading dependencies")
 					#TODO
 					#channel.run("sudo yum install -y --nogpgcheck openssl-devel libffi-devel")
-					logging.debug('Install_Worker_Literal_Debug: TRY p3')
+					logging.debug('INSTALL_WORKER [3] Install_Worker_Literal_Debug: TRY p3')
 					#Python version output goes to the stderr interface (y tho?)
 
 					#stdout,stderr = channel.run("python3 -V")
 					stdout,stderr = channel.run("python3 -V")
 
-					logging.debug('Install_Worker_Literal_Debug: TRY p4')
+					logging.debug('INSTALL_WORKER [4] Install_Worker_Literal_Debug: TRY p4')
 
 					#Rafael#vers = stderr.read().strip()
 					stdout,stderr = channel.run("pip install --upgrade pip")
@@ -556,7 +557,7 @@ class DirectorDaemon(Daemon):
 						# except:
 						# 	logging.debug('Error in the Python install')
 						#channel.run("rm -rf Python-%s*" % _pyvers)
-					logging.debug('Install_Worker_Literal_Debug: TRY p8')
+					logging.debug('INSTALL_WORKER [5] Install_Worker_Literal_Debug: TRY p8')
 					#Rafael#
 					# _, stderr = channel.run("python -V")
 					# vers = stderr.read().strip()
@@ -620,6 +621,7 @@ class DirectorDaemon(Daemon):
 
 					channel.close()
 					logging.debug('task_start_work: TRY p5')
+
 				except Exception as e:
 					logging.debug('task_start_work: TRY p6')
 					print(datetime.datetime.now(), worker.hostname, e)
@@ -727,23 +729,28 @@ def main():
 	logging.info("\t command option: %s" % args.cmd)
 	logging.info("")
 
-	pid_file = "/tmp/daemon_director_%s.pid" % args.id
-	stdout = "/tmp/daemon_director_%s.stdout" % args.id
-	stderr = "/tmp/daemon_director_%s.stderr" % args.id
-
 	logging.info("FILES")
 	logging.info("---------------------")
-	logging.info("\t pid_file      : %s" % pid_file)
-	logging.info("\t stdout        : %s" % stdout)
-	logging.info("\t stderr        : %s" % stderr)
-	logging.info("")
 
 	if args.cmd == 'foreground':
+		logging.info("\t pid_file      : None (foreground process) " )
+		logging.info("\t stdout        : None (foreground process)" )
+		logging.info("\t stderr        : None (foreground process)" )
+		logging.info("")
 		director = Director()
 		director.set_sleep_seconds(args.sleep)
 		director.run()
 
 	else:
+		pid_file = "/tmp/daemon_director_%s.pid" % args.id
+		stdout = "/tmp/daemon_director_%s.stdout" % args.id
+		stderr = "/tmp/daemon_director_%s.stderr" % args.id
+
+		logging.info("\t pid_file      : %s" % pid_file)
+		logging.info("\t stdout        : %s" % stdout)
+		logging.info("\t stderr        : %s" % stderr)
+		logging.info("")
+
 		director_daemon = DirectorDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
 		director_daemon.set_sleep_seconds(args.sleep)
 

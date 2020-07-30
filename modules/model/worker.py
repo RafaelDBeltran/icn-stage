@@ -4,6 +4,8 @@
 #   @date: (DD/MM/YYYY) 08/02/2017
 
 import ast
+
+
 # import logging
 
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s\t%(message)s', datefmt="%Y-%m-%d %H:%M:%S",filename='daemon_controller.log', filemode='w')
@@ -11,11 +13,13 @@ import ast
 
 class Worker(object):
 	"""docstring for Worker"""
-	def __init__(self, hostname, username, path="", password="", pkey="", status="", actors=[], active_time=0.0, failures=0, disconnection_time=0.0, connection_time=0, actor_id="default"):
+
+	def __init__(self, hostname, username, path="", password="", pkey="", status="", actors=[], active_time=0.0,
+				 failures=0, disconnection_time=0.0, connection_time=0, actor_id="default"):
 		self.path = path
 		self.hostname = hostname
 		self.username = username
-		self.password= password
+		self.password = password
 		self.pkey = pkey
 		self.status = status
 
@@ -26,14 +30,18 @@ class Worker(object):
 		self.actors = actors
 		self.actor_id = actor_id
 
-
 	@staticmethod
 	def decode(encoded_worker):
-		
 		worker_dict = ast.literal_eval(encoded_worker)
 		# logging.debug(type(encoded_worker))
 		# logging.debug('Literal_Debug: ' + encoded_worker)
-		worker = Worker(worker_dict["hostname"], worker_dict["username"], path=worker_dict["path"], password=worker_dict["password"], pkey=worker_dict["pkey"], status=worker_dict["status"], actor_id=worker_dict["actor_id"])
+		worker = Worker(worker_dict["hostname"],
+						worker_dict["username"],
+						path=worker_dict["path"],
+						password=worker_dict["password"],
+						pkey=worker_dict["pkey"],
+						status=worker_dict["status"],
+						actor_id=worker_dict["actor_id"])
 
 		return worker
 
@@ -41,7 +49,7 @@ class Worker(object):
 		return "actor_{}".format(self.actor_id)
 
 	def get_remote_experiment_path(self):
-		return "{}/experiments" % self.get_remote_path()
+		return "{}/experiments".format(self.get_remote_path())
 
 	def id(self):
 		if self.path != "":
@@ -57,6 +65,6 @@ class Worker(object):
 					"pkey": self.pkey,
 					"status": self.status})
 
-	#"pkey": "{}...{}".format(self.pkey[:10], self.pkey[-10:]),
+	# "pkey": "{}...{}".format(self.pkey[:10], self.pkey[-10:]),
 	def encode(self):
 		return str(self).encode()

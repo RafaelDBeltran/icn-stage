@@ -178,7 +178,7 @@ def run_command(zookeeper_controller, command):
         except:
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
-            print(msg)
+
 
     elif command == 'reset':
         for i in data['workers']:
