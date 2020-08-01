@@ -6,17 +6,20 @@
         {"remote_hostname": "10.0.0.1",
             "remote_username": "vagrant",
             "remote_password": "",
-            "remote_pkey_path": "/home/vagrant/icn-stage/.vagrant/machines/default/virtualbox/private_key"
+            "remote_pkey_path": "/home/vagrant/icn-stage/.vagrant/machines/default/virtualbox/private_key",
+            "actor_id": "1"
             },
             {"remote_hostname": "10.0.0.2",
             "remote_username": "vagrant",
             "remote_password": "",
-            "remote_pkey_path": "/home/vagrant/icn-stage/.vagrant/machines/default/virtualbox/private_key"
+            "remote_pkey_path": "/home/vagrant/icn-stage/.vagrant/machines/default/virtualbox/private_key",
+            "actor_id": "2"
             },
             {"remote_hostname": "10.0.0.3",
             "remote_username": "vagrant",
             "remote_password": "",
-            "remote_pkey_path": "/home/vagrant/icn-stage/.vagrant/machines/default/virtualbox/private_key"
+            "remote_pkey_path": "/home/vagrant/icn-stage/.vagrant/machines/default/virtualbox/private_key",
+            "actor_id": "3"
             }
         ]
 }
