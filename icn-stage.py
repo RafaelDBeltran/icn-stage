@@ -52,7 +52,7 @@ from modules.util.tools import View
 from modules.util.tools import Sundry
 #root imports
 from zookeeper_controller import ZookeeperController
-from experiments_resources import call_tcpserver
+from experiments_resources import call_tcp_server
 from experiments_resources import call_ndn_exp
 #Variables Define
 _local_experiments_dir = "./"
@@ -62,6 +62,7 @@ _log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
 data = json.load(open('config.json'))
+
 
 def set_logging(level=DEFAULT_LOG_LEVEL):
 
@@ -95,7 +96,7 @@ def add_worker(controller_client):
 
 
 # TODO Add loading time while adding workers
-def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, controller_client, func=None):
+def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, controller_client):
     logging.info("\t Executing experiment {} \t".format(experiment_name))
 
     experiment_name = '%s_%s' % (experiment_name, datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
@@ -114,14 +115,6 @@ def experiment_skeleton(experiment_name, commands, experiment_file_name, experim
     
     controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
     logging.debug("\tSending experiment done.\n")
-
-    #You can pass a function as an argument if you need to run anything in this experiment side
-    if func == None:
-        pass
-    else:
-        func()
-
-    logging.info("\tExperiment done.\n")
 
 
 def help_msg():
@@ -180,14 +173,17 @@ def run_command(zookeeper_controller, command):
         add_worker(zookeeper_controller.controller_client)
 
     elif command == 'test':
+        logging.info("*** test tcp begin\n")
         zookeeper_controller.set_controller_client()
         try:
             experiment_skeleton('test_tcp', ['python {}'.format('tcp_client.py'),
                                               '--host {}'.format(zookeeper_controller.get_ip_adapter()),
                                               '--port {}'.format('10000')],
                                 "test_tcp.tar.gz", "experiments/test_tcp/",
-                                zookeeper_controller.controller_client,
-                                call_tcpserver(zookeeper_controller.get_ip_adapter(), 10000))
+                                zookeeper_controller.controller_client)
+            call_tcp_server(zookeeper_controller.get_ip_adapter(), 10000)
+            logging.info("\n")
+            logging.info("*** test tcp end!")
 
         except Exception as e:
             logging.error("Exception: {}".format(e))
@@ -199,8 +195,8 @@ def run_command(zookeeper_controller, command):
         try:
             experiment_skeleton('test_ndn', ['sudo', 'bash', 'poke.sh'],
                                 "test_ndn.tar.gz", "experiments/test_ndn/",
-                                zookeeper_controller.controller_client,
-                                call_ndn_exp(zookeeper_controller.get_ip_adapter()))
+                                zookeeper_controller.controller_client)
+            call_ndn_exp()
 
         except Exception as e:
             logging.error("Exception: {}".format(e))

@@ -1,6 +1,7 @@
 import socket
 import logging
 
+
 class TCPServer:
     def __init__(self, host_, port_):
         self.host = host_
@@ -18,28 +19,29 @@ class TCPServer:
         (client_socket, client_address) = server_socket.accept()
         try:
             logging.info('Connection coming from: ' + str(client_address))
-            print('Connection coming from: ' + str(client_address))
             data = client_socket.recv(25)
             logging.info('Message from client: ' + str(data.decode('UTF-8')))
-            print('Message from client: ' + str(data.decode('UTF-8')))
+
+        except Exception as e:
+            logging.error('Exception: {}'.format(e))
 
         finally:
             server_socket.close()
             logging.info("Connection closed.")
 
-def call_tcpserver(host_, port_):
+
+def call_tcp_server(host_, port_):
 
     logging.debug("Starting TCP Server")
     tcp_server = TCPServer(host_, port_)
-    logging.debug(" TCP Server listen")
-
+    logging.debug("TCP Server listen")
     tcp_server.listen()
     logging.debug(" TCP Server done.")
 
 import subprocess
 import time
 class NDNExp:
-    def peek_start(self,ip):
+    def peek_start(self):
         subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(5)
         subprocess.run(["nfdc", "face", "create", "udp://10.0.0.1"])
@@ -51,6 +53,6 @@ class NDNExp:
             subprocess.run(["ndnpeek", "-p", "/demo/hello"])
         subprocess.run(["nfd-stop"])
 
-def call_ndn_exp(ip):
+def call_ndn_exp():
     intance_NDNExp = NDNExp()
-    intance_NDNExp.peek_start(ip)
+    intance_NDNExp.peek_start()

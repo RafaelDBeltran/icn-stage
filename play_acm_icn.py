@@ -21,7 +21,7 @@ from modules.util.tools import View
 from modules.util.tools import Sundry
 # root imports
 from zookeeper_controller import ZookeeperController
-from experiments_resources import call_tcpserver
+from experiments_resources import call_tcp_server
 
 # Variables Define
 _LOCAL_EXPERIMENTS_DIR = "./"
