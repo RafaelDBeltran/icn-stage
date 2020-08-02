@@ -614,7 +614,7 @@ class DirectorDaemon(Daemon):
 
 	def run(self):
 		logging.debug("Begin")
-		logging.debug("Instatiating Controller Client")
+		logging.debug("Instantiating Controller Client")
 		self.controller_client = ControllerClient(self.zookeeper_ip_port)
 		logging.debug("Creating missing paths")
 		self.controller_client.config_create_missing_paths()

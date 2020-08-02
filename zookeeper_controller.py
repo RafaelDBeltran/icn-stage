@@ -79,7 +79,14 @@ class ZookeeperController:
                 os.mkdir("./experiments")
         #else:
         #    self.controller_client = ControllerClient(zookeeper_ip_port)
+        # instantiating it is costly and might not be need at all, so leave the decision for the caller
+        self.controller_client = None
 
+    def set_controller_client(self, controller_client=None):
+        if controller_client is None and self.controller_client is None:
+            self.controller_client = ControllerClient(self.zookeeper_ip_port)
+        elif controller_client is not None:
+            self.controller_client = controller_client
 
     def get_ip_adapter(self):
         # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
@@ -122,19 +129,6 @@ class ZookeeperController:
         except:
             return False
 
-    # RM: isso não faz sentido! o controlador do zookeeper deveria controlar apenas o ZK, não o diretor
-    # def zookeeper_status(self):
-    #     logging.info("STATUS ZK")
-    #     subprocess.call("%s daemon_director.py status" % sys.executable, shell=True)
-    #
-    # def zookeeper_restart(self):
-    #     logging.info("RESTART ZK")
-    #     subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
-    #
-    # def zookeeper_stop(self):
-    #     logging.info("STOP ZK")
-    #     subprocess.call("%s daemon_director.py stop" % sys.executable, shell=True)
-
     @staticmethod
     def start_zookeeper_service():
         logging.info("STARTING ZK")
@@ -148,7 +142,6 @@ class ZookeeperController:
         subprocess.call(cmd, shell=True)
 
         #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
-
 
     # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):

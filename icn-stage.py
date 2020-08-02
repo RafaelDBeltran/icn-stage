@@ -62,7 +62,6 @@ sundry = Sundry()
 #Load config file
 data = json.load(open('config.json'))
 
-
 def set_logging(level=DEFAULT_LOG_LEVEL):
 
     logreset.reset_logging()
@@ -94,11 +93,11 @@ def add_worker(controller_client):
     logging.info("Adding Actors...DONE")
 
 
-# TODO Adicionar loading time no add workers
-def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, controller_client, func = None):
+# TODO Add loading time while adding workers
+def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, controller_client, func=None):
     logging.info("\t Executing experiment {} \t".format(experiment_name))
 
-    experiment_name = 'http_test_%s' % datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-')
+    experiment_name = '%s_%s' % (experiment_name, datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
 
     logging.info("\t Experiment_name: {}\t".format(experiment_name))
     logging.info("\t Experiment comands: {}\t".format(' '.join(str(x) for x in commands)))
@@ -115,13 +114,12 @@ def experiment_skeleton(experiment_name, commands, experiment_file_name, experim
     controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
     logging.debug("\tSending experiment done.\n")
 
-    #You can pass a function has a argument if your want run anything in this side of the experimente. If not keep this like None
+    #You can pass a function as an argument if you need to run anything in this experiment side
     if func == None:
         pass
     else:
         func()
 
-    controller_client.config_stop
     logging.info("\tExperiment done.\n")
 
 
@@ -140,73 +138,87 @@ def help_msg():
     printc   :
     printd   :
     reset    : clean zookeeper tree
-    log      : setup logging level (default=%d, current=%d)
+    verbosity: setup logging verbosity level (default=%d, current=%d)
     ''' %(DEFAULT_LOG_LEVEL, _log_level)
+
+# TODO migrate commands to the following syntax
+# def help_msg():
+#     return '''
+#     [COMMNAND] [ARGUMENT]
+#     Available commands
+#     ------------------
+#       COMMAND     ARGUMENTS
+#       start     {director, actors, all, ?}                :
+#       stop      {director, actors, all, ?}                :
+#       restart   {director, actors, all, ?}                : stop; start
+#       status    {director, actors, zookeeper, all, ?}
+#       clean                                               : clean the zookeeper tree
+#       test      {tcp, ndn, ?}                             : basic connectivity tests using stage_mininet.py
+#       help, ?   {COMMANDS}                                : prints this message
+#       verbosity {10, 20}                                  : setup logging verbosity level (default=%d, current=%d)
+#     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
 def run_command(zookeeper_controller, command):
 
     if command == 'start':
-        #zookeeper_controller.start_zookeeper_service()
         daemon_director.start()
 
     elif command == 'stop':
-        #zookeeper_controller.zookeeper_stop()
         daemon_director.stop()
 
     elif command == 'restart':
-        #zookeeper_controller.zookeeper_restart()
         daemon_director.restart()
 
     elif command == 'status':
-        #zookeeper_controller.zookeeper_status()
         daemon_director.status()
 
     elif command == 'addactors':
+        zookeeper_controller.set_controller_client()
         add_worker(zookeeper_controller.controller_client)
 
     elif command == 'test':
+        zookeeper_controller.set_controller_client()
         try:
-            experiment_skeleton('first fly', ['python {}'.format('tcp_client.py'),
+            experiment_skeleton('test_tcp', ['python {}'.format('tcp_client.py'),
                                               '--host {}'.format(zookeeper_controller.get_ip_adapter()),
                                               '--port {}'.format('10000')],
-                                "test_tcp.tar.gz", "experiments/test_tcp/", zookeeper_controller.controller_client)
+                                "test_tcp.tar.gz", "experiments/test_tcp/",
+                                zookeeper_controller.controller_client,
+                                call_tcpserver(zookeeper_controller.get_ip_adapter(), 10000))
 
-            # TODO o call_tcpserver deveria funcionar sendo chamado dentro do experiment_skeleton
-            call_tcpserver(zookeeper_controller.get_ip_adapter(), 10000)
-
-        except:
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-
     elif command == 'reset':
+        zookeeper_controller.set_controller_client()
         for i in data['workers']:
             zookeeper_controller.kill_worker_daemon(i["remote_username"], i["remote_password"],
                                                     sundry.get_pkey(i["remote_pkey_path"]))
             zookeeper_controller.reset_workers()
 
     elif command == 'printc':
+        zookeeper_controller.set_controller_client()
         try:
             root = "/connected/"
             zookeeper_controller.print_zk_tree(root, root, 0)
 
-        except:
-            pass
-        # zookeeper_controller.controller_client.zk.stop()
-        # sys.exit(0)
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
 
     elif command == 'printd':
+        zookeeper_controller.set_controller_client()
         try:
             root = "/disconnected/"
             zookeeper_controller.print_zk_tree(root, root, 0)
 
-        except:
-            pass
-        # zookeeper_controller.controller_client.zk.stop()
-    # sys.exit(0)
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
 
     elif command == 'print':
+        zookeeper_controller.set_controller_client()
         try:
             if len(sys.argv) > 2:
                 root = sys.argv[2]
@@ -215,31 +227,28 @@ def run_command(zookeeper_controller, command):
             else:
                 zookeeper_controller.print_zk_tree("/", "/", 0)
 
-        except:
-            pass
-        # zookeeper_controller.controller_client.zk.stop()
-        # sys.exit(0)
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
 
     elif command == 'exit' or command == 'quit':
         subprocess.call("fixNoNodeError.sh", shell=True)
         subprocess.call("clean.sh", shell=True)
-        print('Goodbye!')
+        logging.info('Goodbye!')
         sys.exit()
 
     elif command == 'help' or command == '?':
         print(help_msg())
 
-    elif command.split(' ')[0] == 'log':
+    elif command.split(' ')[0] == 'log' or command.split(' ')[0] == 'verbosity' or command.split(' ')[0] == 'v':
         try:
             command_option = int(command.split(' ')[1])
             set_logging(command_option)
 
         except Exception as e:
-            print("Log value invalid '%s'" % command )
-
+            logging.error(" Logging verbosity level value invalid '%s'" % command )
 
     else:
-        print("Command '%s' is not recognized"%command)
+        logging.error("Command '%s' is not recognized" % command)
         print(help_msg())
 
 
