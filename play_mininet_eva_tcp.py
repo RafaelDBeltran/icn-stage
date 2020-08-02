@@ -105,7 +105,7 @@ if __name__ == '__main__':
     if fail:
         # run TCP iperf
         subprocess.call(ICN_STAGE_CMD + ['eva-tcp', 'iperf_with_fail.log'])
-        cmd = "./icn-stage.py print /connected/busy_workers > l.txt"
+        cmd = "python3 ./icn-stage.py print /connected/busy_workers > l.txt"
         subprocess.call(cmd)
         result = ""
         while result == "":
