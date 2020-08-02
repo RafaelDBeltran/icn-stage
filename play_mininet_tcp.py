@@ -49,6 +49,10 @@ if __name__ == '__main__':
     #                      help='''Choose routing type, dry = link-state is used
     #                              but hr is calculated for comparision.''')
 
+    # cleanning minnet, for the sake of safety
+    cmd = ["sudo", "mn", "--clean"]
+    subprocess.call(cmd)
+
     net = Mininet(switch=OVSKernelSwitch,
                   controller=OVSController, waitConnected=True)
 
@@ -57,7 +61,6 @@ if __name__ == '__main__':
 
     info('*** Adding NAT\n')
     nat = net.addHost('nat', cls=NAT, ip='10.0.0.99', inNamespace=False)
-
 
     h1 = net.addHost('h1',ip='10.0.0.1', inNamespace=True)
     h2 = net.addHost('h2',ip='10.0.0.2', inNamespace=True)
@@ -79,10 +82,13 @@ if __name__ == '__main__':
     ssh_cmd = '/usr/sbin/sshd'
     opts = '-D'
     for host in net.hosts:
-        host.cmd(ssh_cmd + ' ' + opts + '&' )
+        host.cmd(ssh_cmd + ' ' + opts + '&')
 
     # start director
     subprocess.call(ICN_STAGE_CMD + ['start'])
+
+    # clean zookeeper tree
+    subprocess.call(ICN_STAGE_CMD + ['reset'])
 
     # start actors
     subprocess.call(ICN_STAGE_CMD + ['addactors'])

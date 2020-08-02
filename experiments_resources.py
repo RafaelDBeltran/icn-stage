@@ -1,6 +1,7 @@
 import socket
 import logging
 
+
 class TCPServer:
     def __init__(self, host_, port_):
         self.host = host_
@@ -18,23 +19,21 @@ class TCPServer:
         (client_socket, client_address) = server_socket.accept()
         try:
             logging.info('Connection coming from: ' + str(client_address))
-            print('Connection coming from: ' + str(client_address))
             data = client_socket.recv(25)
             logging.info('Message from client: ' + str(data.decode('UTF-8')))
-            print('Message from client: ' + str(data.decode('UTF-8')))
+
+        except Exception as e:
+            logging.error('Exception: {}'.format(e))
 
         finally:
             server_socket.close()
             logging.info("Connection closed.")
 
-def call_tcpserver(host_, port_):
+
+def call_tcp_server(host_, port_):
 
     logging.debug("Starting TCP Server")
     tcp_server = TCPServer(host_, port_)
-    logging.debug(" TCP Server listen")
-
+    logging.debug("TCP Server listen")
     tcp_server.listen()
-    logging.debug(" TCP Server done.")
-
-
-#call_tcpserver('127.0.0.1',1000)
+    logging.debug("TCP Server done.")
