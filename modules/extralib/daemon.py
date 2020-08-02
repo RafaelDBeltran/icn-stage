@@ -24,6 +24,7 @@ class Daemon(object):
     """
     # def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+
         log.debug('Created daemon.  stdout=%s, stdin=%s, stderr=%s' %
                   (stdout, stdin, stderr))
         self.stdin = stdin
@@ -80,10 +81,13 @@ class Daemon(object):
         try:
             open(self.pidfile,'w+').write("%s\n" % pid)
             log.debug("pid written to: '%s'" % self.pidfile)
+
         except IOError:
             log.error("unable to write pid to open '%s'" % self.pidfile)
             log.error("Aborting")
             sys.exit(1)
+
+        log.debug("done.")
 
     def delpid(self):
         os.remove(self.pidfile)
@@ -108,7 +112,9 @@ class Daemon(object):
         # Start the daemon
         if daemon:
             self.daemonize()
+
         self.run()
+
 
     def stop(self):
         log.debug("Attempting to stop daemon")

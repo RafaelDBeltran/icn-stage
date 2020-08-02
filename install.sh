@@ -219,9 +219,10 @@ function icn-stage {
 	    wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
 	    tar zxf apache-zookeeper-3.6.1-bin.tar.gz
 	    mv apache-zookeeper-3.6.1-bin apache-zookeeper-3.6.1
+	    rm -f apache-zookeeper-3.6.1-bin.tar.gz
 	  fi
 	  #ls -s apache-zookeeper-3.6.1-bin zookeeper
-	  rm apache-zookeeper-3.6.1-bin.tar.gz
+
     #popd
 }
 

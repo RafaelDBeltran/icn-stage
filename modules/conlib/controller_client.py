@@ -84,33 +84,42 @@ class ControllerClient:
 	# rafael
 	# def __init__(self, zk_addr="127.0.0.1:2181"):
 	def __init__(self, zk_addr):
+		self.zk_addr = zk_addr
+		logging.debug("Instantiating kazoo using address: {}".format(self.zk_addr))
+		#self.zk = kazoo.client.KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=180))
+		self.zk = kazoo.client.KazooClient(self.zk_addr,
+										   connection_retry = kazoo.retry.KazooRetry(max_tries=2, max_delay=5))
 
-		# status = zookeeper_controller.get_status()
-		# print(status)
-		# print ("dsadsasas \n\n\n\n\n")
-		# print("is running? ",zookeeper_controller.is_running())
-		# print("dsadsasas \n\n\n\n\n")
-		# print("is getstatus? 1 ", zookeeper_controller.get_status())
-		# print("dsadsasas \n\n\n\n\n")
-		# print("is getstatus? 2 ", zookeeper_controller.get_status2())
-		# print("dsadsasas \n\n\n\n\n")
-
-		self.zk = kazoo.client.KazooClient(zk_addr,
-										   connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=180))
+		logging.debug("Kazoo instantiated at address: {}".format(self.zk_addr))
 		try:
+			logging.debug("Kazoo start... ")
 			self.zk.start()
+			logging.debug("Kazoo start done. ")
 		except Exception as e:
-			print("Exception while connecting with Zookeeper:\n\n", e)
+			logging.error("Exception while connecting with Zookeeper:\n\n", e)
+		logging.debug("End Controller Client init ")
 
 	def config_stop(self):
 		return self.zk.stop()
 
 	def config_create_missing_paths(self):
-		for path in PATHS.ALL:
-			if path in [PATHS.CONNECTED_FREE, PATHS.CONNECTED_BUSY]:
-				self.zk.ensure_path(path)
-			else:
-				self.zk.ensure_path(path)
+		logging.debug(" before loop kz connected: {}".format(self.zk.connected))
+		try:
+			for path in PATHS.ALL:
+
+				logging.debug(" path: {}".format(path))
+				if path in [PATHS.CONNECTED_FREE, PATHS.CONNECTED_BUSY]:
+					logging.debug(" before ensure path: {}".format(path))
+					self.zk.ensure_path(path)
+					logging.debug(" after ensure path: {}".format(path))
+				else:
+					logging.debug(" before ensure path: {}".format(path))
+					self.zk.ensure_path(path)
+					logging.debug(" after ensure path: {}".format(path))
+		except Exception as e:
+			logging.erro(" Exception: {}".format(e))
+
+		logging.debug(" after loop")
 
 	#### TASKS CONTROL METHODS
 
@@ -525,4 +534,9 @@ class ControllerClient:
 	#### WATCHERS METHODS
 
 	def watch_new_tasks(self, event_handler):
-		kazoo.recipe.watchers.ChildrenWatch(self.zk, PATHS.TASKS, event_handler)
+		logging.debug("before watchers")
+		try:
+			kazoo.recipe.watchers.ChildrenWatch(self.zk, PATHS.TASKS, event_handler)
+		except:
+			pass
+		logging.debug("after watchers")

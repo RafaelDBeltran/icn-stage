@@ -173,44 +173,19 @@ class RPM(multiprocessing.Process):
 class DirectorDaemon(Daemon):
 
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
-		super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
-
+		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
 		self.zookeeper_controller = ZookeeperController()
-		self.controller_client = self.zookeeper_controller.controller_client
 		self.sleep_seconds = None
-
-	def stop(self):
-		super().stop()
-		#self.zookeeper_controller.stop_zookeeper_service()
-
-	# def set_zookeeper_controller(self):
-	# 	self.zookeeper_controller = ZookeeperController()
-	# 	zookeeper_ip_port = self.zookeeper_controller.get_ip_adapter() + ':2181'
-	# 	if not self.zookeeper_controller.is_running():
-	# 		print("Zookeeper Service is not running.")
-	# 		self.zookeeper_controller.start_zookeeper_service()
-	# 		logging.info("CONNECTING ZK")
-	# 		self.controller_client = ControllerClient(zookeeper_ip_port)
-	#
-	# 		logging.info("CREATING BASIC ZNODES ZK")
-	# 		self.controller_client.config_create_missing_paths()
-	#
-	# 		if not os.path.isdir("./experiments"):
-	# 			logging.info("CREATING EXPERIMENTS FOLDER")
-	# 			os.mkdir("./experiments")
-	# 	else:
-	# 		self.controller_client = ControllerClient(zookeeper_ip_port)
-	#
-	# 	print("\n\nDASDADASDA\n\n\n")
-	# 	self.zookeeper_controller.set_controller_client(self.controller_client)
-	# 	self.sleep_seconds = DEFAULT_SLEEP_SECONDS
-
+		self.controller_client = None
+		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 
 	def set_sleep_seconds(self, sleep_seconds):
 		self.sleep_seconds = sleep_seconds
+		logging.debug("done.")
 
 	def task_handler(self, tasks_new):
-		logging.debug("task_handler tasks_new: %s"%str(tasks_new))
+
+		logging.debug("task_handler tasks_new: %s" % str(tasks_new))
 		for task_now in sorted(tasks_new):
 			logging.debug("\ttask_now: %s" % str(task_now))
 			task_data, task_args = self.controller_client.task_get(task_now)
@@ -638,24 +613,33 @@ class DirectorDaemon(Daemon):
 				logging.info("ERRO")
 
 	def run(self):
-
+		logging.debug("Begin")
+		logging.debug("Instatiating Controller Client")
+		self.controller_client = ControllerClient(self.zookeeper_ip_port)
+		logging.debug("Creating missing paths")
 		self.controller_client.config_create_missing_paths()
-
+		logging.debug("Setup watcher of new tasks")
 		self.exit = False
-		self.controller_client.watch_new_tasks(self.task_handler)
-
+		self.controller_client.watch_new_tasks(self.task_handler) # RM
+		#self.controller_client.watch_new_tasks(self.test_task_handler)  # RM
+		logging.debug("Instanting RPM")
 		rpm = RPM()
+		logging.debug("Setup RPM Controller Client")
 		rpm.set_controller_client(self.controller_client)
 		rpm.daemon = True
 
 		while not self.exit:
+
 			if not rpm.is_alive():
 				rpm = RPM()
 				rpm.set_controller_client(self.controller_client)
 				rpm.daemon = True
+				logging.debug("Starting RPM")
 				rpm.start()
 
+
 			time.sleep(self.sleep_seconds)
+		logging.debug("Terminating RPM")
 		rpm.terminate()
 
 		self.controller_client.config_stop()
@@ -665,14 +649,13 @@ class Director(DirectorDaemon):
 
 	def __init__(self):
 		self.zookeeper_controller = ZookeeperController()
-		self.controller_client = self.zookeeper_controller.controller_client
+		self.controller_client = None #self.zookeeper_controller.controller_client
 		self.sleep_seconds = None
 
 
 def cmd(option):
-	cmd_array = ['python3', __file__]
-	cmd_array.append(option)
-	subprocess.run(cmd_array)
+	cmd_array = ['python3', __file__, option]
+	subprocess.call(cmd_array)
 
 
 def stop():
@@ -751,19 +734,24 @@ def main():
 		logging.info("\t stderr        : %s" % stderr)
 		logging.info("")
 
+		zookeeper_controller = ZookeeperController()
 		director_daemon = DirectorDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
+		logging.debug("Instatianting zookeeper controller")
 		director_daemon.set_sleep_seconds(args.sleep)
+
 
 		# process input parameters
 		if args.cmd == 'start':
 			logging.info("Starting director daemon (ensemble)")
 			director_daemon.start()
+
 			director_daemon_pid = director_daemon.getpid()
 
 			if not director_daemon_pid:
 				logging.info("Unable to run director daemon (ensemble)")
 			else:
 				logging.info("Director daemon is running [PID=%d]" % director_daemon_pid)
+
 
 		elif args.cmd == 'stop':
 			logging.info("Stopping director daemon (ensemble)")

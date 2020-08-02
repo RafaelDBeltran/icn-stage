@@ -49,35 +49,37 @@ class ZookeeperController:
     ZK_CMD = ['%s/bin/zkServer.sh' % DEFAULT_ZOOKEEPER_PATH]
 
     def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
-
+        logging.info("looking for zookeeper config file: {}".format(config_file_))
         if os.path.isfile(config_file_):
+            logging.info("Config file found! {}".format(config_file_))
             self.config_data = json.load(open(config_file_))
             self.adapter = self.config_data["zookeeper_adapter"]
 
         else:
-            print("Config file not found! Config file name: '%s'" % config_file_)
-            print("You may want to create a config file from the available example: cp %s.example %s" % (
+            logging.info("Config file not found! Config file name: '%s'" % config_file_)
+            logging.info("You may want to create a config file from the available example: cp %s.example %s" % (
                 ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
             sys.exit(-1)
 
-        zookeeper_ip_port = self.get_ip_adapter() + ':2181'
-        print(zookeeper_ip_port)
+        self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
+        logging.info("zookeeper_ip_port: {}".format(self.zookeeper_ip_port))
         self.create_zookeeper_config_file()
 
         if not self.is_running():
-            print("Zookeeper Service is not running.")
+            logging.info("Zookeeper Service is not running.")
             self.start_zookeeper_service()
-            logging.info("CONNECTING ZK")
-            self.controller_client = ControllerClient(zookeeper_ip_port)
+            #logging.info("CONNECTING ZK")
+            #self.controller_client = None # ControllerClient(zookeeper_ip_port)
 
-            logging.info("CREATING BASIC ZNODES ZK")
-            self.controller_client.config_create_missing_paths()
+            #logging.info("CREATING BASIC ZNODES ZK")
+            #self.controller_client.config_create_missing_paths()
 
             if not os.path.isdir("./experiments"):
                 logging.info("CREATING EXPERIMENTS FOLDER")
                 os.mkdir("./experiments")
-        else:
-            self.controller_client = ControllerClient(zookeeper_ip_port)
+        #else:
+        #    self.controller_client = ControllerClient(zookeeper_ip_port)
+
 
     def get_ip_adapter(self):
         # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
@@ -136,7 +138,7 @@ class ZookeeperController:
     @staticmethod
     def start_zookeeper_service():
         logging.info("STARTING ZK")
-        cmd = "%s/bin/zkServer.sh start"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        cmd = "%s/bin/zkServer.sh start" % ZookeeperController.DEFAULT_ZOOKEEPER_PATH
         subprocess.call(cmd, shell=True)
 
     @staticmethod
