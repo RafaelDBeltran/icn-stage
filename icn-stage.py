@@ -53,6 +53,7 @@ from modules.util.tools import Sundry
 #root imports
 from zookeeper_controller import ZookeeperController
 from experiments_resources import call_tcp_server
+from experiments_resources import call_ndn_exp
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -129,6 +130,7 @@ def help_msg():
     status   :
     addactors:
     test     :
+    ndn      :
     help, ?  : prints this message
     print    :
     printc   :
@@ -207,6 +209,19 @@ def run_command(zookeeper_controller, command):
             call_tcp_server(zookeeper_controller.get_ip_adapter(), 10000)
             logging.info("\n")
             logging.info("*** test tcp end!")
+
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
+            msg = "Hint: don't forget to add actors!"
+            logging.error(msg)
+    
+    elif command == 'ndn':
+        zookeeper_controller.set_controller_client()
+        try:
+            experiment_skeleton('test_ndn', ['sudo', 'bash', 'poke.sh'],
+                                "test_ndn.tar.gz", "experiments/test_ndn/",
+                                zookeeper_controller.controller_client)
+            call_ndn_exp()
 
         except Exception as e:
             logging.error("Exception: {}".format(e))

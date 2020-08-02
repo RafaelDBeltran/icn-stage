@@ -36,4 +36,23 @@ def call_tcp_server(host_, port_):
     tcp_server = TCPServer(host_, port_)
     logging.debug("TCP Server listen")
     tcp_server.listen()
-    logging.debug("TCP Server done.")
+    logging.debug(" TCP Server done.")
+
+import subprocess
+import time
+class NDNExp:
+    def peek_start(self):
+        subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(5)
+        subprocess.run(["nfdc", "face", "create", "udp://10.0.0.1"])
+        time.sleep(5)
+        subprocess.run(["nfdc", "route", "add", "/demo/hello", "udp://10.0.0.1"])
+        #time.sleep(50)
+        for _ in range(0,10):
+            time.sleep(0.5)
+            subprocess.run(["ndnpeek", "-p", "/demo/hello"])
+        subprocess.run(["nfd-stop"])
+
+def call_ndn_exp():
+    intance_NDNExp = NDNExp()
+    intance_NDNExp.peek_start()
