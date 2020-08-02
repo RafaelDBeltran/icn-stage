@@ -101,8 +101,8 @@ def experiment_skeleton(experiment_name, commands, controller_client, experiment
 
     experiment_name = '%s_%s' % (experiment_name, datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
 
-    logging.info("\t Experiment_name: {}\t".format(experiment_name))
-    logging.info("\t Experiment comands: {}\t".format(' '.join(str(x) for x in commands)))
+    logging.info("\t Experiment_name   : {}\t".format(experiment_name))
+    logging.info("\t Experiment command: {}\t".format(' '.join(str(x) for x in commands)))
 
     simple_role = Role(experiment_name, ' '.join(str(x) for x in commands), 1)
     roles = [simple_role]
@@ -114,7 +114,7 @@ def experiment_skeleton(experiment_name, commands, controller_client, experiment
 
     logging.info("Sending experiment... ")
     experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
-    logging.debug("Experiment %s", experiment_)
+    logging.debug("Experiment instantiated %s", experiment_)
     
     controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
     logging.debug("\tSending experiment done.\n")
@@ -130,12 +130,14 @@ def help_msg():
     status   :
     addactors:
     test     :
+    eva-tcp  : 
     ndn      :
     help, ?  : prints this message
     print    :
     printc   :
     printd   :
     reset    : clean zookeeper tree
+    reset-tasks : reset tasks and experiments
     verbosity: setup logging verbosity level (default=%d, current=%d)
     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
@@ -150,14 +152,15 @@ def help_msg():
 #       stop      {director, actors, all, ?}                :
 #       restart   {director, actors, all, ?}                : stop; start
 #       status    {director, actors, zookeeper, all, ?}
-#       clean                                               : clean the zookeeper tree
-#       test      {tcp, ndn, ?}                             : basic connectivity tests using stage_mininet.py
+#       clean     {all, tasks}                              : clean the zookeeper tree
+#       test      {tcp, ndn, ?}                             : basic connectivity tests assuming stage_mininet.py
+#       eva       {tcp, ndn, ?}                             : performance evaluation assuming stage_mininet.py
 #       help, ?   {COMMANDS}                                : prints this message
 #       verbosity {10, 20}                                  : setup logging verbosity level (default=%d, current=%d)
 #     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
-def run_command(zookeeper_controller, command):
+def run_command(zookeeper_controller, command, option=None):
 
     if command == 'start':
         daemon_director.start()
@@ -180,8 +183,8 @@ def run_command(zookeeper_controller, command):
         zookeeper_controller.set_controller_client()
         try:
             cmd = ['python {}'.format('tcp_client.py'),
-                                      '--host {}'.format(zookeeper_controller.get_ip_adapter()),
-                                      '--port {}'.format('10000')]
+                  '--host {}'.format(zookeeper_controller.get_ip_adapter()),
+                  '--port {}'.format('10000')]
 
             experiment_skeleton('test_tcp', cmd,
                                 zookeeper_controller.controller_client,
@@ -196,19 +199,31 @@ def run_command(zookeeper_controller, command):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-    elif command == 'iperf':
+    elif command == 'eva-tcp':
         logging.info("*** iperf tcp begin\n")
         zookeeper_controller.set_controller_client()
         try:
+            file_log = "iperf.log"
+            if option is not None:
+                file_log = option
+
             iperf_port = '10000'
+            interval_secs = '1'
+            time_secs = '60'
             cmd = ['iperf ',
              '--client', zookeeper_controller.get_ip_adapter(),
-             '--port', iperf_port]
-            experiment_skeleton('iperf_tcp', cmd, None, "experiments/test_iperf_tcp/",
-                                zookeeper_controller.controller_client)
-            call_tcp_server(zookeeper_controller.get_ip_adapter(), 10000)
+             '--port', iperf_port,
+             '--time', time_secs]
+            # TODO remove the need for a tar.gz
+            experiment_skeleton('iperf_tcp', cmd, zookeeper_controller.controller_client,
+                                "experiments/iperf_tcp/", "iperf_tcp.tar.gz")
+
+            cmd = "iperf --server --port {} --interval {} --time {} | tee {}".format(iperf_port, interval_secs, time_secs, file_log)
+            logging.info("Command: {}".format(cmd))
+            subprocess.call(cmd, shell=True)
+
             logging.info("\n")
-            logging.info("*** test tcp end!")
+            logging.info("*** iperf tcp end!")
 
         except Exception as e:
             logging.error("Exception: {}".format(e))
@@ -234,6 +249,9 @@ def run_command(zookeeper_controller, command):
             zookeeper_controller.kill_worker_daemon(i["remote_username"], i["remote_password"],
                                                     sundry.get_pkey(i["remote_pkey_path"]))
             zookeeper_controller.reset_workers()
+    elif command == 'reset-tasks':
+        zookeeper_controller.set_controller_client()
+        zookeeper_controller.reset_tasks()
 
     elif command == 'printc':
         zookeeper_controller.set_controller_client()
@@ -256,8 +274,8 @@ def run_command(zookeeper_controller, command):
     elif command == 'print':
         zookeeper_controller.set_controller_client()
         try:
-            if len(sys.argv) > 2:
-                root = sys.argv[2]
+            if option is not None:
+                root = option
                 # print root, "/" + root.split("/")[len(root.split("/")) - 1]
                 zookeeper_controller.print_zk_tree(root, root, 0)
             else:
@@ -296,7 +314,11 @@ def main():
     if len(sys.argv) > 1:
         # single command mode
         command = sys.argv[1]
-        run_command(zookeeper_controller, command)
+        option = None
+        if len(sys.argv) > 2:
+            option = sys.argv[2]
+
+        run_command(zookeeper_controller, command, option)
 
     else:
         # interactive mode
@@ -304,8 +326,13 @@ def main():
         view = View()
         view.print_view()
         while True:
-            command = input('ICN-Stage >> ')
-            run_command(zookeeper_controller, command)
+            commands = input('ICN-Stage >> ')
+            commands = commands.split(" ")
+            command = commands[0]
+            option = None
+            if len(commands)>1:
+                option = commands[1]
+            run_command(zookeeper_controller, command, option)
 
 
 if __name__ == '__main__':

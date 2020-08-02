@@ -2,8 +2,11 @@
 # -*- coding: iso-8859-15 -*-
 
 import argparse
+import os
 import sys
 import subprocess
+import threading
+from time import sleep
 
 from mininet.log import setLogLevel, info
 from mininet.net import Mininet
@@ -38,6 +41,11 @@ ICN_STAGE_CMD = ['python3', 'icn-stage.py']
 # max_queue_size	queue limit parameter for netem Helper method: bool -> 'on'/'off'
 #
 
+def fail_link(net, source, destination, sleep_secs=0,):
+    if sleep_secs > 0:
+        sleep(sleep_secs)
+
+    net.configLinkStatus(source, destination, 'down')
 
 if __name__ == '__main__':
     setLogLevel('info')
@@ -66,15 +74,15 @@ if __name__ == '__main__':
     h2 = net.addHost('h2',ip='10.0.0.2', inNamespace=True)
     h3 = net.addHost('h3',ip='10.0.0.3', inNamespace=True)
 
-    switch = net.addSwitch('s1')
+    s1 = net.addSwitch('s1')
 
     # Add links
     #bw in Mbit/s
     host_link = partial(TCLink, bw=1)
-    net.addLink(h1, switch, cls=host_link)
-    net.addLink(h2, switch, cls=host_link)
-    net.addLink(h3, switch, cls=host_link)
-    net.addLink(nat, switch)
+    net.addLink(h1, s1, cls=host_link)
+    net.addLink(h2, s1, cls=host_link)
+    net.addLink(h3, s1, cls=host_link)
+    net.addLink(nat, s1)
 
     net.start()
 
@@ -93,8 +101,29 @@ if __name__ == '__main__':
     # start actors
     subprocess.call(ICN_STAGE_CMD + ['addactors'])
 
-    # run simple TCP test
-    #subprocess.call(ICN_STAGE_CMD + ['test'])
+    fail = False
+    if fail:
+        # run TCP iperf
+        subprocess.call(ICN_STAGE_CMD + ['eva-tcp', 'iperf_with_fail.log'])
+        cmd = "./icn-stage.py print /connected/busy_workers > l.txt"
+        subprocess.call(cmd)
+        result = ""
+        while result == "":
+            cmd = 'cat l.txt | grep "01:01" | cut -d ":" -f 2 | cut -d "." -f 2-'
+            result = os.getoutput(cmd)
+            sleep(1)
+        source = None
+        for h in net.hosts:
+            print("host: {} IP: {}".format(h, h.IP))
+            if result in h.IP:
+                source = h
+
+        fail_thread = threading.Thread(target=fail_link(net, source.name, 's1', 30))
+        fail_thread.start()
+
+    else:
+        subprocess.call(ICN_STAGE_CMD + ['eva-tcp', 'iperf_without_fail.log'])
+
 
     #info("\n*** Type 'exit' or control-D to shut down network\n")
     #CLI(net)

@@ -19,7 +19,11 @@ class Experiment(object):
 
 	def __init__(self, name, filename, roles, is_snapshot, exp_id="", actors={}):
 		self.name = name
-		self.filename = filename
+		if filename is None:
+			self.filename = ''
+		else:
+			self.filename = filename
+
 		self.roles = roles
 		self.is_snapshot = is_snapshot
 		self.id = exp_id

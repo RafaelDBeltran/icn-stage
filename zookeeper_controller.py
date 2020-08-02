@@ -144,6 +144,27 @@ class ZookeeperController:
         #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
 
     # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
+    def reset_tasks(self):
+
+        logging.info("\tRemoving tasks... ")
+        for t in self.controller_client.zk.get_children('/tasks/'):
+            logging.info("\t\ttask: {}".format(t))
+            self.controller_client.zk.delete('/tasks/' + t, recursive=True)
+        logging.info("\tRemoving tasks done. \n")
+
+        logging.info("\tRemoving experiments from workers... ")
+        try:
+            for w in self.controller_client.zk.get_children('/registered/workers'):
+                print(nowStr(), "\t\tRemoving experiment from worker: ", w)
+                for e in self.controller_client.zk.get_children('/registered/workers/' + w + '/torun'):
+                    print(nowStr(), "\t\t\tworker: ", w, " children: ", e)
+                    self.controller_client.zk.delete('/registered/workers/' + w + '/torun/' + e, recursive=True)
+        except Exception as e:
+            logging.error("Excepetion: {}".format(e))
+
+        logging.info("\tRemoving experiments from workers done.\n")
+
+    # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
         print(nowStr(), "Reseting workers...\n")
 
