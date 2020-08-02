@@ -95,7 +95,7 @@ def add_worker(controller_client):
 
 
 # TODO Add loading time while adding workers
-def experiment_skeleton(experiment_name, commands, experiment_file_name, experiment_dir, controller_client):
+def experiment_skeleton(experiment_name, commands, controller_client, experiment_dir=None, experiment_file_name=None):
     logging.info("\t Executing experiment {} \t".format(experiment_name))
 
     experiment_name = '%s_%s' % (experiment_name, datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
@@ -107,7 +107,10 @@ def experiment_skeleton(experiment_name, commands, experiment_file_name, experim
     roles = [simple_role]
 
     dir_source = _local_experiments_dir + experiment_dir
-    sundry.compress_dir(dir_source, experiment_file_name)
+    if experiment_file_name is not None:
+        logging.info("Compressing dir source '{}' to file '{}".format(dir_source, experiment_file_name))
+        sundry.compress_dir(dir_source, experiment_file_name)
+
     logging.info("Sending experiment... ")
     experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
     logging.debug("Experiment %s", experiment_)
@@ -174,10 +177,32 @@ def run_command(zookeeper_controller, command):
         logging.info("*** test tcp begin\n")
         zookeeper_controller.set_controller_client()
         try:
-            experiment_skeleton('test_tcp', ['python {}'.format('tcp_client.py'),
-                                              '--host {}'.format(zookeeper_controller.get_ip_adapter()),
-                                              '--port {}'.format('10000')],
-                                "test_tcp.tar.gz", "experiments/test_tcp/",
+            cmd = ['python {}'.format('tcp_client.py'),
+                                      '--host {}'.format(zookeeper_controller.get_ip_adapter()),
+                                      '--port {}'.format('10000')]
+
+            experiment_skeleton('test_tcp', cmd,
+                                zookeeper_controller.controller_client,
+                                "experiments/test_tcp/",
+                                "test_tcp.tar.gz")
+            call_tcp_server(zookeeper_controller.get_ip_adapter(), 10000)
+            logging.info("\n")
+            logging.info("*** test tcp end!")
+
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
+            msg = "Hint: don't forget to add actors!"
+            logging.error(msg)
+
+    elif command == 'iperf':
+        logging.info("*** iperf tcp begin\n")
+        zookeeper_controller.set_controller_client()
+        try:
+            iperf_port = '10000'
+            cmd = ['iperf ',
+             '--client', zookeeper_controller.get_ip_adapter(),
+             '--port', iperf_port]
+            experiment_skeleton('iperf_tcp', cmd, None, "experiments/test_iperf_tcp/",
                                 zookeeper_controller.controller_client)
             call_tcp_server(zookeeper_controller.get_ip_adapter(), 10000)
             logging.info("\n")

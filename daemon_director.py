@@ -244,12 +244,13 @@ class DirectorDaemon(Daemon):
 								logging.info("SEND_EXPERIMENT 7.3 changing to dir {}".format(exp.name))
 								channel.chdir(exp.name)
 
-								logging.debug("SEND_EXPERIMENT 8 file: {} to: {}".format(_local_experiments_dir+exp.filename, remote_path))
-								channel.put(_local_experiments_dir+exp.filename, exp.filename)
+								if exp.filename is not None and exp.filename != "":
+									logging.debug("SEND_EXPERIMENT 8 file: {} to: {}".format(_local_experiments_dir+exp.filename, remote_path))
+									channel.put(_local_experiments_dir+exp.filename, exp.filename)
 
-								logging.debug("SEND_EXPERIMENT 9 unzipping file {}".format(exp.filename))
-								channel.run("tar -xzf %s" % exp.filename)
-								logging.debug("SEND_EXPERIMENT 10 unzipping done.")
+									logging.debug("SEND_EXPERIMENT 9 unzipping file {}".format(exp.filename))
+									channel.run("tar -xzf %s" % exp.filename)
+									logging.debug("SEND_EXPERIMENT 10 unzipping done.")
 
 								actor_id = self.controller_client.exp_create_actor(exp.id, worker.path, role.id)
 								channel.run("echo \"parameters=%s\nexp_id=%s\nrole_id=%s\nactor_id=%s\nis_snapshot=%s\" > info.cfg" % (role.parameters, exp.id, role.id, actor_id, exp.is_snapshot))
@@ -651,6 +652,7 @@ class Director(DirectorDaemon):
 		self.zookeeper_controller = ZookeeperController()
 		self.controller_client = None #self.zookeeper_controller.controller_client
 		self.sleep_seconds = None
+		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 
 
 def cmd(option):

@@ -94,7 +94,7 @@ if __name__ == '__main__':
     subprocess.call(ICN_STAGE_CMD + ['addactors'])
 
     # run simple TCP test
-    subprocess.call(ICN_STAGE_CMD + ['test'])
+    #subprocess.call(ICN_STAGE_CMD + ['test'])
 
     #info("\n*** Type 'exit' or control-D to shut down network\n")
     #CLI(net)
