@@ -234,8 +234,9 @@ class WorkerClient(object):
 				output += '%s' % f_output.read()
 				if error != '':
 					output += '\nerror: ' + error
-		except:
-			output += 'Unable to run experiment'
+
+		except Exception as e:
+			output += '{}. Unable to run experiment'.format(e)
 
 		try:
 			self.zk.create("%s/actors/%s/output" % (exp_obj.path, exp_obj.actor_id), value=output.encode())
