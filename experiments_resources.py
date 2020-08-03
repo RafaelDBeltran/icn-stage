@@ -44,13 +44,8 @@ class NDNExp:
     def peek_start(self):
         subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(5)
-        subprocess.run(["nfdc", "face", "create", "udp://10.0.0.1"])
-        time.sleep(5)
-        subprocess.run(["nfdc", "route", "add", "/demo/hello", "udp://10.0.0.1"])
-        #time.sleep(50)
-        for _ in range(0,10):
-            time.sleep(0.5)
-            subprocess.run(["ndnpeek", "-p", "/demo/hello"])
+        subprocess.run(["echo 'Message: HELLO WORLD' | ndnpoke /demo/hello"], shell=True)
+        time.sleep(20)
         subprocess.run(["nfd-stop"])
 
 def call_ndn_exp():

@@ -238,7 +238,7 @@ def run_command(zookeeper_controller, command, option=None):
     elif command == 'ndn':
         zookeeper_controller.set_controller_client()
         try:
-            experiment_skeleton('test_ndn', ['sudo', 'bash', 'poke.sh'],
+            experiment_skeleton('test_ndn', ['python3', 'poke.py',zookeeper_controller.get_ip_adapter()],
                                 "test_ndn.tar.gz", "experiments/test_ndn/",
                                 zookeeper_controller.controller_client)
             call_ndn_exp()
