@@ -117,7 +117,7 @@ class ControllerClient:
 					self.zk.ensure_path(path)
 					logging.debug(" after ensure path: {}".format(path))
 		except Exception as e:
-			logging.erro(" Exception: {}".format(e))
+			logging.error(" Exception: {}".format(e))
 
 		logging.debug(" after loop")
 
@@ -233,11 +233,19 @@ class ControllerClient:
 	def exp_get_by_id(self, exp_id):
 		try:
 			return self.exp_get("%s/%s" % (PATHS.EXPERIMENTS, exp_id))
-		except:
+		except Exception as e:
+			logging.debug("Exception: {}".format(e))
 			return None
 
 	def exp_start(self, exp_id):
-		return self.zk.create("%s/%s/start" % (PATHS.EXPERIMENTS, exp_id))
+		path = "%s/%s/start" % (PATHS.EXPERIMENTS, exp_id)
+		logging.debug(" create path: {}".format(path))
+		try:
+			return self.zk.create(path)
+
+		except Exception as e:
+			logging.error("Exception: {}".format(e))
+			sys.exit(-1)
 
 	def exp_ready_on_worker(self, exp_id, worker_path, actor_id):
 		exp_path = "%s/%s" % (PATHS.EXPERIMENTS, exp_id)

@@ -17,7 +17,6 @@ class Channel(object):
 	def __init__(self, hostname, username=None, password=None,
 		pkey=None, timeout=None):
 
-
 		self.ssh = paramiko.SSHClient()
 		self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 		if type(hostname) is bytes:
@@ -50,12 +49,12 @@ class Channel(object):
 		self.password = password
 		self.path = "~/"
 		try:
-			logging.debug('connect_y')
+			#logging.debug('connect_y')
 			self.ssh.connect(hostname=self.hostname, username=self.username,
 				password=self.password, pkey=self.pkey, timeout=self.timeout)
-			logging.debug('connect_n')
+			#logging.debug('connect_n')
 		except Exception as e:
-			logging.debug('connect_f')
+			#logging.debug('connect_f')
 			raise e
 		self.scp = scp.SCPClient(self.ssh.get_transport())
 		self.connected = True
@@ -107,22 +106,22 @@ class Channel(object):
 		return stdout.read().decode('utf-8').split(' ', 1)[0] != str(MD5(local_path))
 
 	def put(self, local_path, remote_path):
-		logging.debug('putt start')
+		#logging.debug('putt start')
 		if self.connected and os.path.isfile(local_path):
-			logging.debug('putt 1')
+			#logging.debug('putt 1')
 			if self.chkfile(self._actual_path(remote_path)):
-				logging.debug('putt 2')
+				#logging.debug('putt 2')
 				if self._cmpfiles(local_path, self._actual_path(remote_path)):
-					logging.debug('putt 3')
+					#logging.debug('putt 3')
 					self.scp.put(local_path,self._actual_path(remote_path))
-					logging.debug('putt 4')
+					#logging.debug('putt 4')
 					return True
 			else:
-				logging.debug('putt 5')
+				#logging.debug('putt 5')
 				self.scp.put(local_path,self._actual_path(remote_path))
-				logging.debug('putt 6')
+				#logging.debug('putt 6')
 				return True
-			logging.debug('putt 7')
+			#logging.debug('putt 7')
 		return False
 
 	def get(self, remote_path, local_path):
@@ -137,11 +136,11 @@ class Channel(object):
 		return False
 
 	def get_full_path(self, remote_path, local_path):
-		print("connected:%s self.chkfile(remote_path): %s " % (self.connected, self.chkfile(remote_path) ))
+		#print("connected:%s self.chkfile(remote_path): %s " % (self.connected, self.chkfile(remote_path) ))
 		if self.connected and self.chkfile(remote_path):
-			print(" os.path.isfile(local_path):%s " % ( os.path.isfile(local_path) ))
+			#print(" os.path.isfile(local_path):%s " % ( os.path.isfile(local_path) ))
 			if os.path.isfile(local_path):
-				print(" self._cmpfiles(local_path, remote_path):%s " % (self._cmpfiles(local_path, remote_path)))
+				#print(" self._cmpfiles(local_path, remote_path):%s " % (self._cmpfiles(local_path, remote_path)))
 				if self._cmpfiles(local_path, self._actual_path(remote_path)):
 					self.scp.get(self._actual_path(remote_path),local_path)
 					return True

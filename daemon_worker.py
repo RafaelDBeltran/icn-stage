@@ -10,6 +10,7 @@ from modules.worklib.worker_client import *
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 ACTOR_CONFIG = "info.cfg"
+DEFAULT_SLEEP_SECONDS = 5
 
 if LOG_LEVEL == logging.DEBUG:
 	logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
@@ -20,15 +21,15 @@ else:
 
 
 class WorkerDaemon(Daemon):
+	def __init__(self, pidfile, sleep_seconds=DEFAULT_SLEEP_SECONDS, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
+		self.sleep_seconds = sleep_seconds
+
 	def run(self):
-		sys.stdout = Printer()
-		sys.stdout.add(open('log.out', 'w+', 1))
-		sys.stderr = Printer()
-		sys.stderr.add(open('log.err', 'w+', 1))
+
 		cfg = WorkerClient.load_config_file(ACTOR_CONFIG)
 		wclient = WorkerClient(cfg["server"], cfg["hostname"])
 		wclient.exp_load()
-		sleep_interval = 30
 		last_timestamp = time.time()
 
 		while True:
@@ -53,7 +54,7 @@ class WorkerDaemon(Daemon):
 				os._exit(1)
 
 			last_timestamp = actual_timestamp
-			time.sleep(sleep_interval)
+			time.sleep(self.sleep_seconds)
 
 
 # def main_old():
@@ -99,6 +100,9 @@ def main():
 	help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
 	parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
 
+	help_msg = "sleep_seconds (default={})".format(DEFAULT_SLEEP_SECONDS)
+	parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=int)
+
 	help_msg = "unique id (str) for multiple daemons"
 	parser.add_argument("--id", "-i", help=help_msg, default="default", type=str)
 
@@ -124,6 +128,7 @@ def main():
 	logging.info("\t logging level : %s" % args.log)
 	logging.info("\t unique id     : %s" % args.id)
 	logging.info("\t command option: %s" % args.cmd)
+	logging.info("\t sleep seconds : {}".format(args.sleep))
 	logging.info("")
 
 	pid_file = "/tmp/daemon_worker_%s.pid" % args.id
@@ -136,10 +141,10 @@ def main():
 	logging.info("\t stdout        : %s" % stdout)
 	logging.info("\t stderr        : %s" % stderr)
 	logging.info("\t config_file   : %s" % ACTOR_CONFIG)
+
 	logging.info("")
 
-	worker_daemon = WorkerDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
-
+	worker_daemon = WorkerDaemon(pid_file, sleep_seconds=args.sleep, stdout=stdout, stderr=stderr)
 
 	# process input parameters
 	if args.cmd == 'start':

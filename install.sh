@@ -1,5 +1,7 @@
 #!/bin/bash
 # -*- Mode:bash; c-file-style:"gnu"; indent-tabs-mode:nil -*- */
+#sudo timedatectl set-timezone America/Sao_Paulo
+
 #TODO# based on, thanks to
 # Copyright (C) 2015-2020, The University of Memphis,
 #                          Arizona Board of Regents,

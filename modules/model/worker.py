@@ -5,7 +5,7 @@
 
 import ast
 
-
+SCRIPT = "daemon_worker.py"
 # import logging
 
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s\t%(message)s', datefmt="%Y-%m-%d %H:%M:%S",filename='daemon_controller.log', filemode='w')
@@ -44,6 +44,22 @@ class Worker(object):
 						actor_id=worker_dict["actor_id"])
 
 		return worker
+
+	@staticmethod
+	def get_script():
+		return SCRIPT
+
+	def get_command(self):
+		return "python3 {} --id {}".format(SCRIPT, self.actor_id)
+
+	def get_command_stop(self):
+		return "{} stop".format(self.get_command())
+
+	def get_command_restart(self):
+		return "{} restart".format(self.get_command())
+
+	def get_command_start(self):
+		return "{} start".format(self.get_command())
 
 	def get_remote_path(self):
 		return "actor_{}".format(self.actor_id)

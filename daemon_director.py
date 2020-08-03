@@ -10,6 +10,7 @@ import argparse
 import sys, socket, time, multiprocessing, subprocess, signal
 import datetime
 # TODO#
+from modules.model import worker
 from zookeeper_controller import ZookeeperController
 
 sys.path.append(r'~/myRuns/modules')
@@ -37,7 +38,7 @@ DEFAULT_SLEEP_SECONDS = 30
 _controllerport = "2181"
 _pyvers = "3.6.9"
 _timeout = 30
-_worker_daemon = "daemon_worker.py"
+#_worker_daemon = "daemon_worker.py"
 _worklibtarfile = "worklib.tar.gz"
 
 # TODO#
@@ -56,7 +57,7 @@ def create_worklib(output_file_):
 	tar_file = tarfile.open(output_file_, "w:gz")
 
 	# add main file
-	tar_file.add("%s" % (_worker_daemon))
+	tar_file.add(worker.SCRIPT)
 
 	# add modules
 	current_dir = os.getcwd()
@@ -222,12 +223,12 @@ class DirectorDaemon(Daemon):
 					for role in exp.roles:
 						remaining = role.no_workers
 						tries = len(worker_path_list)  # number of possible allocate workers
-						logging.debug("SEND_EXPERIMENT 6 %s" % remaining)
+						logging.debug("SEND_EXPERIMENT 6 remaining: {}".format(remaining))
 						i = 0
 						# worker_path_list = [new_path.decode('utf-8') for new_path in worker_path_list]
 						while remaining and tries > 0:
 							try:
-								logging.debug("SEND_EXPERIMENT 6.5  {}".format(worker_path_list[last + i]))
+								logging.debug("SEND_EXPERIMENT 6.5 actor: {}".format(worker_path_list[last + i]))
 								worker = self.controller_client.worker_get(worker_path_list[last + i])
 
 								logging.debug("SEND_EXPERIMENT 7")
@@ -296,14 +297,15 @@ class DirectorDaemon(Daemon):
 				else:
 					for i in range(no_workers_total):
 						self.controller_client.exp_ready_on_worker(exp.id, ready[i][0], ready[i][1])
-						logging.debug("SEND_EXPERIMENT 16")
+						logging.debug("SEND_EXPERIMENT 16 i: {}".format(i))
 
+					logging.debug("SEND_EXPERIMENT 17 exp_start: {}".format(exp.id))
 					self.controller_client.exp_start(exp.id)
 
-					print(datetime.datetime.now(), exp.name, "run all!")
-
+					logging.debug("SEND_EXPERIMENT 18. deleting current task.")
 					self.controller_client.task_del(task_now)
-					logging.debug("SEND_EXPERIMENT 17")
+
+					logging.debug("SEND_EXPERIMENT 19. done")
 
 			elif task_cmd == COMMANDS.RECOVER_ACTOR:
 
@@ -312,7 +314,7 @@ class DirectorDaemon(Daemon):
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
 				logging.debug("RECOVER_ACTOR [2] RecoverActor")
 				exp_list = self.controller_client.worker_get_experiments(worker.hostname)
-				logging.debug("RECOVER_ACTOR [3]RecoverActor")
+				logging.debug("RECOVER_ACTOR [3] RecoverActor")
 				channel = None
 
 				try:
@@ -324,14 +326,13 @@ class DirectorDaemon(Daemon):
 									  password=worker.password, timeout=_timeout)
 					remote_path = worker.get_remote_path()
 					channel.chdir(remote_path)
-					channel.run("python3 %s stop" % (_worker_daemon))
-					stdout, stderr = channel.run("python3 %s restart" % (_worker_daemon))
+					channel.run(worker.get_command_stop())
+					stdout, stderr = channel.run(worker.get_command_start())
+
 					stderr_str = stderr.read().strip()
 					stdout_str = stdout.read().strip()
-					print(datetime.datetime.now(), "\t", worker.hostname, "cmd: python3 %s restart" % (_worker_daemon),
-						  "stdout: ", stdout_str, "stderr: ", stderr_str)
 
-					print(datetime.datetime.now(), "\t", worker.hostname, "daemon recovered")
+					logging.info("daemon recovered: {}".format(worker.hostname))
 					logging.debug("RECOVER_ACTOR [5] RecoverActor")
 					channel.close()
 
@@ -524,7 +525,7 @@ class DirectorDaemon(Daemon):
 
 				logging.info("START_WORKER task_args: %s" % str(task_args))
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug('task_start_work: TRY p1')
+				logging.debug('START_WORKER task_start_work: TRY p1')
 				try:
 					# rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
@@ -533,40 +534,43 @@ class DirectorDaemon(Daemon):
 									  password=worker.password, timeout=_timeout)
 					remote_dir = worker.get_remote_path()
 					channel.chdir(remote_dir)
-					stdout, stderr = channel.run("python3 %s --id %s stop" % (_worker_daemon, worker.actor_id))
+					stdout, stderr = channel.run(worker.get_command_stop())
 					# print datetime.datetime.now(), worker.hostname, "cmd: python %s stop" %(_worker_daemon), "stdout: ", stdout, "stderr: ", stderr
-					logging.debug('task_start_work: TRY p2')
-					stdout, stderr = channel.run("python3 %s --id %s start" % (_worker_daemon, worker.actor_id))
-					logging.debug('task_start_work: TRY p3 {}'.format(stdout))
+					logging.debug('START_WORKER task_start_work: TRY p2')
+					#stdout, stderr = channel.run("python3 %s --id %s start" % (_worker_daemon, worker.actor_id))
+					stdout, stderr = channel.run(worker.get_command_start())
+					logging.debug('START_WORKER task_start_work: TRY p3 {}'.format(stdout))
 					stderr_str = stderr.read().strip()
 					stdout_str = stdout.read().strip()
 					# print(datetime.datetime.now(), "\t", worker.hostname, "cmd: python %s start" %(_worker_daemon), "stdout: ", stdout_str, "stderr: ", stderr_str)
-					logging.debug("{} {} cmd: python3 {} start stdout: {} stderr: {}".format(datetime.datetime.now(),
+					logging.debug("START_WORKER {} {} cmd: {} start stdout: {} stderr: {}".format(datetime.datetime.now(),
 																							 worker.hostname,
-																							 _worker_daemon, stdout_str,
+																							 worker.get_command_start(),
+																							stdout_str,
 																							 stderr_str))
-					logging.debug('task_start_work: TRY p4')
-					print(datetime.datetime.now(), "\t", worker.hostname, "daemon running")
+
+					logging.info("START_WORKER daemon running at worker.hostname: {}".format(worker.hostname))
 
 					channel.close()
-					logging.debug('task_start_work: TRY p5')
+					logging.debug('START_WORKER channel closed.')
 
 				except Exception as e:
-					logging.debug('task_start_work: TRY p6')
-					print(datetime.datetime.now(), worker.hostname, e)
+					logging.error('START_WORKER Exception: {} '.format(e))
+					logging.error('START_WORKER Exception: adding disconnected ')
 					self.controller_client.worker_add_disconnected(worker.hostname,
 																   'LOST IDLE' if self.controller_client.worker_get_experiments(
 																	   worker.hostname) == [] else 'LOST BUSY')
-					logging.debug('task_start_work: TRY p7')
-				logging.debug('task_start_work: TRY p8')
+
+				logging.debug('START_WORKER deleting current task')
 				self.controller_client.task_del(task_now)
-				logging.debug('task_start_work: TRY p9')
+				logging.debug('START_WORKER done.')
 
 			elif task_cmd == COMMANDS.EXIT:
 				self.controller_client.task_del(task_now)
 				self.exit = True
+
 			else:
-				logging.info("ERRO")
+				logging.error("ERROR: unknown task_cmd: {}".format(task_cmd))
 
 	def run(self):
 		logging.debug("Begin")
