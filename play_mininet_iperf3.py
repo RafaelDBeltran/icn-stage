@@ -41,11 +41,13 @@ ICN_STAGE_CMD = ['python3', 'icn-stage.py']
 # max_queue_size	queue limit parameter for netem Helper method: bool -> 'on'/'off'
 #
 
+
 def fail_link(net, source, destination, sleep_secs=0,):
     if sleep_secs > 0:
         sleep(sleep_secs)
 
     net.configLinkStatus(source, destination, 'down')
+
 
 if __name__ == '__main__':
     setLogLevel('info')
@@ -56,6 +58,13 @@ if __name__ == '__main__':
     #                      choices=['link-state', 'hr', 'dry'],
     #                      help='''Choose routing type, dry = link-state is used
     #                              but hr is calculated for comparision.''')
+
+    # delete actors past
+    for a in range(3):
+        #cmd = "for d in 1 2 3 4 5 6 7; do rm -rf actor_$d; done"
+        cmd = "rm -rf actor_{}".format(a)
+        print(cmd)
+        subprocess.call(cmd, shell=True)
 
     # cleanning minnet, for the sake of safety
     cmd = ["sudo", "mn", "--clean"]
@@ -81,7 +90,7 @@ if __name__ == '__main__':
     host_link = partial(TCLink, bw=1)
     net.addLink(h1, s1, cls=host_link)
     net.addLink(h2, s1, cls=host_link)
-    net.addLink(h3, s1, cls=host_link)
+    #net.addLink(h3, s1, cls=host_link)
     net.addLink(nat, s1)
 
     net.start()
@@ -104,7 +113,7 @@ if __name__ == '__main__':
     fail = False
     if fail:
         # run TCP iperf
-        subprocess.call(ICN_STAGE_CMD + ['eva-tcp', 'iperf_with_fail.log'])
+        subprocess.call(ICN_STAGE_CMD + ['iperf', 'iperf_with_fail.log'])
         cmd = "python3 ./icn-stage.py print /connected/busy_workers > l.txt"
         subprocess.call(cmd)
         result = ""
@@ -122,7 +131,7 @@ if __name__ == '__main__':
         fail_thread.start()
 
     else:
-        subprocess.call(ICN_STAGE_CMD + ['eva-tcp', 'iperf_without_fail.log'])
+        subprocess.call(ICN_STAGE_CMD + ['iperf', 'iperf_without_fail.log'])
 
 
     #info("\n*** Type 'exit' or control-D to shut down network\n")

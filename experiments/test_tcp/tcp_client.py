@@ -40,7 +40,7 @@ class TCPClient:
 
 def main():
 	# arguments
-	parser = argparse.ArgumentParser(description='A simple TCP client for testing EasyExp Controller')
+	parser = argparse.ArgumentParser(description='A simple TCP client for testing ICN-Stage Controller')
 
 	help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
 	parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)

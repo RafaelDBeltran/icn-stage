@@ -17,6 +17,8 @@ import subprocess
 from time import sleep
 
 # specific bibs
+from iperf3 import iperf3
+
 import daemon_director
 
 try:
@@ -90,7 +92,7 @@ def add_worker(controller_client):
 
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
-    for i in trange(120):
+    for i in trange(100):
         sleep(1)
     logging.info("Adding Actors...DONE")
 
@@ -130,7 +132,7 @@ def help_msg():
     status   :
     addactors:
     test     :
-    eva-tcp  : 
+    iperf    : 
     ndn      :
     help, ?  : prints this message
     print    :
@@ -154,7 +156,7 @@ def help_msg():
 #       status    {director, actors, zookeeper, all, ?}
 #       clean     {all, tasks}                              : clean the zookeeper tree
 #       test      {tcp, ndn, ?}                             : basic connectivity tests assuming stage_mininet.py
-#       eva       {tcp, ndn, ?}                             : performance evaluation assuming stage_mininet.py
+#       eva       {iperf, ndn, ?}                           : performance evaluation assuming stage_mininet.py
 #       help, ?   {COMMANDS}                                : prints this message
 #       verbosity {10, 20}                                  : setup logging verbosity level (default=%d, current=%d)
 #     ''' %(DEFAULT_LOG_LEVEL, _log_level)
@@ -199,8 +201,8 @@ def run_command(zookeeper_controller, command, option=None):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-    elif command == 'eva-tcp':
-        logging.info("*** iperf tcp begin\n")
+    elif command == 'iperf':
+        logging.info("*** iperf3 begin\n")
         zookeeper_controller.set_controller_client()
         try:
             file_log = "iperf.log"
@@ -209,21 +211,24 @@ def run_command(zookeeper_controller, command, option=None):
 
             iperf_port = '10000'
             interval_secs = '1'
-            time_secs = '60'
-            cmd = ['iperf ',
+            time_secs = '600'
+            cmd = ['python3', 'iperf3_client.py',
              '--client', zookeeper_controller.get_ip_adapter(),
              '--port', iperf_port,
-             '--time', time_secs]
-            # TODO remove the need for a tar.gz
-            experiment_skeleton('iperf_tcp', cmd, zookeeper_controller.controller_client,
-                                "experiments/iperf_tcp/", "iperf_tcp.tar.gz")
+             '--time', time_secs,
+             '--udp']
 
-            cmd = "iperf --server --port {} --interval {} --time {} | tee {}".format(iperf_port, interval_secs, time_secs, file_log)
+            # TODO remove the need for a tar.gz
+            experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
+                                "experiments/iperf3/", "iperf3.tar.gz")
+
+
+            cmd = "iperf3 --server --port {} --interval {} | tee {}".format(iperf_port, interval_secs, time_secs, file_log)
             logging.info("Command: {}".format(cmd))
             subprocess.call(cmd, shell=True)
 
             logging.info("\n")
-            logging.info("*** iperf tcp end!")
+            logging.info("*** iperf3 end!")
 
         except Exception as e:
             logging.error("Exception: {}".format(e))
