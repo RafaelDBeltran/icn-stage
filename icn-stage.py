@@ -56,6 +56,7 @@ from modules.util.tools import Sundry
 from zookeeper_controller import ZookeeperController
 from experiments_resources import call_tcp_server
 from experiments_resources import call_ndn_exp
+from experiments_resources import call_ndn_traffic
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -267,6 +268,24 @@ def run_command(zookeeper_controller, command, option=None):
             logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
+
+    elif command == 'traffic':
+        zookeeper_controller.set_controller_client()
+        try:
+            cmd = ['python3', 
+            'traffic_client.py',
+            '{}'.format(zookeeper_controller.get_ip_adapter())]
+
+            experiment_skeleton('ndn_traffic_generator', cmd,
+                                zookeeper_controller.controller_client,
+                                "experiments/test_traffic/",
+                                "test_traffic.tar.gz")
+            call_ndn_traffic()
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
+            msg = "Hint: don't forget to add actors!"
+            logging.error(msg)
+
 
     elif command == 'reset':
         zookeeper_controller.set_controller_client()

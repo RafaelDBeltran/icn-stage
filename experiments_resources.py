@@ -53,3 +53,16 @@ class NDNExp:
 def call_ndn_exp():
     intance_NDNExp = NDNExp()
     intance_NDNExp.peek_start()
+
+
+class NDN_traffic:
+    def traffic_start(self):
+        subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(5)
+        subprocess.run(["ndn-traffic-server ndn_conf/ndn-traffic-server.conf"], shell=True)
+        time.sleep(20)
+        subprocess.run(["nfd-stop"])
+
+def call_ndn_traffic():
+    instance_ndn_traffic = NDN_traffic()
+    instance_ndn_traffic.traffic_start()
