@@ -40,6 +40,8 @@ def call_tcp_server(host_, port_):
 
 import subprocess
 import time
+import logging
+import os
 class NDNExp:
     def peek_start(self):
         subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

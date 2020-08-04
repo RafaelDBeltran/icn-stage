@@ -233,11 +233,15 @@ def run_command(zookeeper_controller, command, option=None):
     elif command == 'ndn':
         zookeeper_controller.set_controller_client()
         try:
-            experiment_skeleton('test_ndn', ['python3', 'poke.py',zookeeper_controller.get_ip_adapter()],
-                                "test_ndn.tar.gz", "experiments/test_ndn/",
-                                zookeeper_controller.controller_client)
-            call_ndn_exp()
+            cmd = ['python3', 
+            'poke.py',
+            '{}'.format(zookeeper_controller.get_ip_adapter())]
 
+            experiment_skeleton('test_ndn', cmd,
+                                zookeeper_controller.controller_client,
+                                "experiments/test_ndn/",
+                                "test_ndn.tar.gz")
+            call_ndn_exp()
         except Exception as e:
             logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"
