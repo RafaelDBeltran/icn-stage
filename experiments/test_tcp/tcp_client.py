@@ -11,6 +11,7 @@ TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_HOST = '192.168.133.1'
 DEFAULT_PORT = 10000
 
+
 class TCPClient:
 
 	def __init__(self):
@@ -56,11 +57,11 @@ def main():
 
 	if args.log == logging.DEBUG:
 		logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-							datefmt=TIME_FORMAT, level=args.log, filemode='w', filename='tcp_client.log')
+							datefmt=TIME_FORMAT, level=args.log)
 
 	else:
 		logging.basicConfig(format='%(asctime)s %(message)s',
-							datefmt=TIME_FORMAT, level=args.log, filemode='w', filename='tcp_client.log')
+							datefmt=TIME_FORMAT, level=args.log)
 
 	# shows input parameters
 	logging.info("")
@@ -71,6 +72,9 @@ def main():
 	logging.info("\t Server port   : %s" % args.port)
 	logging.info("")
 
+	logging.info("")
+	logging.info("RUN")
+	logging.info("---------------------")
 	tcp_client = TCPClient()
 	tcp_client.connect(args.host, args.port)
 	tcp_client.send_hello_message()

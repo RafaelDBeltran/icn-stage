@@ -21,25 +21,40 @@ class PATHS(object):
 class Experiment(object):
 
 	def __init__(self, exp_path, exp_name, exp_parameters, exp_actor_id, is_snapshot):
-		logging.debug("")
+		logging.debug('\t\t\t #Checkpoint-EXP-1')
+
 		if type(exp_path) is bytes:
 			self.path = exp_path.decode('utf-8')
 		else:
 			self.path = exp_path
+
 		if type(exp_name) is bytes:
 			self.name = exp_name.decode('utf-8')
 		else:
 			self.name = exp_name
+
+		#self.stdout = "{}.out".format(self.name)
+		#self.stderr = "{}.err".format(self.name)
+		self.stdout = "experiments/{}/{}.out".format(self.name, self.name)
+		self.stderr = "experiments/{}/{}.err".format(self.name, self.name)
+
+		self.fout = None
+		self.ferr = None
+
 		if type(exp_parameters) is bytes:
 			self.parameters = exp_parameters.decode('utf-8')
 		else:
 			self.parameters = exp_parameters
+
 		self.popen = None
+
 		if type(exp_actor_id) is bytes:
 			self.actor_id = exp_actor_id.decode('utf-8')
 		else:
 			self.actor_id = exp_actor_id
+
 		self.worker_torun_id = ''
+
 		if type(is_snapshot) is bytes:
 			self.is_snapshot = is_snapshot.decode('utf-8')
 		else:
@@ -47,7 +62,8 @@ class Experiment(object):
 		self.snapshot = Snapshot()
 
 	def run(self, wclient):
-		logging.debug("")
+		logging.debug('\t\t\t #Checkpoint-EXP-2')
+
 		if self.is_snapshot:
 			try:
 				logging.debug("Running experiment snapshot...")
@@ -65,37 +81,69 @@ class Experiment(object):
 				self.snapshot.poll = -2
 		else:
 			try:
-				logging.debug("Running experiment command...")
+				logging.debug("Running the experiment. self.parameters: {}".format(self.parameters))
 				#self.popen = subprocess.Popen(["cd", "experiments/%s;" % self.name, "%s" % self.parameters, "1>%s.out" % self.name,"2>%s.err" % self.name])
 				#param = self.parameters.split(" ")
 				param = shlex.split(self.parameters)
+				logging.debug("param: {}".format(param))
+				#param += ["1>, "2>{}.err".format(self.name)]
 				cwd = "%s/experiments/%s/" % (os.getcwd(), self.name)
-				logging.debug("Running param: {} cwd: {}".format(param, cwd))
-				self.popen = subprocess.Popen(param, cwd=cwd)
-				self.poll = self.popen.poll()
+				logging.debug("cwd: {}".format(cwd))
+				#logging.debug("Running param: {} cwd: {} stdout: {} stderr: {}".format(param, cwd, self.stdout, self.stderr))
+				self.fout = open(self.stdout, 'w')
+				self.ferr = open(self.stderr, 'w')
+				self.popen = subprocess.Popen(param, cwd=cwd, stdout=self.fout, stderr=self.ferr)
+				logging.debug("popen: {}".format(self.popen))
+				#self.poll = self.popen.poll()
+				logging.debug("self.popen.poll(): {}".format(self.popen.poll()))
 
 			except Exception as e:
 				logging.error("Exception: {}".format(e))
 				self.poll = -2
 
 	def get_main_script(self):
+		logging.debug('\t\t\t #Checkpoint-EXP-3')
 		logging.debug("parameters: {}".format(self.parameters))
 		return shlex.split(self.parameters)[1]
 		#return self.parameters.split(" ")[1]
 
+	# # TODO fix: this won't work in a mininet with multiple instances
 	def ps_based_is_running(self):
-		logging.debug("")
-		script = self.get_main_script()
-		cmd = "ps aux | grep %s | grep -v grep " % script
+		logging.debug('\t\t\t #Checkpoint-EXP-4')
+
+		#script = self.get_main_script()
+		#cmd = "ps aux | grep %s | grep -v grep " % script
+		cmd = "ps -p {} | grep -v TTY ".format(self.popen.pid)
 		logging.debug("cmd: {}".format(cmd))
 		#self.printd("ps_based_is_running - cmd " + cmd)
 		#r = subprocess.call(cmd, shell=True)
 		r = subprocess.getoutput(cmd)
 		logging.debug("result: {}".format(r))
 		#self.printd("ps_based_is_running - r " + r)
-		return r != ""
+		is_running = True
+		if r == "" or '<defunct>' in r:
+			self.ferr.close()
+			self.fout.close()
+			is_running = False
+
+		return is_running
+
+	# def poll_based_is_running(self):
+	# 	logging.debug('\t\t\t #Checkpoint-EXP-4.1 popen: {}'.format(self.popen))
+	#
+	# 	if self.popen.poll() is None:
+	# 		logging.debug('\t\t Process ended. popen return code: {}'.format(self.popen.returncode))
+	# 		# process terminated
+	# 		self.ferr.close()
+	# 		self.fout.close()
+	# 		return False
+	#
+	# 	else:
+	# 		return True
 
 	def is_running(self):
+		logging.debug('\t\t\t #Checkpoint-EXP-5')
+
 		logging.debug("is_snapshot: {}".format(self.is_snapshot))
 		if self.is_snapshot:
 			if self.popen:
@@ -104,23 +152,26 @@ class Experiment(object):
 				return False
 		else:
 			return self.ps_based_is_running()
+			#return self.poll_based_is_running()
 
 	def is_finished(self):
-		logging.debug("")
+		logging.debug('\t\t\t #Checkpoint-EXP-6')
+
 		if self.is_snapshot:
 			return not (self.snapshot.poll is None)
 		else:
 			return not self.ps_based_is_running()
+			#return not self.poll_based_is_running()
 
 	def is_started(self):
-		logging.debug("")
+		logging.debug("\t\t\t #Checkpoint-EXP-7")
 		return self.popen
 
 
 class WorkerClient(object):
 
 	def __init__(self, zk_addr, worker_hostname=''):
-		logging.debug('#Here1')
+		logging.debug('\t\t\t #Checkpoint-WK-1')
 		self.current_experiments = []  # Experiment objects
 		self.zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=250))
 		self.zk_addr = zk_addr
@@ -134,7 +185,7 @@ class WorkerClient(object):
 		self.zk.start()
 
 	def connected(self):
-		logging.debug('#Here2')
+		logging.debug('\t\t\t #Checkpoint-WK-2')
 		if self.connection is None:
 			return False
 		if self.zk.exists(self.connection):
@@ -144,7 +195,7 @@ class WorkerClient(object):
 
 	@staticmethod
 	def load_config_file(filepath):
-		logging.debug('#Here3')
+		logging.debug('\t\t\t #Checkpoint-WK-3')
 		cfg = {}
 		f = open(filepath, "r")
 		for l in f.readlines():
@@ -152,13 +203,13 @@ class WorkerClient(object):
 			cfg[opt] = arg[:-1]
 		return cfg
 
-	def worker_active_time_uptade(self, adding_time):
-		logging.debug('#Here4')
+	def worker_active_time_update(self, adding_time):
+		logging.debug('\t\t\t #Checkpoint-WK-4')
 		active_time = float(self.zk.get("%s/active_time" % self.worker_path)[0])
 		self.zk.set("%s/active_time" % self.worker_path, value=str(active_time + adding_time).encode())
 
 	def worker_keep_alive(self, time, busy=False):
-		logging.debug('#Here4')
+		logging.debug('\t\t\t #Checkpoint-WK-5')
 		connected = False
 		try:
 			connected = self.connected()
@@ -166,7 +217,7 @@ class WorkerClient(object):
 			pass
 
 		if connected:
-			self.worker_active_time_uptade(time)
+			self.worker_active_time_update(time)
 
 		if (not self.connection) or busy != self.busy:
 
@@ -195,11 +246,11 @@ class WorkerClient(object):
 		return self.connection
 
 	def watch_new_exp(self):
-		logging.debug('#Here5')
+		logging.debug('\t\t\t #Checkpoint-WK-6')
 		kazoo.recipe.watchers.ChildrenWatch(self.zk, "%s/torun" % self.worker_path, self.exp_handler)
 
 	def exp_get(self, exp_path):
-		logging.debug('#Here6')
+		logging.debug('\t\t\t #Checkpoint-WK-7')
 		exp_name, _ = self.zk.get(exp_path.decode('utf-8'))
 
 		exp_cfg = WorkerClient.load_config_file("experiments/%s/info.cfg" % exp_name.decode('utf-8'))
@@ -207,7 +258,7 @@ class WorkerClient(object):
 		return Experiment(exp_path, exp_name, exp_cfg["parameters"], exp_cfg["actor_id"], eval(exp_cfg["is_snapshot"]))
 
 	def exp_ready(self, exp_obj):
-		logging.debug('#Here7')
+		logging.debug('\t\t\t #Checkpoint-WK-8')
 		wc = WorkerClient(self.zk_addr)
 
 		@self.zk.DataWatch('%s/start' % exp_obj.path)
@@ -217,26 +268,38 @@ class WorkerClient(object):
 				return False
 
 	def exp_finished(self, exp_obj):
-		logging.debug('#Here8')
-		#self.printd("exp finished")
+		logging.debug('\t\t\t #Checkpoint-WK-9')
 
-		filename = "experiments/%s/%s." % (exp_obj.name, exp_obj.name)
+		# stdout = "experiments/{}/{}".format(exp_obj.name, exp_obj.stdout)
+		# stderr = "experiments/{}/{}".format(exp_obj.name, exp_obj.stderr)
 		code_output = exp_obj.popen.poll() if not exp_obj.is_snapshot else exp_obj.snapshot.poll
 		output = '(%i): ' % code_output
-		logging.debug(' output: {}'.format(output))
+		logging.debug(' code output: {}'.format(output))
 		try:
-			f_output = open(filename + 'out', 'r+')
+			msg = None
+			if os.path.isfile(exp_obj.stdout):
+				msg = " stdout: {}".format(exp_obj.stdout)
+			else:
+				msg = " stdout not found!: {}".format(exp_obj.stdout)
 
-			if os.path.isfile(filename + 'err'):
-				f_error = open(filename + 'err', 'r+')
+			logging.debug(msg)
+			output += msg
+
+			if os.path.isfile(exp_obj.stderr):
+				output += " stderr found: {}".format(exp_obj.stderr)
+				f_error = open(exp_obj.stderr, 'r+')
 				error = f_error.read()
 
-				output += '%s' % f_output.read()
 				if error != '':
 					output += '\nerror: ' + error
+				logging.info(output)
+
+			else:
+				msg = " stderr not found: {}".format(stderr)
+				logging.debug(msg)
 
 		except Exception as e:
-			output += '{}. Unable to run experiment'.format(e)
+			output += 'Exception while processing results: {}'.format(e)
 
 		try:
 			self.zk.create("%s/actors/%s/output" % (exp_obj.path, exp_obj.actor_id), value=output.encode())
@@ -248,7 +311,7 @@ class WorkerClient(object):
 		self.current_experiments.remove(exp_obj)
 
 	def exp_handler(self, exp_diff):
-		logging.debug('#Here9')
+		logging.debug('\t\t\t #Checkpoint-WK-10')
 		logging.debug('[1]#torun')
 		try:
 			logging.debug('[2]#torun')
@@ -277,7 +340,7 @@ class WorkerClient(object):
 			logging.debug('[12]#torun')
 
 	def exp_load(self):
-		logging.debug('#Here10')
+		logging.debug('\t\t\t #Checkpoint-WK-11')
 		logging.debug('[1]#exp_load')
 		self.current_experiments = []  # Experiment objects
 		logging.debug('[2]#exp_load')
@@ -285,7 +348,7 @@ class WorkerClient(object):
 		logging.debug('[3]#exp_load')
 
 	def snap_get(self, actor_path):
-		logging.debug('#Here11')
+		logging.debug('\t\t\t #Checkpoint-WK-12')
 		if self.zk.exists("%s/data" % actor_path):
 			s, _ = self.zk.get("%s/data" % actor_path)
 			return eval(s)
@@ -293,7 +356,7 @@ class WorkerClient(object):
 		return None
 
 	def snap_set(self, actor_path, value):
-		logging.debug('#Here12')
+		logging.debug('\t\t\t #Checkpoint-WK-13')
 		if self.zk.exists("%s/data" % actor_path):
 			self.zk.set("%s/data" % actor_path, str(value).encode())
 		else:

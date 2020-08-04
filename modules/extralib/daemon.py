@@ -25,8 +25,8 @@ class Daemon(object):
     # def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 
-        log.debug('Created daemon.  stdout=%s, stdin=%s, stderr=%s' %
-                  (stdout, stdin, stderr))
+        log.debug('Created daemon. stdin=%s, stdout=%s, stderr=%s' %
+                  (stdin, stdout, stderr))
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr

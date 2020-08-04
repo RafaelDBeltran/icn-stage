@@ -343,7 +343,7 @@ class ControllerClient:
 			failures = int(self.zk.get('%s/failures' % worker_path)[0])
 			self.zk.set('%s/failures' % worker_path, value=str(failures + 1).encode())
 		logging.debug('node: %s/connection', worker_path)
-		logging.debug('Sleeping...')
+		logging.debug('Sleeping 10 secs...')
 		time.sleep(10)
 		logging.debug('Sleeping Done')
 		self.zk.set("%s/connection" % worker_path, connection_path.encode())
