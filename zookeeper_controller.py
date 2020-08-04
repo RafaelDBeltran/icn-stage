@@ -217,24 +217,50 @@ class ZookeeperController:
 
         print(nowStr(), "Removing done. \n")
 
-    def kill_worker_daemon(self, remote_user, remote_password, remote_pkey):
-        print(nowStr(), "\tKilling all worker daemon (python) process... ")
-        for w in self.controller_client.zk.get_children('/registered/workers'):
-            try:
-                print(nowStr(), "\t\tCreating channel with worker: ", w, " ... ", end=' ')
-                channel = Channel(hostname=w, username=remote_user, password=remote_password, pkey=remote_pkey,
-                                  timeout=30)
-                print(" done.")
-                print(nowStr(), "\t\tKilling python process at worker: ", w, " ... ", end=' ')
-                channel.run("killall python")
-                print(" done.")
+    # def kill_daemon_all_registered_workers(self):
+    #     print(nowStr(), "\tKilling all worker daemon (python) process... ")
+    #     for w in self.controller_client.zk.get_children('/registered/workers'):
+    #         try:
+    #             print(nowStr(), "\t\tCreating channel with worker: ", w, " ... ", end=' ')
+    #             channel = Channel(hostname=w, username=remote_user, password=remote_password, pkey=remote_pkey,
+    #                               timeout=30)
+    #             print(" done.")
+    #             print(nowStr(), "\t\tKilling python process at worker: ", w, " ... ", end=' ')
+    #             channel.run("killall python")
+    #             print(" done.")
+    #
+    #         except Exception as e:
+    #             print("\n\n")
+    #             print(" error while killing worker ", w)
+    #             print(e)
+    #
+    #     print(nowStr(), "\tKilling done. \n")
 
-            except Exception as e:
-                print("\n\n")
-                print(" error while killing worker ", w)
-                print(e)
+    def kill_actor_daemon(self, actor):
+        print(nowStr(), "\tKilling an actor daemon process... ")
+        #for w in self.controller_client.zk.get_children('/registered/workers'):
+        try:
+            logging.info("\t\tCreating channel with hostname: {} ".format(actor.hostname))
+            channel = Channel(hostname=actor.hostname,
+                              username=actor.username,
+                              password=actor.password,
+                              pkey=actor.pkey,
+                              timeout=30)
 
-        print(nowStr(), "\tKilling done. \n")
+            logging.info("\t\tStopping actor daemon process at worker: {}".format(actor.hostname))
+
+            path = actor.get_remote_path()
+            logging.info("\t\tChanging dir to: {}".format(path))
+            channel.chdir(path)
+
+            cmd = actor.get_command_stop()
+            logging.info("\t\trunning command: {}".format(cmd))
+            channel.run(cmd)
+
+        except Exception as e:
+            logging.error("\t\tException while stopping actor daemon: {} Exception: {}".format(actor.hostname, e))
+
+
 
     def print_zk_tree(self, tree_node, node, n, count_=1):
 

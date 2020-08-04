@@ -2,26 +2,13 @@
 #   @author: Nelson Antonio Antunes Junior
 #   @email: nelson.a.antunes at gmail.com
 #   @date: (DD/MM/YYYY) 27/01/2017
+import shlex
+
 from modules.worklib.snapshot import Snapshot
 from kazoo.client import *
 import kazoo, traceback, threading, imp, os, time, subprocess
 import sys
 import logging
-
-class Printer:
-	def __init__(self):
-		self.fds = {}
-		self.default = open('file_not_found.txt', 'a+', 1)
-
-	def write(self, value):
-		try:
-			self.fds[threading.currentThread()].write(value)
-		except:
-			self.default.write(value)
-
-	def add(self, fd):
-		self.fds[threading.currentThread()] = fd
-
 
 # STATIC PATHS
 class PATHS(object):
@@ -33,12 +20,8 @@ class PATHS(object):
 
 class Experiment(object):
 
-	def printd(self, msg):
-		f = open("wc_log.txt", "a")
-		f.write("%s\n"%msg)
-		f.close()
-
 	def __init__(self, exp_path, exp_name, exp_parameters, exp_actor_id, is_snapshot):
+		logging.debug("")
 		if type(exp_path) is bytes:
 			self.path = exp_path.decode('utf-8')
 		else:
@@ -63,18 +46,11 @@ class Experiment(object):
 			self.is_snapshot = is_snapshot
 		self.snapshot = Snapshot()
 
-
-	# def get_python_script_position(self):
-	# 	i = 0
-	# 	for (p in self.parameters):
-	# 		if ".py" in p:
-	# 			return i
-	#
-	# 		i +=1
-
 	def run(self, wclient):
+		logging.debug("")
 		if self.is_snapshot:
 			try:
+				logging.debug("Running experiment snapshot...")
 				exp_mod = imp.load_source('Actor', 'experiments/%s/Actor.py' % self.name)
 				self.snapshot = exp_mod.Actor()
 				self.snapshot.config(wclient, self.path, self.actor_id, 'experiments/%s/' % self.name)
@@ -82,65 +58,66 @@ class Experiment(object):
 											  args=(self.parameters, 'experiments/%s/%s.' % (self.name, self.name)))
 				self.popen.daemon = True
 				self.popen.start()
-			except:
+
+			except Exception as e:
+				logging.error("Exception: {}".format(e))
 				traceback.print_exc()
 				self.snapshot.poll = -2
 		else:
 			try:
+				logging.debug("Running experiment command...")
 				#self.popen = subprocess.Popen(["cd", "experiments/%s;" % self.name, "%s" % self.parameters, "1>%s.out" % self.name,"2>%s.err" % self.name])
-				param = self.parameters.split(" ")
-				#param = shlex.split(self.parameters)
+				#param = self.parameters.split(" ")
+				param = shlex.split(self.parameters)
 				cwd = "%s/experiments/%s/" % (os.getcwd(), self.name)
+				logging.debug("Running param: {} cwd: {}".format(param, cwd))
 				self.popen = subprocess.Popen(param, cwd=cwd)
 				self.poll = self.popen.poll()
-				#self.printd("run poll: "+ str(self.popen.poll()))
-			except:
-				#self.printd("except while popen")
+
+			except Exception as e:
+				logging.error("Exception: {}".format(e))
 				self.poll = -2
 
 	def get_main_script(self):
-		#return shlex.split(self.parameters)[1]
-		return self.parameters.split(" ")[1]
+		logging.debug("parameters: {}".format(self.parameters))
+		return shlex.split(self.parameters)[1]
+		#return self.parameters.split(" ")[1]
 
 	def ps_based_is_running(self):
+		logging.debug("")
 		script = self.get_main_script()
-		cmd = "ps aux | grep %s | grep -v grep "%script
+		cmd = "ps aux | grep %s | grep -v grep " % script
+		logging.debug("cmd: {}".format(cmd))
 		#self.printd("ps_based_is_running - cmd " + cmd)
 		#r = subprocess.call(cmd, shell=True)
 		r = subprocess.getoutput(cmd)
+		logging.debug("result: {}".format(r))
 		#self.printd("ps_based_is_running - r " + r)
 		return r != ""
 
 	def is_running(self):
+		logging.debug("is_snapshot: {}".format(self.is_snapshot))
 		if self.is_snapshot:
 			if self.popen:
 				return self.popen.is_alive()
 			else:
 				return False
 		else:
-			#self.printd("is running: " + str(self.popen.poll()))
 			return self.ps_based_is_running()
-			#return (self.popen.poll() is None) or (self.popen.poll() == 0)
 
 	def is_finished(self):
+		logging.debug("")
 		if self.is_snapshot:
 			return not (self.snapshot.poll is None)
 		else:
-			#self.printd("is finished: " + str(self.popen.poll() ))
-			#return not ((self.popen.poll() is None) or (self.popen.poll() == 0))
 			return not self.ps_based_is_running()
 
 	def is_started(self):
-		#self.printd("is started: " + str(self.popen))
+		logging.debug("")
 		return self.popen
 
 
 class WorkerClient(object):
-
-	def printd(self, msg):
-		f = open("wc_log.txt", "a")
-		f.write("%s\n"%msg)
-		f.close()
 
 	def __init__(self, zk_addr, worker_hostname=''):
 		logging.debug('#Here1')
@@ -204,7 +181,7 @@ class WorkerClient(object):
 
 			try:
 				self.zk.delete(delete_path)
-			except:
+			except Exception as e:
 				pass
 
 			try:
@@ -240,22 +217,26 @@ class WorkerClient(object):
 				return False
 
 	def exp_finished(self, exp_obj):
-		logging.debug('Here8')
+		logging.debug('#Here8')
 		#self.printd("exp finished")
 
 		filename = "experiments/%s/%s." % (exp_obj.name, exp_obj.name)
 		code_output = exp_obj.popen.poll() if not exp_obj.is_snapshot else exp_obj.snapshot.poll
 		output = '(%i): ' % code_output
+		logging.debug(' output: {}'.format(output))
 		try:
 			f_output = open(filename + 'out', 'r+')
-			f_error = open(filename + 'err', 'r+')
-			error = f_error.read()
 
-			output += '%s' % f_output.read()
-			if error != '':
-				output += '\nerror: ' + error
-		except:
-			output += 'Unable to run experiment'
+			if os.path.isfile(filename + 'err'):
+				f_error = open(filename + 'err', 'r+')
+				error = f_error.read()
+
+				output += '%s' % f_output.read()
+				if error != '':
+					output += '\nerror: ' + error
+
+		except Exception as e:
+			output += '{}. Unable to run experiment'.format(e)
 
 		try:
 			self.zk.create("%s/actors/%s/output" % (exp_obj.path, exp_obj.actor_id), value=output.encode())
@@ -267,7 +248,7 @@ class WorkerClient(object):
 		self.current_experiments.remove(exp_obj)
 
 	def exp_handler(self, exp_diff):
-		logging.debug('#Here8')
+		logging.debug('#Here9')
 		logging.debug('[1]#torun')
 		try:
 			logging.debug('[2]#torun')
@@ -296,7 +277,7 @@ class WorkerClient(object):
 			logging.debug('[12]#torun')
 
 	def exp_load(self):
-		logging.debug('#Here9')
+		logging.debug('#Here10')
 		logging.debug('[1]#exp_load')
 		self.current_experiments = []  # Experiment objects
 		logging.debug('[2]#exp_load')
@@ -304,7 +285,7 @@ class WorkerClient(object):
 		logging.debug('[3]#exp_load')
 
 	def snap_get(self, actor_path):
-		logging.debug('#Here10')
+		logging.debug('#Here11')
 		if self.zk.exists("%s/data" % actor_path):
 			s, _ = self.zk.get("%s/data" % actor_path)
 			return eval(s)
@@ -312,7 +293,7 @@ class WorkerClient(object):
 		return None
 
 	def snap_set(self, actor_path, value):
-		logging.debug('#Here11')
+		logging.debug('#Here12')
 		if self.zk.exists("%s/data" % actor_path):
 			self.zk.set("%s/data" % actor_path, str(value).encode())
 		else:

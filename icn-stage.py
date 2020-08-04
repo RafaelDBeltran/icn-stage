@@ -17,6 +17,8 @@ import subprocess
 from time import sleep
 
 # specific bibs
+from iperf3 import iperf3
+
 import daemon_director
 
 try:
@@ -58,6 +60,7 @@ from experiments_resources import call_ndn_exp
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_LOG_LEVEL = logging.INFO
+
 _log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
@@ -130,7 +133,7 @@ def help_msg():
     status   :
     addactors:
     test     :
-    eva-tcp  : 
+    iperf    : 
     ndn      :
     help, ?  : prints this message
     print    :
@@ -154,7 +157,7 @@ def help_msg():
 #       status    {director, actors, zookeeper, all, ?}
 #       clean     {all, tasks}                              : clean the zookeeper tree
 #       test      {tcp, ndn, ?}                             : basic connectivity tests assuming stage_mininet.py
-#       eva       {tcp, ndn, ?}                             : performance evaluation assuming stage_mininet.py
+#       eva       {iperf, ndn, ?}                           : performance evaluation assuming stage_mininet.py
 #       help, ?   {COMMANDS}                                : prints this message
 #       verbosity {10, 20}                                  : setup logging verbosity level (default=%d, current=%d)
 #     ''' %(DEFAULT_LOG_LEVEL, _log_level)
@@ -199,8 +202,8 @@ def run_command(zookeeper_controller, command, option=None):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-    elif command == 'eva-tcp':
-        logging.info("*** iperf tcp begin\n")
+    elif command == 'iperf':
+        logging.info("*** iperf3 begin\n")
         zookeeper_controller.set_controller_client()
         try:
             file_log = "iperf.log"
@@ -209,26 +212,44 @@ def run_command(zookeeper_controller, command, option=None):
 
             iperf_port = '10000'
             interval_secs = '1'
-            time_secs = '60'
-            cmd = ['iperf ',
-             '--client', zookeeper_controller.get_ip_adapter(),
-             '--port', iperf_port,
-             '--time', time_secs]
-            # TODO remove the need for a tar.gz
-            experiment_skeleton('iperf_tcp', cmd, zookeeper_controller.controller_client,
-                                "experiments/iperf_tcp/", "iperf_tcp.tar.gz")
+            client_time_secs = 120
+            server_time_secs = client_time_secs + 10
 
-            cmd = "iperf --server --port {} --interval {} --time {} | tee {}".format(iperf_port, interval_secs, time_secs, file_log)
-            logging.info("Command: {}".format(cmd))
-            subprocess.call(cmd, shell=True)
+            try:
+                cmd = "iperf3 --server --port {} --interval {} --format m -J > {}&".format(iperf_port, interval_secs, file_log)
+                logging.info("Command: {}".format(cmd))
+                subprocess.call(cmd, timeout=server_time_secs, shell=True)
+
+                cmd = ['python3', 'iperf3_client.py',
+                       '--host', zookeeper_controller.get_ip_adapter(),
+                       '--port', iperf_port,
+                       '--time', str(client_time_secs),
+                       '--udp']
+                # TODO remove the need for a tar.gz
+                experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
+                                    "experiments/iperf3/", "iperf3.tar.gz")
+
+            except Exception as e:
+                if "timed out" in format(e):
+                    logging.info("Iperf finished: {}".format(e))
+                else:
+                    logging.error("Exception: {}".format(e))
+
+            for i in trange(server_time_secs-2):
+                sleep(1)
 
             logging.info("\n")
-            logging.info("*** iperf tcp end!")
+            logging.info("*** iperf3 end!")
 
         except Exception as e:
             logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
+
+            cmd = "sudo pkill iperf3"
+            logging.info("Command: {}".format(cmd))
+            subprocess.call(cmd, shell=True)
+
     
     elif command == 'ndn':
         zookeeper_controller.set_controller_client()
@@ -250,9 +271,15 @@ def run_command(zookeeper_controller, command, option=None):
     elif command == 'reset':
         zookeeper_controller.set_controller_client()
         for i in data['workers']:
-            zookeeper_controller.kill_worker_daemon(i["remote_username"], i["remote_password"],
-                                                    sundry.get_pkey(i["remote_pkey_path"]))
-            zookeeper_controller.reset_workers()
+
+            worker = Worker(i["remote_hostname"],
+                            i["remote_username"],
+                            password=i["remote_password"],
+                            pkey=sundry.get_pkey(i["remote_pkey_path"]),
+                            actor_id=i["actor_id"])
+            zookeeper_controller.kill_actor_daemon(worker)
+        zookeeper_controller.reset_workers()
+
     elif command == 'reset-tasks':
         zookeeper_controller.set_controller_client()
         zookeeper_controller.reset_tasks()
@@ -289,10 +316,10 @@ def run_command(zookeeper_controller, command, option=None):
             logging.error("Exception: {}".format(e))
 
     elif command == 'exit' or command == 'quit':
-        subprocess.call("fixNoNodeError.sh", shell=True)
-        subprocess.call("clean.sh", shell=True)
+        #subprocess.call("fixNoNodeError.sh", shell=True)
+        #subprocess.call("clean.sh", shell=True)
         logging.info('Goodbye!')
-        sys.exit()
+        sys.exit(0)
 
     elif command == 'help' or command == '?':
         print(help_msg())

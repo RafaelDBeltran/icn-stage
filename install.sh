@@ -1,5 +1,7 @@
 #!/bin/bash
 # -*- Mode:bash; c-file-style:"gnu"; indent-tabs-mode:nil -*- */
+#sudo timedatectl set-timezone America/Sao_Paulo
+
 #TODO# based on, thanks to
 # Copyright (C) 2015-2020, The University of Memphis,
 #                          Arizona Board of Regents,
@@ -205,7 +207,7 @@ function icn-stage {
     fi
 
     #pushd icn-stage
-	  $install python3-pip
+	  $install python3-pip iperf3
 	  pip3 install --upgrade pip
   	pip3 install -r requirements.txt
   	# cp settings_actors_vagrant.json.example settings_actors.json
