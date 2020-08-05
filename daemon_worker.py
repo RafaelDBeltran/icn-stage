@@ -7,22 +7,17 @@ import os, sys, time, logging, time
 from modules.extralib.daemon import Daemon
 from modules.worklib.worker_client import *
 
-LOG_LEVEL = logging.DEBUG
+DEFAULT_LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 ACTOR_CONFIG = "info.cfg"
 DEFAULT_SLEEP_SECONDS = 5
 
-if LOG_LEVEL == logging.DEBUG:
-	logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-						datefmt=TIME_FORMAT, level=LOG_LEVEL, filemode='w')
-else:
-	logging.basicConfig(format='%(asctime)s %(message)s',
-						datefmt=TIME_FORMAT, level=LOG_LEVEL, filemode='w')
-
 
 class WorkerDaemon(Daemon):
-	def __init__(self, pidfile, sleep_seconds=DEFAULT_SLEEP_SECONDS, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
-		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
+
+	def __init__(self, pidfile, sleep_seconds=DEFAULT_SLEEP_SECONDS, stdin='/dev/null', stdout='/dev/null',
+				 stderr='/dev/null'):
+		super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
 		self.sleep_seconds = sleep_seconds
 
 	def run(self):
@@ -98,7 +93,7 @@ def main():
 	parser = argparse.ArgumentParser(description='Daemon Worker')
 
 	help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
-	parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
+	parser.add_argument("--log", "-l", help=help_msg, default=DEFAULT_LOG_LEVEL, type=int)
 
 	help_msg = "sleep_seconds (default={})".format(DEFAULT_SLEEP_SECONDS)
 	parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=int)

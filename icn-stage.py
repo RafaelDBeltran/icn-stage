@@ -15,7 +15,7 @@ import datetime
 import logging
 import subprocess
 from time import sleep
-
+import shlex
 # specific bibs
 from iperf3 import iperf3
 
@@ -94,7 +94,7 @@ def add_worker(controller_client):
 
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
-    for i in trange(120):
+    for i in trange(100):
         sleep(1)
     logging.info("Adding Actors...DONE")
 
@@ -184,17 +184,18 @@ def run_command(zookeeper_controller, command, option=None):
 
     elif command == 'test':
         logging.info("*** test tcp begin\n")
+        test_port = 10002
         zookeeper_controller.set_controller_client()
         try:
-            cmd = ['python {}'.format('tcp_client.py'),
+            cmd = ['python3 {}'.format('tcp_client.py'),
                   '--host {}'.format(zookeeper_controller.get_ip_adapter()),
-                  '--port {}'.format('10000')]
+                  '--port {}'.format(test_port)]
 
             experiment_skeleton('test_tcp', cmd,
                                 zookeeper_controller.controller_client,
                                 "experiments/test_tcp/",
                                 "test_tcp.tar.gz")
-            call_tcp_server(zookeeper_controller.get_ip_adapter(), 10000)
+            call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
             logging.info("\n")
             logging.info("*** test tcp end!")
 
@@ -207,37 +208,58 @@ def run_command(zookeeper_controller, command, option=None):
         logging.info("*** iperf3 begin\n")
         zookeeper_controller.set_controller_client()
         try:
-            file_log = "iperf.log"
+            file_out_name = "iperf.out"
             if option is not None:
-                file_log = option
+                file_out_name = option
+            file_err_name = "{}.err".format(file_out_name)
 
-            iperf_port = '10000'
+            iperf_port = '10005'
             interval_secs = '1'
-            client_time_secs = 120
+            client_time_secs = 60 * 5
             server_time_secs = client_time_secs + 10
 
             try:
-                cmd = "iperf3 --server --port {} --interval {} --format m -J > {}&".format(iperf_port, interval_secs, file_log)
+                #cmd = "iperf3 --server --port {} --interval {} --format m -J 1>{} 2>{}&".format(iperf_port, interval_secs, file_out_name, file_err_name)
+                #subprocess.call(cmd, timeout=server_time_secs, shell=True)
+                cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, interval_secs)
+                param = shlex.split(cmd)
                 logging.info("Command: {}".format(cmd))
-                subprocess.call(cmd, timeout=server_time_secs, shell=True)
+                fout = open(file_out_name, 'w')
+                ferr = open(file_err_name, 'w')
+                popen = subprocess.Popen(param, stdout=fout, stderr=ferr)
+                pid = popen.pid
 
                 cmd = ['python3', 'iperf3_client.py',
                        '--host', zookeeper_controller.get_ip_adapter(),
                        '--port', iperf_port,
-                       '--time', str(client_time_secs),
-                       '--udp']
+                       '--time', str(client_time_secs)]#,
+                       #'--udp']
                 # TODO remove the need for a tar.gz
                 experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
                                     "experiments/iperf3/", "iperf3.tar.gz")
 
-            except Exception as e:
-                if "timed out" in format(e):
-                    logging.info("Iperf finished: {}".format(e))
-                else:
-                    logging.error("Exception: {}".format(e))
+                logging.info("Waiting... ")
+                for i in trange(server_time_secs):
+                    sleep(1)
+                cmd = "kill {}".format(pid)
+                param = shlex.split(cmd)
+                logging.info("Command: {}".format(cmd))
+                subprocess.call(param)
 
-            for i in trange(server_time_secs-2):
-                sleep(1)
+            except subprocess.TimeoutExpired as e:
+                logging.info("Iperf3 finished: {}".format(e))
+
+            except Exception as e:
+                # if "timed out" in format(e):
+                #     logging.info("Iperf finished: {}".format(e))
+                # else:
+                #     logging.error("Exception: {}".format(e))
+                logging.error("Exception: {}".format(e))
+                cmd = "kill {}".format(pid)
+                logging.info("Command: {}".format(cmd))
+                subprocess.call(cmd)
+
+
 
             logging.info("\n")
             logging.info("*** iperf3 end!")
