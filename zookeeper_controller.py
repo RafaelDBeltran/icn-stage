@@ -9,8 +9,34 @@ import json
 import time
 from modules.conlib.controller_client import ControllerClient
 from modules.conlib.remote_access import Channel
+from time import sleep
+from kazoo.client import *
+import kazoo
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+
+def get_source(zk_addr='10.0.2.15:2181'):
+
+    zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=250))
+    zk.add_listener(lambda x: os._exit(1) if x == KazooState.LOST else None)
+    zk.start()
+
+    busy_actor = None
+    while busy_actor is None:
+        for actor in zk.get_children('/connected/busy_workers'):
+            print(actor)
+            sys.exit(0)
+        sleep(2)
+
+    # cmd = "python3 ./icn-stage.py print /connected/busy_workers > l.txt"
+    # subprocess.call(cmd)
+    # result = ""
+    # while result == "":
+    # 	cmd = 'cat l.txt | grep "01:01" | cut -d ":" -f 2 | cut -d "." -f 2-'
+    # 	result = os.getoutput(cmd)
+    # 	sleep(1)
+
+    return busy_actor
 
 def nowStr():
     return time.strftime(TIME_FORMAT, time.localtime())
@@ -307,3 +333,6 @@ class ZookeeperController:
 
             except Exception as e:
                 print("Exception: ", e)
+
+if __name__ == '__main__':
+    get_source()

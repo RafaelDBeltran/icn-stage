@@ -215,7 +215,7 @@ def run_command(zookeeper_controller, command, option=None):
 
             iperf_port = '10005'
             interval_secs = '1'
-            client_time_secs = 120
+            client_time_secs = 60 * 5
             server_time_secs = client_time_secs + 10
 
             try:

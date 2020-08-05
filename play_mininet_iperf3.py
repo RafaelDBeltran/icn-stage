@@ -8,6 +8,7 @@ import sys
 import subprocess
 import threading
 from time import sleep
+import commands
 
 from mininet.log import setLogLevel, info
 from mininet.net import Mininet
@@ -19,68 +20,22 @@ from mininet.node import CPULimitedHost, Host, Node
 from mininet.node import OVSKernelSwitch, UserSwitch
 from mininet.node import IVSSwitch
 from mininet.cli import CLI
-from mininet.log import setLogLevel, info
+#from mininet.log import setLogLevel, info
 from mininet.link import TCLink, Intf
 from mininet.nodelib import NAT
 
-from kazoo.client import *
-import kazoo
-
 ICN_STAGE_CMD = ['python3', 'icn-stage.py']
-TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_RUN_DIRECTOR = True
 DEFAULT_RUN_MININET = True
-
-# Parameters
-# bw	bandwidth in b/s (e.g. '10m')
-# delay	transmit delay (e.g. '1ms' )
-# jitter	jitter (e.g. '1ms')
-# loss	loss (e.g. '1' )
-# gro	enable GRO (False)
-# txo	enable transmit checksum offload (True)
-# rxo	enable receive checksum offload (True)
-# speedup	experimental switch-side bw option
-# use_hfsc	use HFSC scheduling
-# use_tbf	use TBF scheduling
-# latency_ms	TBF latency parameter
-# enable_ecn	enable ECN (False)
-# enable_red	enable RED (False)
-# max_queue_size	queue limit parameter for netem Helper method: bool -> 'on'/'off'
-#
+TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+DEFAULT_LOG_LEVEL = logging.INFO
 
 
-def fail_link(net, source, destination, sleep_secs=0, ):
-	if sleep_secs > 0:
-		sleep(sleep_secs)
+def fail_link(net, source, dest, sleep_secs=30):
+	sleep(sleep_secs)
+	net.delLinkBetween(source, dest)
 
-	net.configLinkStatus(source, destination, 'down')
-
-def get_source():
-
-	zk_addr = '10.0.2.15:2181'
-	zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=250))
-
-	busy_actor = None
-	while busy_actor is None:
-		for actor in zk.get_children('/connected/busy_workers'):
-			print("actor: {}".format(actor))
-			busy_actor = a
-			sleep(2)
-
-	# cmd = "python3 ./icn-stage.py print /connected/busy_workers > l.txt"
-	# subprocess.call(cmd)
-	# result = ""
-	# while result == "":
-	# 	cmd = 'cat l.txt | grep "01:01" | cut -d ":" -f 2 | cut -d "." -f 2-'
-	# 	result = os.getoutput(cmd)
-	# 	sleep(1)
-	source = None
-	for host in net.hosts:
-		print("host: {} IP: {}".format(host, host.IP))
-		if busy_actor in host.IP:
-			source = host
-
-def run_play(director=False, mininet=False):
+def run_play(fail=False, director=False, mininet=False):
 
 
 	#setLogLevel('info')
@@ -101,9 +56,9 @@ def run_play(director=False, mininet=False):
 		print(cmd)
 		subprocess.call(cmd, shell=True)
 
-	cmd = "rm -f iperf*"
-	print(cmd)
-	subprocess.call(cmd, shell=True)
+	# cmd = "rm -f iperf*"
+	# print(cmd)
+	# subprocess.call(cmd, shell=True)
 
 	logging.info("\n**** End Cleaning ****\n")
 
@@ -126,7 +81,7 @@ def run_play(director=False, mininet=False):
 
 		h1 = net.addHost('h1', ip='10.0.0.1', inNamespace=True)
 		h2 = net.addHost('h2', ip='10.0.0.2', inNamespace=True)
-		h3 = net.addHost('h3', ip='10.0.0.3', inNamespace=True)
+		#h3 = net.addHost('h3', ip='10.0.0.3', inNamespace=True)
 
 		s1 = net.addSwitch('s1')
 
@@ -164,22 +119,33 @@ def run_play(director=False, mininet=False):
 	subprocess.call(ICN_STAGE_CMD + ['addactors'])
 
 	try:
-		fail = False
+
 		if fail:
+			busy_actor = ""
+			while busy_actor == "":
+				sleep(5)
+				cmd = ["python3", "zookeeper_controller.py"]
+				logging.info("cmd: {}".format(cmd))
+				#busy_actor = subprocess.getoutput(cmd)
+				busy_actor = commands.getoutput(cmd)
+				logging.info("busy_actor: {}".format(busy_actor))
+
+			# if busy_actor is None:
+			# 	raise("Source not found.")
+			#
+			# else:
+			source = None
+			for host in net.hosts:
+				print("host: {} IP: {}".format(host, host.IP))
+				if busy_actor in host.IP:
+					source = host
+					print("host found! source: {} ".format(host))
+			sleep_secs = 60 * 2
+			fail_thread = threading.Thread(target=fail_link(net, source, s1, sleep_secs))
+			fail_thread.start()
 
 			# run TCP iperf
-			subprocess.call(ICN_STAGE_CMD + ['iperf', 'iperf_with_fail.log'])
-
-			source = get_source()
-
-
-			if source is None:
-				raise("Source not found.")
-
-			else:
-
-				fail_thread = threading.Thread(target=fail_link(net, source.name, 's1', 30))
-				fail_thread.start()
+			subprocess.Popen(ICN_STAGE_CMD + ['iperf', 'iperf_with_fail.log'])
 
 		else:
 			subprocess.call(ICN_STAGE_CMD + ['iperf', 'iperf_without_fail.log'])
@@ -223,21 +189,17 @@ def main():
 	parser = argparse.ArgumentParser(description='*** An Iperf3 ICN-Stage Play ***')
 
 	help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
-	parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
+	parser.add_argument("--log", "-l", help=help_msg, default=logging.DEBUG, type=int)
 	parser.add_argument('--director', "-d", help="run director ", default=DEFAULT_RUN_DIRECTOR, action='store_true')
 	parser.add_argument('--mininet', "-m", help="run mininet ", default=DEFAULT_RUN_MININET, action='store_true')
-
-	# parser.print_help()
 
 	# read arguments from the command line
 	args = parser.parse_args()
 
 	# setup the logging facility
-
 	if args.log == logging.DEBUG:
 		logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
 							datefmt=TIME_FORMAT, level=args.log, filemode='w', filename='tcp_client.log')
-
 	else:
 		logging.basicConfig(format='%(asctime)s %(message)s',
 							datefmt=TIME_FORMAT, level=args.log, filemode='w', filename='tcp_client.log')
@@ -249,13 +211,22 @@ def main():
 	logging.info("\t Logging level : %s" % args.log)
 	logging.info("\t Run mininet?  : {}".format(args.mininet))
 	logging.info("\t Run director? : {}".format(args.director))
+	#logging.info("\t Run director? : {}".format(args.director))
 	logging.info("")
-	run_play(args.director, args.mininet)
+	#run_play(args.director, args.mininet)
+
+	for fail in [True]:
+		run_play(fail, args.director, args.mininet)
 
 if __name__ == '__main__':
-	logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-						datefmt=TIME_FORMAT, level=logging.DEBUG, filemode='w', filename='tcp_client.log')
-	source = get_source()
-	print("source: {}".format(source))
+	#cmd = ["python3", "zookeeper_controller.py"]
+	#cmd = "python3 zookeeper_controller.py"
+	#logging.info("cmd: {}".format(cmd))
+	#busy_actor = commands.getoutput(cmd)
+
+	sys.exit(main())
+
+
+
 
 	#sys.exit(main())
