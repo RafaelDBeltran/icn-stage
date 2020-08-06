@@ -52,42 +52,6 @@ class WorkerDaemon(Daemon):
 			time.sleep(self.sleep_seconds)
 
 
-# def main_old():
-# 	daemon_cmd = sys.argv[1]
-# 	daemon_id = ""
-# 	pidfile = "/tmp/daemon_worker_%s.pid"%daemon_id
-# 	stdin = "/tmp/daemon_worker_%s.stdin"%daemon_id%daemon_id
-# 	stdout = "/tmp/daemon_worker_%s.stdout"%daemon_id%daemon_id
-# 	stderr = "/tmp/daemon_worker_%s.stderr"%daemon_id%daemon_id
-#
-# 	daemon = WorkerDaemon(pidfile=pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
-#
-# 	if daemon_cmd == 'start':
-# 		daemon.start()
-# 		daemon_pid = daemon.getpid()
-#
-# 		if not daemon_pid:
-# 			logging.debug("Unable run daemon")
-# 		else:
-# 			logging.debug ("Daemon is running [PID=%d]" % daemon_pid)
-#
-# 	elif daemon_cmd == 'stop':
-# 		logging.debug ("Stoping daemon")
-# 		daemon.stop()
-#
-# 	elif daemon_cmd == 'restart':
-# 		logging.debug ("Restarting daemon")
-# 		daemon.restart()
-#
-# 	elif daemon_cmd == 'status':
-# 		daemon_pid = daemon.getpid()
-#
-# 		if not daemon_pid:
-# 			logging.debug ("Daemon isn't running")
-# 		else:
-# 			logging.debug ("Daemon is running [PID=%d]" % daemon_pid)
-
-
 def main():
 	# arguments
 	parser = argparse.ArgumentParser(description='Daemon Worker')

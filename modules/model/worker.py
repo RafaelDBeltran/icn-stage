@@ -10,6 +10,7 @@ SCRIPT = "daemon_worker.py"
 
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s\t%(message)s', datefmt="%Y-%m-%d %H:%M:%S",filename='daemon_controller.log', filemode='w')
 
+LOGGING_LEVEL = 100
 
 class Worker(object):
 	"""docstring for Worker"""
@@ -50,7 +51,7 @@ class Worker(object):
 		return SCRIPT
 
 	def get_command(self):
-		return "python3 {} --id {}".format(SCRIPT, self.actor_id)
+		return "python3 {} --id {} --log {} ".format(SCRIPT, self.actor_id, LOGGING_LEVEL)
 
 	def get_command_stop(self):
 		return "{} stop".format(self.get_command())

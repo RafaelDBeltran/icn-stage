@@ -62,6 +62,9 @@ _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_LOG_LEVEL = logging.INFO
 
+DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
+DEFAULT_IPERF_INTERVAL_SECS = 5
+DEFAULT_IPERF_FILE_OUT = "iperf.out"
 _log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
@@ -134,7 +137,7 @@ def help_msg():
     status   :
     addactors:
     test     :
-    iperf    : 
+    iperf    : file_out_name_str iperf_interval_secs client_time_secs
     ndn      :
     help, ?  : prints this message
     print    :
@@ -164,7 +167,7 @@ def help_msg():
 #     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
-def run_command(zookeeper_controller, command, option=None):
+def run_command(zookeeper_controller, command, options=None):
 
     if command == 'start':
         daemon_director.start()
@@ -205,23 +208,30 @@ def run_command(zookeeper_controller, command, option=None):
             logging.error(msg)
 
     elif command == 'iperf':
-        logging.info("*** iperf3 begin\n")
+        logging.info("*** iperf3 begin options: {}\n".format(options))
         zookeeper_controller.set_controller_client()
         try:
-            file_out_name = "iperf.out"
-            if option is not None:
-                file_out_name = option
+            file_out_name = DEFAULT_IPERF_FILE_OUT
+            iperf_interval = DEFAULT_IPERF_INTERVAL_SECS
+            client_time_secs = str(DEFAULT_IPERF_EXPERIMENT_SECS)
+            if options is not None:
+                file_out_name = options[0]
+                if len(options) > 1:
+                    iperf_interval = options[1]
+
+                if len(options) > 2:
+                    client_time_secs = options[2]
+
             file_err_name = "{}.err".format(file_out_name)
 
             iperf_port = '10005'
-            interval_secs = '1'
-            client_time_secs = 60 * 5
-            server_time_secs = client_time_secs + 10
+
+            server_time_secs = int(client_time_secs) + 10
 
             try:
                 #cmd = "iperf3 --server --port {} --interval {} --format m -J 1>{} 2>{}&".format(iperf_port, interval_secs, file_out_name, file_err_name)
                 #subprocess.call(cmd, timeout=server_time_secs, shell=True)
-                cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, interval_secs)
+                cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, iperf_interval)
                 param = shlex.split(cmd)
                 logging.info("Command: {}".format(cmd))
                 fout = open(file_out_name, 'w')
@@ -232,7 +242,7 @@ def run_command(zookeeper_controller, command, option=None):
                 cmd = ['python3', 'iperf3_client.py',
                        '--host', zookeeper_controller.get_ip_adapter(),
                        '--port', iperf_port,
-                       '--time', str(client_time_secs)]#,
+                       '--time', client_time_secs]#,
                        #'--udp']
                 # TODO remove the need for a tar.gz
                 experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
@@ -259,8 +269,6 @@ def run_command(zookeeper_controller, command, option=None):
                 logging.info("Command: {}".format(cmd))
                 subprocess.call(cmd)
 
-
-
             logging.info("\n")
             logging.info("*** iperf3 end!")
 
@@ -273,7 +281,6 @@ def run_command(zookeeper_controller, command, option=None):
             logging.info("Command: {}".format(cmd))
             subprocess.call(cmd, shell=True)
 
-    
     elif command == 'ndn':
         zookeeper_controller.set_controller_client()
         try:
@@ -346,8 +353,8 @@ def run_command(zookeeper_controller, command, option=None):
     elif command == 'print':
         zookeeper_controller.set_controller_client()
         try:
-            if option is not None:
-                root = option
+            if options is not None:
+                root = options[1]
                 # print root, "/" + root.split("/")[len(root.split("/")) - 1]
                 zookeeper_controller.print_zk_tree(root, root, 0)
             else:
@@ -365,13 +372,12 @@ def run_command(zookeeper_controller, command, option=None):
     elif command == 'help' or command == '?':
         print(help_msg())
 
-    elif command.split(' ')[0] == 'log' or command.split(' ')[0] == 'verbosity' or command.split(' ')[0] == 'v':
+    elif command == 'log' or command == 'verbosity' or command == 'v':
         try:
-            command_option = int(command.split(' ')[1])
-            set_logging(command_option)
+            set_logging(options[0])
 
         except Exception as e:
-            logging.error(" Logging verbosity level value invalid '%s'" % command )
+            logging.error(" Logging verbosity level value invalid {} {}".format(command, options))
 
     else:
         logging.error("Command '%s' is not recognized" % command)
@@ -386,11 +392,11 @@ def main():
     if len(sys.argv) > 1:
         # single command mode
         command = sys.argv[1]
-        option = None
+        options = None
         if len(sys.argv) > 2:
-            option = sys.argv[2]
+            options = sys.argv[2:]
 
-        run_command(zookeeper_controller, command, option)
+        run_command(zookeeper_controller, command, options)
 
     else:
         # interactive mode
@@ -401,10 +407,11 @@ def main():
             commands = input('ICN-Stage >> ')
             commands = commands.split(" ")
             command = commands[0]
-            option = None
-            if len(commands)>1:
-                option = commands[1]
-            run_command(zookeeper_controller, command, option)
+
+            options = None
+            if len(commands) > 1:
+                options = sys.argv[1:]
+            run_command(zookeeper_controller, command, options)
 
 
 if __name__ == '__main__':

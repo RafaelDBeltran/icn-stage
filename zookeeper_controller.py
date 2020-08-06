@@ -14,20 +14,30 @@ from kazoo.client import *
 import kazoo
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+MAX_ATTEMPTS = 60*3
 
 def get_source(zk_addr='10.0.2.15:2181'):
 
+    print("get_source zk_addr: {}".format(zk_addr))
     zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=250))
+    print("zk: {}".format(zk))
     zk.add_listener(lambda x: os._exit(1) if x == KazooState.LOST else None)
     zk.start()
 
+    file_name = "busyactor.txt"
+    subprocess.call(["rm", "-f", file_name])
+    fout = open(file_name, 'w')
     busy_actor = None
-    while busy_actor is None:
+    count_attempts = 0
+    while busy_actor is None and count_attempts < MAX_ATTEMPTS:
+        count_attempts += 1
+        print("busy_actor: {} count_attempts: {}".format(busy_actor, count_attempts))
         for actor in zk.get_children('/connected/busy_workers'):
-            print(actor)
+            print("found_actor!: {}".format(actor))
+            fout.write("{}".format(actor))
+            fout.close()
             sys.exit(0)
-        sleep(2)
-
+        sleep(1)
     # cmd = "python3 ./icn-stage.py print /connected/busy_workers > l.txt"
     # subprocess.call(cmd)
     # result = ""
@@ -35,8 +45,9 @@ def get_source(zk_addr='10.0.2.15:2181'):
     # 	cmd = 'cat l.txt | grep "01:01" | cut -d ":" -f 2 | cut -d "." -f 2-'
     # 	result = os.getoutput(cmd)
     # 	sleep(1)
-
-    return busy_actor
+    # print("FOUND! busy_actor: {}".format(busy_actor))
+    #print("{}".format(busy_actor))
+    #return busy_actor
 
 def nowStr():
     return time.strftime(TIME_FORMAT, time.localtime())
