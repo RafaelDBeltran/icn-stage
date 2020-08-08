@@ -5,13 +5,22 @@
 
 import ast
 
+def bytes_to_str(input):
+
+	if type(input) is bytes:
+		return input.decode('utf-8')
+	else:
+		return input
+
+
 class Role(object):
 	"""docstring for Role"""
 	def __init__(self, name, parameters, no_workers, role_id=""):
-		self.name = name
-		self.parameters = parameters
-		self.id = role_id
-		self.no_workers = no_workers
+
+		self.name = bytes_to_str(name)
+		self.parameters = bytes_to_str(parameters)
+		self.id = bytes_to_str(role_id)
+		self.no_workers = bytes_to_str(no_workers)
 		
 	@staticmethod
 	def decode(encoded_role):

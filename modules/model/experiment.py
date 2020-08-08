@@ -8,6 +8,11 @@ sys.path.append("..")
 from .role import Role
 import logging
 
+def bytes_to_str(input):
+	if type(input) is bytes:
+		return input.decode('utf-8')
+	else:
+		return input
 
 class Experiment(object):
 	"""docstring for Experiment"""
@@ -22,17 +27,16 @@ class Experiment(object):
 		if filename is None:
 			self.filename = ''
 		else:
-			self.filename = filename
+			self.filename = bytes_to_str(filename)
 
-		self.roles = roles
-		self.is_snapshot = is_snapshot
-		self.id = exp_id
-		self.actors = actors
+		self.roles = bytes_to_str(roles)
+		self.is_snapshot = bytes_to_str(is_snapshot)
+		self.id = bytes_to_str(exp_id)
+		self.actors = bytes_to_str(actors)
 		self.actor = self.Actor()
 		
 	def save_file(self, fileobj):
 		shutil.copyfileobj(fileobj, open(os.path.expanduser("~/controller/experiments/%s" % self.filename), 'w'))
-
 
 	@staticmethod
 	def decode(encoded_exp):

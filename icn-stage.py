@@ -65,6 +65,7 @@ DEFAULT_LOG_LEVEL = logging.INFO
 DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
 DEFAULT_IPERF_INTERVAL_SECS = 5
 DEFAULT_IPERF_FILE_OUT = "iperf.out"
+DEFAFULT_IPERF_TRANSPORT = "tcp"
 _log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
@@ -88,7 +89,9 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
 
 def add_worker(controller_client):
     logging.info("Adding Actors...")
+    count = 0
     for i in data['workers']:
+        count += 1
         new_worker = Worker(i["remote_hostname"],
                         i["remote_username"],
                         password=i["remote_password"],
@@ -97,7 +100,7 @@ def add_worker(controller_client):
 
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
-    for i in trange(100):
+    for i in trange(30*count):
         sleep(1)
     logging.info("Adding Actors...DONE")
 
@@ -137,7 +140,7 @@ def help_msg():
     status   :
     addactors:
     test     :
-    iperf    : file_out_name_str iperf_interval_secs client_time_secs
+    iperf    : file_out_name_str iperf_interval_secs client_time_secs (tcp|udp)
     ndn      :
     help, ?  : prints this message
     print    :
@@ -214,6 +217,7 @@ def run_command(zookeeper_controller, command, options=None):
             file_out_name = DEFAULT_IPERF_FILE_OUT
             iperf_interval = DEFAULT_IPERF_INTERVAL_SECS
             client_time_secs = str(DEFAULT_IPERF_EXPERIMENT_SECS)
+            transport = DEFAFULT_IPERF_TRANSPORT
             if options is not None:
                 file_out_name = options[0]
                 if len(options) > 1:
@@ -221,6 +225,9 @@ def run_command(zookeeper_controller, command, options=None):
 
                 if len(options) > 2:
                     client_time_secs = options[2]
+
+                if len(options) > 3:
+                    transport = options[3]
 
             file_err_name = "{}.err".format(file_out_name)
 
@@ -231,9 +238,11 @@ def run_command(zookeeper_controller, command, options=None):
             try:
                 #cmd = "iperf3 --server --port {} --interval {} --format m -J 1>{} 2>{}&".format(iperf_port, interval_secs, file_out_name, file_err_name)
                 #subprocess.call(cmd, timeout=server_time_secs, shell=True)
-                cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, iperf_interval)
+                #cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, iperf_interval)
+
+                cmd = "iperf --server --port {} --interval {} --format m --time {} --{}".format(iperf_port, iperf_interval, server_time_secs, transport)
                 param = shlex.split(cmd)
-                logging.info("Command: {}".format(cmd))
+                logging.info("[IPERF] out: {} Command: {}".format(file_out_name, cmd))
                 fout = open(file_out_name, 'w')
                 ferr = open(file_err_name, 'w')
                 popen = subprocess.Popen(param, stdout=fout, stderr=ferr)
@@ -242,8 +251,10 @@ def run_command(zookeeper_controller, command, options=None):
                 cmd = ['python3', 'iperf3_client.py',
                        '--host', zookeeper_controller.get_ip_adapter(),
                        '--port', iperf_port,
-                       '--time', client_time_secs]#,
-                       #'--udp']
+                       '--time', client_time_secs]
+
+                if transport == "udp":
+                    cmd += ['--{}'.format(transport)]
                 # TODO remove the need for a tar.gz
                 experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
                                     "experiments/iperf3/", "iperf3.tar.gz")
@@ -251,10 +262,10 @@ def run_command(zookeeper_controller, command, options=None):
                 logging.info("Waiting... ")
                 for i in trange(server_time_secs):
                     sleep(1)
-                cmd = "kill {}".format(pid)
-                param = shlex.split(cmd)
-                logging.info("Command: {}".format(cmd))
-                subprocess.call(param)
+                # cmd = "kill {}".format(pid)
+                # param = shlex.split(cmd)
+                # logging.info("Command: {}".format(cmd))
+                # subprocess.call(param)
 
             except subprocess.TimeoutExpired as e:
                 logging.info("Iperf3 finished: {}".format(e))
@@ -265,7 +276,7 @@ def run_command(zookeeper_controller, command, options=None):
                 # else:
                 #     logging.error("Exception: {}".format(e))
                 logging.error("Exception: {}".format(e))
-                cmd = "kill {}".format(pid)
+                cmd = "sudo kill {} -SIGINT".format(pid)
                 logging.info("Command: {}".format(cmd))
                 subprocess.call(cmd)
 
@@ -315,7 +326,6 @@ def run_command(zookeeper_controller, command, options=None):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-
     elif command == 'reset':
         zookeeper_controller.set_controller_client()
         for i in data['workers']:
@@ -353,8 +363,11 @@ def run_command(zookeeper_controller, command, options=None):
     elif command == 'print':
         zookeeper_controller.set_controller_client()
         try:
+
             if options is not None:
-                root = options[1]
+                root = "/"
+                if len(options) > 0:
+                    root = options[0]
                 # print root, "/" + root.split("/")[len(root.split("/")) - 1]
                 zookeeper_controller.print_zk_tree(root, root, 0)
             else:
@@ -410,7 +423,9 @@ def main():
 
             options = None
             if len(commands) > 1:
-                options = sys.argv[1:]
+                options = commands[1:]
+
+            logging.debug("command: {} options: {}".format(command, options))
             run_command(zookeeper_controller, command, options)
 
 

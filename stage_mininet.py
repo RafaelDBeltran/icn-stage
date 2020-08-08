@@ -54,7 +54,7 @@ if __name__ == '__main__':
                          choices=['link-state', 'hr', 'dry'],
                          help='''Choose routing type, dry = link-state is used
                                  but hr is calculated for comparision.''')
-    link = partial(TCLink, delay='2ms', bw=10)
+
     net = Mininet(switch=OVSKernelSwitch,
                   controller=OVSController, waitConnected=True)
 
@@ -66,16 +66,17 @@ if __name__ == '__main__':
     nat = net.addHost('nat', cls=NAT, ip='10.0.0.99', inNamespace=False)
 
     #net = Mininet()
-    a = net.addHost('a',ip='10.0.0.1', inNamespace=True)
-    b = net.addHost('b',ip='10.0.0.2', inNamespace=True)
-    c = net.addHost('c',ip='10.0.0.3', inNamespace=True)
+    h1 = net.addHost('h1',ip='10.0.0.1', inNamespace=True)
+    h2 = net.addHost('h2',ip='10.0.0.2', inNamespace=True)
+    #c = net.addHost('c',ip='10.0.0.3', inNamespace=True)
 
     switch = net.addSwitch('s1')
 
     # Add links
-    net.addLink(a, switch)
-    net.addLink(b, switch)
-    net.addLink(c, switch)
+    host_link = partial(TCLink, bw=1)
+    net.addLink(h1, switch, cls=host_link)
+    net.addLink(h2, switch, cls=host_link)
+    #net.addLink(c, switch)
     net.addLink(nat, switch)
 
     net.start()

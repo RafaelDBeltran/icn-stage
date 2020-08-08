@@ -12,24 +12,32 @@ SCRIPT = "daemon_worker.py"
 
 LOGGING_LEVEL = 100
 
+def bytes_to_str(input):
+
+	if type(input) is bytes:
+		return input.decode('utf-8')
+	else:
+		return input
+
 class Worker(object):
 	"""docstring for Worker"""
 
 	def __init__(self, hostname, username, path="", password="", pkey="", status="", actors=[], active_time=0.0,
 				 failures=0, disconnection_time=0.0, connection_time=0, actor_id="default"):
-		self.path = path
-		self.hostname = hostname
-		self.username = username
-		self.password = password
-		self.pkey = pkey
-		self.status = status
 
-		self.active_time = active_time
-		self.failures = failures
-		self.disconnection_time = disconnection_time
-		self.connection_time = connection_time
-		self.actors = actors
-		self.actor_id = actor_id
+		self.path = path # path means ZK path and must be byte string
+		self.hostname = bytes_to_str(hostname)
+		self.username = bytes_to_str(username)
+		self.password = bytes_to_str(password)
+		self.pkey = bytes_to_str(pkey)
+		self.status = bytes_to_str(status)
+
+		self.active_time = bytes_to_str(active_time)
+		self.failures = bytes_to_str(failures)
+		self.disconnection_time = bytes_to_str(disconnection_time)
+		self.connection_time = bytes_to_str(connection_time)
+		self.actors = bytes_to_str(actors)
+		self.actor_id = bytes_to_str(actor_id)
 
 	@staticmethod
 	def decode(encoded_worker):

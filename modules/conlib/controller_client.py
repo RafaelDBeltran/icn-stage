@@ -86,15 +86,16 @@ class ControllerClient:
 	def __init__(self, zk_addr):
 		self.zk_addr = zk_addr
 		logging.debug("Instantiating kazoo using address: {}".format(self.zk_addr))
-		#self.zk = kazoo.client.KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=180))
-		self.zk = kazoo.client.KazooClient(self.zk_addr,
-										   connection_retry = kazoo.retry.KazooRetry(max_tries=2, max_delay=5))
+		self.zk = kazoo.client.KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=180))
+		# self.zk = kazoo.client.KazooClient(self.zk_addr,
+		# 								   connection_retry=kazoo.retry.KazooRetry(max_tries=2, max_delay=5))
 
 		logging.debug("Kazoo instantiated at address: {}".format(self.zk_addr))
 		try:
 			logging.debug("Kazoo start... ")
 			self.zk.start()
 			logging.debug("Kazoo start done. ")
+
 		except Exception as e:
 			logging.error("Exception while connecting with Zookeeper:\n\n", e)
 		logging.debug("End Controller Client init ")
@@ -191,11 +192,26 @@ class ControllerClient:
 		return exp.path
 
 	def exp_get(self, exp_path):
+
+		if type(exp_path) is bytes:
+			exp_path = exp_path.decode('utf-8')
+
+		logging.debug("[CPEG1] exp_path: {}".format(exp_path))
+
 		if self.zk.exists(exp_path):
+			logging.debug("[CPEG2] exp_path: {}".format(exp_path))
 			name, _ = self.zk.get(exp_path)
+
+			logging.debug("[CPEG3] exp_path: {}/file".format(exp_path))
 			file, _ = self.zk.get("%s/file" % (exp_path))
+
+			logging.debug("[CPEG4] {}/is_snapshot".format(exp_path))
 			is_snapshot, _ = self.zk.get("%s/is_snapshot" % (exp_path))
+
+			logging.debug("[CPEG5] {}/roles".format(exp_path))
 			role_id_list = self.zk.get_children("%s/roles" % (exp_path))
+
+			logging.debug("[CPEG6]  {}/actors".format(exp_path))
 			actor_id_list = self.zk.get_children("%s/actors" % (exp_path))
 
 			roles = []
@@ -205,18 +221,31 @@ class ControllerClient:
 				role_name, _ = self.zk.get(role_path)
 				role_parameters, _ = self.zk.get("%s/parameters" % (role_path))
 				role_no_workers, _ = self.zk.get("%s/no_workers" % (role_path))
-				roles.append(Role(role_name, role_parameters, role_no_workers, role_id=role_id))
+
+				logging.debug("[CPEG7]  role_name: {} ".format(exp_path))
+				role = Role(role_name, role_parameters, role_no_workers, role_id=role_id)
+
+				logging.debug("[CPEG8]  role : {} ".format(role))
+				roles.append(role)
 
 			for actor_id in actor_id_list:
 				actor_path = "%s/actors/%s" % (exp_path, actor_id)
 				actor_worker_path, _ = self.zk.get(actor_path)
+				if type(actor_worker_path) is bytes:
+					actor_worker_path = actor_worker_path.decode('utf-8')
+
+				logging.debug("[CPEG9]  actor_worker_path : {} ".format(actor_worker_path))
 				actor_hostname = actor_worker_path.split('/')[-1]
+
+				logging.debug("[CPEG10] checking {}/output ".format(actor_path))
 				if self.zk.exists("%s/output" % (actor_path)):
 					actors[actor_id] = (actor_hostname, self.zk.get("%s/output" % (actor_path))[0])
+
 				else:
 					actors[actor_id] = (actor_hostname, "(?)")
 
 			return Experiment(name, file, roles, is_snapshot, exp_id=exp_path.split('/')[-1], actors=actors)
+
 		return None
 
 	def exp_get_all(self):
@@ -259,7 +288,7 @@ class ControllerClient:
 			actor_path = self.zk.create("%s/actors/a" % (exp_path), value=worker_path.encode(), sequence=True)
 			self.zk.create("%s/role_id" % (actor_path), value=role_id.encode())
 		else:
-			self.zk.set(actor_path, worker_path)
+			self.zk.set(actor_path, value=worker_path.encode())
 
 		return actor_path.split('/')[-1]
 
@@ -284,8 +313,8 @@ class ControllerClient:
 
 			return True
 
-		except:
-			print("error while adding worker")
+		except Exception as e:
+			logging.error("Exception while adding worker: {}".format(e))
 			return False
 
 	def worker_check(self, worker_hostname):
@@ -322,67 +351,71 @@ class ControllerClient:
 	# 	self.zk.set("%s/connection" % worker_path, connection_path.encode())
 
 	def worker_add_disconnected(self, worker_hostname, worker_status, is_failure=True):
+
 		connection_path = "%s/%s" % (PATHS.DISCONNECTED_WORKERS, worker_hostname)
 		worker_path = '%s/%s' % (PATHS.REGISTERED_WORKERS, worker_hostname)
-		logging.debug("connection_path: %s", connection_path)
-		logging.debug("worker_path %s", worker_path)
-		logging.debug('worker_add_disconnected 1')
-		try:
-			logging.debug('worker_add_disconnected 1.5')
-			self.zk.create(connection_path, value=worker_path.encode())
-			logging.debug('worker_add_disconnected 1.6')
-			self.zk.create("%s/status" % connection_path, value=worker_status.encode())
-			logging.debug('worker_add_disconnected 1.7 worker_path: {}'.format(worker_path))
-			self.zk.set("%s/disconnection_time" % (worker_path), str(time.time()).encode())
-			logging.debug('worker_add_disconnected 2')
 
-		except:
+		logging.debug("connection_path: {} worker_path: {}".format(connection_path, worker_path))
+		try:
+			logging.debug('[CP1] creating connection_path: {}'.format(connection_path))
+			self.zk.create(connection_path, value=worker_path.encode())
+
+			logging.debug('[CP2] creating %s/status: {} value: {}'.format(connection_path, worker_status.encode()))
+			self.zk.create("%s/status" % connection_path, value=worker_status.encode())
+
+			logging.debug('[CP3] creating  %s/disconnection_time: {} value: {}'.format(worker_path, str(time.time()).encode()))
+			self.zk.set("%s/disconnection_time" % (worker_path), str(time.time()).encode())
+
+		except Exception as e:
+			logging.error("Exception : {}".format(e))
+
+			logging.debug('[CP4] creating  %s/status: {} value: {}'.format(connection_path, worker_status.encode()))
 			self.zk.set("%s/status" % connection_path, worker_status.encode())
 
 		if is_failure:
 			failures = int(self.zk.get('%s/failures' % worker_path)[0])
 			self.zk.set('%s/failures' % worker_path, value=str(failures + 1).encode())
+
 		logging.debug('node: %s/connection', worker_path)
 		logging.debug('Sleeping 10 secs...')
 		time.sleep(10)
 		logging.debug('Sleeping Done')
 		self.zk.set("%s/connection" % worker_path, connection_path.encode())
-		logging.debug('worker_add_disconnected 3')
-		logging.debug('Set Done')
+		logging.debug('[CP6] DONE')
 
 	def worker_get_status(self, worker_path):
+
 		worker_connection, _ = self.zk.get("%s/connection" % (worker_path))
 		worker_connection = worker_connection.decode('utf-8')
-		logging.debug('ERROR GS 1')
-		logging.debug('worker_connection %s', worker_connection)
-		logging.debug('worker_connection_type %s', type(worker_connection))
+
+		logging.debug('worker_connection {}'.format(worker_connection))
+
 		worker_status = ''
 		# logging.debug('ERROR: CL['+str(type(worker_connection)) + str(worker_connection)+']')
 		if self.zk.exists(worker_connection) and worker_connection != '':
-			logging.debug('ERROR GS 2')
+
 			if 'free_workers' in worker_connection:
 				worker_status = 'IDLE'
-				logging.debug('ERROR GS 3')
+
 			elif 'busy_workers' in worker_connection:
-				logging.debug('ERROR GS 4')
 				worker_status = 'BUSY'
+
 			else:
 				worker_status, _ = self.zk.get("%s/status" % (worker_connection))
 				worker_status = worker_status.decode('utf-8')
-				logging.debug('ERROR GS 5')
 
 		elif self.zk.get_children("%s/torun" % (worker_path)) == []:
-			logging.debug('ERROR GS 6')
 			worker_status = 'NEW LOST IDLE'
+
 		else:
-			logging.debug('ERROR GS 7')
 			worker_status = 'NEW LOST BUSY'
+
+		logging.debug("worker_status : {} ".format(worker_status))
 		return worker_status
 
 	def worker_get(self, worker_path):
 		# Rafael# line 351
 		try:
-
 			# worker_path = str(worker_path)#TODO#
 			if type(worker_path) is str:
 				pass
@@ -392,7 +425,7 @@ class ControllerClient:
 			logging.debug('[1] worker_path {}'.format(type(worker_path)))
 
 			worker_hostname = worker_path.split('/')[-1]
-			logging.debug('[2] worker_hostname %s', worker_hostname)
+			logging.debug('[2] worker_hostname: {}'.format(worker_hostname))
 
 			worker_username, _ = self.zk.get("%s/user" % (worker_path))
 			logging.debug('[3] worker_username {}'.format(worker_username))
@@ -470,21 +503,37 @@ class ControllerClient:
 		return self.worker_get("%s/%s" % (PATHS.REGISTERED_WORKERS, worker_hostname))
 
 	def worker_get_experiments(self, worker_hostname):
+		logging.debug(" [CPWGE1] worker_hostname: {}".format(worker_hostname))
+
 		exp_local_path = "%s/%s/torun" % (PATHS.REGISTERED_WORKERS, worker_hostname)
 		exp_list = []
 
 		try:
+			logging.debug(" CPWGE2] zk.get_children exp_local_path: {}".format(exp_local_path))
 			exp_local_ids = self.zk.get_children(exp_local_path)
 
 			for exp_local_id in exp_local_ids:
+				logging.debug(" [CPWGE3] exp_local_id: {}".format(exp_local_id))
+
+				#logging.debug("zk.get_children exp_local_path: {}".format(exp_local_path))
 				exp_path, _ = self.zk.get("%s/%s" % (exp_local_path, exp_local_id))
+				exp_path = exp_path.decode('utf-8')
+				logging.debug(" [CPWGE4] exp_path: {}".format(exp_path))
+
 				actor_path, _ = self.zk.get("%s/%s/actor_path" % (exp_local_path, exp_local_id))
+				actor_path = actor_path.decode('utf-8')
+				logging.debug(" [CPWGE5] actor_path: {}".format(exp_path))
+
 				exp = self.exp_get(exp_path)
+				logging.debug(" [CPWGE6] exp: {}".format(exp))
 				exp.actor.path = actor_path
 				exp.actor.role_id, _ = self.zk.get("%s/role_id" % actor_path)
+				exp.actor.role_id = exp.actor.role_id.decode('utf-8')
 				exp_list += [exp]
-		except:
-			pass
+
+		except Exception as e:
+			logging.error("Exception : {}".format(e))
+			sys.exit(-1)
 
 		return exp_list
 
@@ -503,14 +552,19 @@ class ControllerClient:
 			pass
 
 	def worker_get_all(self):
-		workers_hostnames = self.zk.get_children(PATHS.REGISTERED_WORKERS)
+		logging.debug("CP1 PATHS.REGISTERED_WORKERS: {}".format(PATHS.REGISTERED_WORKERS))
+		#self.zk.ensure_path(PATHS.REGISTERED_WORKERS)
+		logging.debug("CP2 PATHS.REGISTERED_WORKERS: {}".format(PATHS.REGISTERED_WORKERS))
+		workers_hostnames = self.zk.get_children(PATHS.REGISTERED_WORKERS, include_data=False)
 		workers_list = []
-
+		logging.debug("CP2")
 		for worker_hostname in workers_hostnames:
-			# logging.debug('ERROR: CL['+str(type(worker_hostname)) + str(worker_hostname)+']')
+			logging.debug("CP3")
 			worker = self.worker_get_by_hostname(worker_hostname)
+			logging.debug("CP4")
 			workers_list.append(worker)
 
+		logging.debug("CP5")
 		return workers_list
 
 	def worker_allocate(self, number_of_workers=1, alloc_list=[]):

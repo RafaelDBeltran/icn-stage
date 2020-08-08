@@ -298,7 +298,6 @@ class ZookeeperController:
             logging.error("\t\tException while stopping actor daemon: {} Exception: {}".format(actor.hostname, e))
 
 
-
     def print_zk_tree(self, tree_node, node, n, count_=1):
 
         if node is not None:

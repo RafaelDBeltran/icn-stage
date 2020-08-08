@@ -10,6 +10,8 @@ import argparse
 import sys, socket, time, multiprocessing, subprocess, signal
 import datetime
 # TODO#
+import threading
+
 from modules.model import worker
 from zookeeper_controller import ZookeeperController
 
@@ -37,7 +39,7 @@ DEFAULT_SLEEP_SECONDS = 30
 
 _controllerport = "2181"
 _pyvers = "3.6.9"
-_timeout = 30
+_timeout = 2
 #_worker_daemon = "daemon_worker.py"
 _worklibtarfile = "worklib.tar.gz"
 
@@ -84,65 +86,108 @@ def get_ip():
 			[socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
 
 
-_realocate_timeout = 240
-_restart_timeout = _realocate_timeout / 2
+# _realocate_timeout = 240
+# _restart_timeout = _realocate_timeout / 2
 
 
 # RPM = Resource Pool Manager
 class RPM(multiprocessing.Process):
+#class RPM(threading.Thread):
 
-	def __init__(self):
+	def __init__(self, sleep_seconds, zk_addr):
 		super().__init__()
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
-		self.controller_client = None
+		#self.controller_client = None
+		self.zk_addr = zk_addr
 
-	def set_sleep_seconds(self, sleep_seconds):
-		self.sleep_seconds = sleep_seconds
+	# def set_sleep_seconds(self, sleep_seconds):
+	# 	self.sleep_seconds = sleep_seconds
 
-	def set_controller_client(self, controller_client):
-		self.controller_client = controller_client
+	# def set_controller_client(self, controller_client):
+	# 	logging.debug(" Controller_client: {}".format(controller_client))
+	# 	self.controller_client = controller_client
+
+	# def set_new_controller_client(self, zookeeper_ip_port):
+	# 	self.controller_client = ControllerClient(zookeeper_ip_port)
+	# 	logging.debug(" self.Controller_client: {}".format(self.controller_client))
 
 	def run(self):
-
+		logging.info("RPM[CP1]")
 		exit = False
 
-		workers = self.controller_client.worker_get_all()
-		workers_disconnected = set([x for x in workers if x.status != 'BUSY' or x.status != 'IDLE'])
+		run_controller_client = ControllerClient(self.zk_addr)
+		workers = run_controller_client.worker_get_all()
+
+		workers_disconnected = set([])
+		if len(workers) > 0:
+			workers_disconnected = set([x for x in workers if x.status != 'BUSY' or x.status != 'IDLE'])
 		workers = set(workers)
+
 		starting_time = time.time()
 		last = starting_time
 		while not exit:
 			now = time.time()
+			logging.debug("RPM[CP1.1] now: ".format(now))
+
 			try:
 				with open("rpm_activity.log", "w+") as fa:
 					print("%16s, \t%50s, \t%13s, \t%24s, \t%24s" % (
 					'ACTIVE_TIME', 'HOSTNAME', 'STATUS', 'LAST_CALL', 'WHEN_DISCONNECT'), file=fa)
 
-					for worker in sorted(self.controller_client.worker_get_all(), key=lambda x: x.hostname):
+					for worker in sorted(run_controller_client.worker_get_all(), key=lambda x: x.hostname):
 
+						logging.debug("RPM[CP2] worker hostname: {} status: {}".format(worker.hostname, worker.status))
 						if worker.status == 'BUSY' or worker.status == 'IDLE':
 							if worker.hostname in workers_disconnected or not (worker in workers):
-								self.controller_client.worker_update_connection_time(worker.path, now)
+								run_controller_client.worker_update_connection_time(worker.path, now)
 								workers_disconnected.discard(worker.hostname)
 
 						else:
-							logging.debug("[1]RecoverActor {}".format(workers_disconnected))
 							workers_disconnected.add(worker.hostname)
+
 							if worker.status == 'NEW LOST BUSY' or worker.status == 'LOST BUSY':
 								if not worker.actors:
 									break
 								with open('failures_recov.txt', 'a+') as fi:
 									print(time.time(), worker.hostname, worker.actors, file=fi)
-								logging.debug("[2]RecoverActor")
-								self.controller_client.worker_add_disconnected(worker.hostname, 'RECOVERING')
-								self.controller_client.task_add(COMMANDS.RECOVER_ACTOR, worker=worker)
-								logging.debug("[3]RecoverActor")
+
+								logging.debug("RPM [CP6] worker.status")
+								run_controller_client.worker_add_disconnected(worker.hostname, 'RECOVERING')
+								run_controller_client.task_add(COMMANDS.RECOVER_ACTOR, worker=worker)
+
 							elif worker.status == 'LOST IDLE' or worker.status == 'NEW LOST IDLE':
-								logging.debug("[4]RecoverActor")
-								self.controller_client.worker_add_disconnected(worker.hostname, 'RESTARTING')
-								logging.debug("[5]RecoverActor")
-								self.controller_client.task_add(COMMANDS.START_WORKER, worker=worker)
-								logging.debug("[6]RecoverActor")
+								logging.debug("RPM[CP7] RecoverActor")
+								run_controller_client.worker_add_disconnected(worker.hostname, 'RESTARTING')
+
+								logging.debug("RPM[CP8] COMMANDS.START_WORKER")
+								run_controller_client.task_add(COMMANDS.START_WORKER, worker=worker)
+
+							else:
+								logging.debug("RPM[CP8] OTHER STATUS: '{}'".format(worker.status))
+
+								status = ""
+								if worker.status == ' 2 1':
+									status = "RECOVERING"
+								else:
+									status = worker.status
+
+								status_count = 1
+								status_split = status.split(' ')
+								new_status = "{} {}".format(status, status_count)
+
+								if len(status_split) > 1 and status_split[-1].isnumeric():
+									status_count = int(status_split[-1]) + 1
+									new_status = "{} {}".format(" ".join(status_split[:-1]), status_count)
+
+								# after N loops try again...
+								if status_count > 10:
+									logging.debug("RPM [CP6] worker.status")
+									run_controller_client.worker_add_disconnected(worker.hostname, 'RECOVERING')
+									run_controller_client.task_add(COMMANDS.RECOVER_ACTOR, worker=worker)
+
+								else:
+									logging.debug("RPM[CP11] new_status: {}".format(new_status))
+									run_controller_client.worker_add_disconnected(worker.hostname, new_status)
 
 						workers.add(worker)
 
@@ -155,20 +200,21 @@ class RPM(multiprocessing.Process):
 							last_login = time.ctime(worker.connection_time)
 
 						print("%16f, \t%50s, \t%13s, \t%24s, \t%24s" % (
-						worker.active_time, worker.hostname, worker.status, last_login, dcnx_time), file=fa)
+							worker.active_time, worker.hostname, worker.status, last_login, dcnx_time), file=fa)
 
 			except Exception as e:
-
-				# TODO: mensagem mais profissional e com menos hack
-				# print("download version1")
-				# print("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.0/apache-zookeeper-3.6.0-bin.tar")
+				logging.error("RPM[CP99] Exception: {}".format(e))
 
 				with open("rpm_output.log", "a+") as fo:
 					print(time.time(), worker.hostname, " exception: ", e, file=fo)
+
+			finally:
+				fa.close()
+
 			last = now
 			time.sleep(self.sleep_seconds)
-	# TODO
-	# self.controller_client.close()
+
+		run_controller_client.close()
 
 
 class DirectorDaemon(Daemon):
@@ -176,13 +222,13 @@ class DirectorDaemon(Daemon):
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
 		self.zookeeper_controller = ZookeeperController()
-		self.sleep_seconds = None
+		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
 		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 
 	def set_sleep_seconds(self, sleep_seconds):
 		self.sleep_seconds = sleep_seconds
-		logging.debug("done.")
+		logging.debug("self.sleep_seconds: {}".format(self.sleep_seconds))
 
 	def task_handler(self, tasks_new):
 
@@ -239,6 +285,8 @@ class DirectorDaemon(Daemon):
 								remote_path = worker.get_remote_experiment_path()
 								logging.debug("SEND_EXPERIMENT 7.1 changing dir to {} ".format(remote_path))
 								channel.chdir(remote_path)
+								if type(exp.name) is bytes:
+									exp.name = exp.name.decode('utf-8')
 
 								logging.info("SEND_EXPERIMENT 7.2 making dir {}".format(exp.name))
 								channel.mkdir(exp.name)
@@ -296,8 +344,8 @@ class DirectorDaemon(Daemon):
 
 				else:
 					for i in range(no_workers_total):
-						self.controller_client.exp_ready_on_worker(exp.id, ready[i][0], ready[i][1])
 						logging.debug("SEND_EXPERIMENT 16 i: {}".format(i))
+						self.controller_client.exp_ready_on_worker(exp.id, ready[i][0], ready[i][1])
 
 					logging.debug("SEND_EXPERIMENT 17 exp_start: {}".format(exp.id))
 					self.controller_client.exp_start(exp.id)
@@ -309,100 +357,111 @@ class DirectorDaemon(Daemon):
 
 			elif task_cmd == COMMANDS.RECOVER_ACTOR:
 
-				logging.info("RECOVER_ACTOR task_args: %s" % str(task_args))
-				logging.debug("RECOVER_ACTOR [1] RecoverActor")
+				logging.info("RECOVER_ACTOR [1] task_args: %s" % str(task_args))
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug("RECOVER_ACTOR [2] RecoverActor")
+				logging.debug("RECOVER_ACTOR [2] RecoverActor worker.hostname: {}".format(worker.hostname))
 				exp_list = self.controller_client.worker_get_experiments(worker.hostname)
-				logging.debug("RECOVER_ACTOR [3] RecoverActor")
+				logging.debug("RECOVER_ACTOR [3] RecoverActor exp_list: {}".format(exp_list))
+
 				channel = None
-
 				try:
-					logging.info("RECOVER_ACTOR [4] connecting to {}".format(worker.hostname))
-
-					# rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
-					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
+					logging.info("RECOVER_ACTOR [4] creating a channel with: {}".format(worker.hostname))
 					channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey,
 									  password=worker.password, timeout=_timeout)
 					remote_path = worker.get_remote_path()
+					logging.debug("RECOVER_ACTOR [5] changing remote dir to: {}".format(remote_path))
 					channel.chdir(remote_path)
+
+					logging.debug("RECOVER_ACTOR [6] running stop command: {}".format(worker.get_command_stop()))
 					channel.run(worker.get_command_stop())
+
+					logging.debug("RECOVER_ACTOR [7] running start command: {}".format(worker.get_command_start()))
 					stdout, stderr = channel.run(worker.get_command_start())
 
 					stderr_str = stderr.read().strip()
 					stdout_str = stdout.read().strip()
 
-					logging.info("daemon recovered: {}".format(worker.hostname))
-					logging.debug("RECOVER_ACTOR [5] RecoverActor")
+					logging.info("RECOVER_ACTOR [8] recovered: {}".format(worker.hostname))
 					channel.close()
 
-				except:
-					print(datetime.datetime.now(), "\t", worker.hostname, 'unable to connect')
-					logging.debug("[11]RecoverActor")
-					worker_path_list = self.controller_client.worker_allocate(len(exp_list))
-					logging.debug("[12]RecoverActor")
-					if worker_path_list:
-						logging.debug("[13]RecoverActor")
-						for i in range(len(exp_list)):
-							logging.debug("[14]RecoverActor")
-							exp = exp_list[i]
-							w = self.controller_client.worker_get(worker_path_list[i])
-							logging.debug("[15]RecoverActor")
-							for role in exp.roles:
-								if role.id == exp.actor.role_id:
-									logging.debug("[16]RecoverActor")
-									print(datetime.datetime.now(), w.hostname, "connecting")
+				except Exception as e:
+					logging.info("RECOVER_ACTOR [9] Exception: {}".format(e))
+					logging.info("RECOVER_ACTOR [9.1] Unable to connect with: {}".format(worker.hostname))
 
-									# Send experiment
-									# rmansilha channel = Channel(hostname=w.hostname, username=w.username, password=w.password, pkey=w.pkey, timeout=_timeout)
-									# channel = Channel(hostname=w.hostname, username=my_username, password=my_password, pkey=my_pkey, timeout=_timeout)
-									channel = Channel(hostname=w.hostname, username=w.username, password=w.password,
-													  pkey=w.pkey, timeout=_timeout)
-									# remote_path = "worker/experiments"
-									remote_path = worker.get_remote_experiment_path()
-									channel.chdir(remote_path)
-									logging.debug("[17]RecoverActor")
-									channel.run("mkdir -p %s" % exp.name)
-									channel.chdir(exp.name)
-									logging.debug("[18]RecoverActor")
-									print(datetime.datetime.now(), w.hostname, "sending experiment")
-
-									channel.put(_local_experiments_dir + exp.filename, exp.filename)
-									logging.debug("[19]RecoverActor")
-									# all experiments files must be gzipped
-									logging.debug('expFilename ')
-									logging.debug('expFilename {}'.format(_local_experiments_dir + exp.filename))
-									logging.debug("[20]RecoverActor")
-									channel.run("tar -xzf %s" % exp.filename)
-									logging.debug("[21]RecoverActor")
-									logging.debug('expFilename ')
-									actor_id = self.controller_client.exp_create_actor(exp.id, w.path, role.id,
-																					   actor_path=exp.actor.path)
-									channel.run(
-										"echo \"parameters=%s\nexp_id=%s\nrole_id=%s\nactor_id=%s\nis_snapshot=%s\" > info.cfg" % (
-										role.parameters, exp.id, role.id, actor_id, exp.is_snapshot))
-									logging.debug("[22]RecoverActor")
-									self.controller_client.exp_ready_on_worker(exp.id, w.path, actor_id)
-									logging.debug("[23]RecoverActor")
-									channel.close()
-
-						self.controller_client.worker_remove_experiments(worker.path)
-						logging.debug("[24]RecoverActor")
-						self.controller_client.worker_add_disconnected(worker.hostname, 'LOST IDLE')
-						logging.debug("[25]RecoverActor")
+					if len(exp_list) == 0:
+						logging.info("No experiment needed to recover. exp_list: {}".format(exp_list))
 
 					else:
-						# ACTOR FAILURE!!
-						# TODO: declare failed actor on experiment
-						logging.debug("[26]RecoverActor")
-						print(datetime.datetime.now(), worker.hostname,
-							  "Not enough workers available for reallocation!")
+						worker_path_list = self.controller_client.worker_allocate(len(exp_list))
+						logging.debug("RECOVER_ACTOR [10] worker_path_list: {}".format(worker_path_list))
 
-						# AN ATEMPTY to the ABOVE todo
-						self.controller_client.worker_remove_experiments(worker.path)
-						logging.debug("[27]RecoverActor")
-						self.controller_client.worker_add_disconnected(worker.hostname, 'LOST BUSY')
-						logging.debug("[28]RecoverActor")
+						if worker_path_list:
+							logging.debug("RECOVER_ACTOR [11] ")
+							for i in range(len(exp_list)):
+								logging.debug("RECOVER_ACTOR [12] i: {}".format(i))
+								exp = exp_list[i]
+								logging.debug("RECOVER_ACTOR [12] exp: {}".format(exp))
+								rw = self.controller_client.worker_get(worker_path_list[i])
+								logging.debug("RECOVER_ACTOR [13] rw.hostname: {}".format(rw.hostname))
+
+								for role in exp.roles:
+									logging.debug("RECOVER_ACTOR [13.1] role: {}".format(role))
+									logging.debug("RECOVER_ACTOR [13.2] role.id: {} exp.actor.role_id: ".format(role.id, exp.actor.role_id))
+									if role.id == exp.actor.role_id:
+										logging.debug("RECOVER_ACTOR [14] role: {}".format(role))
+
+										logging.info("RECOVER_ACTOR [15] creating a channel with: {}".format(rw.hostname))
+										# Send experiment
+										channel = Channel(hostname=rw.hostname, username=rw.username, password=rw.password,
+														  pkey=rw.pkey, timeout=_timeout)
+										# remote_path = "worker/experiments"
+										remote_path = rw.get_remote_experiment_path()
+
+										logging.debug(
+											"RECOVER_ACTOR [16] changing dir to remote_path: {}".format(remote_path))
+										channel.chdir(remote_path)
+
+										if type(exp.name) is bytes:
+											exp.name = exp.name.decode('utf-8')
+
+										logging.info("RECOVER_ACTOR [16.2] making dir: {}".format(exp.name))
+										channel.run("mkdir -p %s" % exp.name)
+
+										logging.info("RECOVER_ACTOR [16.3] changing to dir {}".format(exp.name))
+										channel.chdir(exp.name)
+
+										logging.debug("RECOVER_ACTOR [17] exp.filename: {}".format(exp.filename))
+										channel.put(_local_experiments_dir + exp.filename, exp.filename)
+
+										logging.debug("RECOVER_ACTOR [18] unzipping filename: {}".format(exp.filename))
+										channel.run("tar -xzf %s" % exp.filename)
+
+										actor_id = self.controller_client.exp_create_actor(exp.id, rw.path, role.id,
+																						   actor_path=exp.actor.path)
+										channel.run(
+											"echo \"parameters=%s\nexp_id=%s\nrole_id=%s\nactor_id=%s\nis_snapshot=%s\" > info.cfg" % (
+											role.parameters, exp.id, role.id, actor_id, exp.is_snapshot))
+										logging.debug("RECOVER_ACTOR [19] actor_id: {}".format(actor_id))
+										self.controller_client.exp_ready_on_worker(exp.id, rw.path, actor_id)
+										logging.debug("RECOVER_ACTOR [20]")
+										channel.close()
+
+							self.controller_client.worker_remove_experiments(worker.path)
+							logging.debug("RECOVER_ACTOR [21]")
+							self.controller_client.worker_add_disconnected(worker.hostname, 'LOST IDLE')
+							logging.debug("RECOVER_ACTOR [22]")
+
+						else:
+							# ACTOR FAILURE!!
+							# TODO: declare failed actor on experiment
+							logging.debug("RECOVER ACTOR [23] FAILURE!")
+							logging.error("Not enough workers available for reallocation to worker: {}".format(worker.hostname))
+
+							# # AN ATTEMPT to the ABOVE todo
+							# self.controller_client.worker_remove_experiments(worker.path)
+							# logging.debug("[27]RecoverActor")
+							# self.controller_client.worker_add_disconnected(worker.hostname, 'LOST BUSY')
+							# logging.debug("[28]RecoverActor")
 
 				self.controller_client.task_del(task_now)
 
@@ -582,25 +641,23 @@ class DirectorDaemon(Daemon):
 		self.exit = False
 		self.controller_client.watch_new_tasks(self.task_handler)  # RM
 		# self.controller_client.watch_new_tasks(self.test_task_handler)  # RM
-		logging.debug("Instanting RPM")
-		rpm = RPM()
-		logging.debug("Setup RPM Controller Client")
-		rpm.set_controller_client(self.controller_client)
+		logging.debug("Instantiating RPM sleep_seconds: {} zk_addr: {}".format(self.sleep_seconds, self.zookeeper_ip_port))
+		rpm = RPM(self.sleep_seconds, self.zookeeper_ip_port)
 		rpm.daemon = True
 
 		while not self.exit:
-
 			if not rpm.is_alive():
-				rpm = RPM()
-				rpm.set_controller_client(self.controller_client)
+				logging.debug("Instantiating RPM sleep_seconds: {} zk_addr: {}".format(self.sleep_seconds,
+																				   self.zookeeper_ip_port))
+				rpm = RPM(self.sleep_seconds, self.zookeeper_ip_port)
 				rpm.daemon = True
 				logging.debug("Starting RPM")
 				rpm.start()
 
 			time.sleep(self.sleep_seconds)
+
 		logging.debug("Terminating RPM")
 		rpm.terminate()
-
 		self.controller_client.config_stop()
 
 

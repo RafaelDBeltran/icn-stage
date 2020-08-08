@@ -18,20 +18,19 @@ class PATHS(object):
 	REGISTERED_WORKERS = "/registered/workers/"
 
 
+def bytes_to_str(input):
+	if type(input) is bytes:
+		return input.decode('utf-8')
+	else:
+		return input
+
 class Experiment(object):
 
 	def __init__(self, exp_path, exp_name, exp_parameters, exp_actor_id, is_snapshot):
 		logging.debug('\t\t\t #Checkpoint-EXP-1')
 
-		if type(exp_path) is bytes:
-			self.path = exp_path.decode('utf-8')
-		else:
-			self.path = exp_path
-
-		if type(exp_name) is bytes:
-			self.name = exp_name.decode('utf-8')
-		else:
-			self.name = exp_name
+		self.path = bytes_to_str(exp_path)
+		self.name = bytes_to_str(exp_name)
 
 		#self.stdout = "{}.out".format(self.name)
 		#self.stderr = "{}.err".format(self.name)
@@ -41,24 +40,15 @@ class Experiment(object):
 		self.fout = None
 		self.ferr = None
 
-		if type(exp_parameters) is bytes:
-			self.parameters = exp_parameters.decode('utf-8')
-		else:
-			self.parameters = exp_parameters
+		self.parameters = bytes_to_str(exp_parameters)
 
 		self.popen = None
 
-		if type(exp_actor_id) is bytes:
-			self.actor_id = exp_actor_id.decode('utf-8')
-		else:
-			self.actor_id = exp_actor_id
+		self.actor_id = bytes_to_str(exp_actor_id)
 
 		self.worker_torun_id = ''
 
-		if type(is_snapshot) is bytes:
-			self.is_snapshot = is_snapshot.decode('utf-8')
-		else:
-			self.is_snapshot = is_snapshot
+		self.is_snapshot = bytes_to_str(is_snapshot)
 		self.snapshot = Snapshot()
 
 	def run(self, wclient):
@@ -195,7 +185,7 @@ class WorkerClient(object):
 
 	@staticmethod
 	def load_config_file(filepath):
-		logging.debug('\t\t\t #Checkpoint-WK-3')
+		logging.debug('\t\t\t #Checkpoint-WK-3 filepath: {}'.format(filepath))
 		cfg = {}
 		f = open(filepath, "r")
 		for l in f.readlines():

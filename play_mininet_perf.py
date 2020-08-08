@@ -13,6 +13,7 @@ import commands
 import time
 import subprocess
 from functools import partial
+import shlex
 
 # mininet imports
 from mininet.log import setLogLevel, info
@@ -34,14 +35,16 @@ DEFAULT_RUN_MININET = True
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_LOG_LEVEL = logging.DEBUG
 SLEEP_SECS_TO_FAIL = 60 * 2
-IPERF_INTERVAL_SECS = 5
-EXPERIMENT_LENGTH_SECS = 60 * 5
-
+IPERF_INTERVAL_SECS = 1
+EXPERIMENT_LENGTH_SECS = 60 * 10
+UDP = False
 FAIL_ACTORS_MODELS = []
 FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
-#FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
-#FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
+FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
+FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
 
+MANAGE_DIRECTOR = True
+results = []
 
 
 def get_file_name(fail, actors, iperf_interval_secs=IPERF_INTERVAL_SECS, experiment_length_secs=EXPERIMENT_LENGTH_SECS):
@@ -53,14 +56,16 @@ def get_file_name(fail, actors, iperf_interval_secs=IPERF_INTERVAL_SECS, experim
 	if actors>1:
 		recover_str = "ON"
 
-	name = 'results_fail-{}_recover-{}_interval-{}s_length-{}s.json'.format(fail_str, recover_str, iperf_interval_secs, experiment_length_secs)
+	transport = "_tcp"
+	if UDP:
+		transport = "_udp"
+	name = 'results_fail-{}_recover-{}_interval-{}s_length-{}s{}.txt'.format(fail_str, recover_str, iperf_interval_secs, experiment_length_secs, transport)
 	logging.info(" name: {}".format(name))
 	return name
 
 #FAIL_ON_LOG_FILE_NAME = 'results_fail_ON_{}s.json'.format(IPERF_INTERVAL_SECS)
 #FAIL_OFF_LOG_FILE_NAME = 'results_fail_OFF_{}s.json'.format(IPERF_INTERVAL_SECS)
 #from subprocess import STDOUT, check_output
-
 
 
 def get_host(net, addr):
@@ -70,6 +75,7 @@ def get_host(net, addr):
 		if addr in "{}".format(host.IP):
 			result = host
 			logging.info("Result host found! source: {} ".format(host))
+			return result
 	return result
 
 
@@ -93,11 +99,17 @@ def introduce_fail(net, destination):
 	source = get_host(net, busy_actor)
 	if source is not None:
 		sleep_secs = SLEEP_SECS_TO_FAIL - int(diff_time)
-		logging.info("\n\n+--- Sleeping {}secs ...  [CP10.5]".format(sleep_secs))
-		sleep(sleep_secs)
+		logging.info("\n\n+--- Sleeping {} secs ...  [CP10.5]".format(sleep_secs))
+		sleep(sleep_secs-10)
+
+		# since iperf3 only support one client simultaneously, we need to close the connection first!
+		#stop_script("iperf3_client.py")
+		#sleep(10)
+
 		#net.configLinkStatus(source, destination, 'down')
+		logging.info("+--- introducing fail  [CP10.6]---+ link source: {} destination: {}\n".format(source, destination))
 		net.delLinkBetween(source, destination)
-		logging.info("\n\n+--- Finish fail ...  [CP10.6]---+\n")
+		logging.info("+--- Finish fail ...  [CP10.7]---+\n")
 	else:
 		raise Exception(" Source not found! ")
 
@@ -174,8 +186,8 @@ def run_play(net, h1, h2, s1, fail_actors):
 		#net.configLinkStatus(h2, s1, 'down')
 		net.delLinkBetween(h2, s1)
 
-	else:
-		net.addLink(h2, s1)
+	#else:
+	#	net.addLink(h2, s1)
 		#net.configLinkStatus(h2, s1, 'up')
 
 	fail_thread = None
@@ -189,15 +201,13 @@ def run_play(net, h1, h2, s1, fail_actors):
 		else:
 			logging.info("+--- NO FAIL EVALUATION [CP10.2nofail] ---+\n")
 
-		cmd = ICN_STAGE_CMD + ['iperf', get_file_name(fail, actors), str(IPERF_INTERVAL_SECS), str(EXPERIMENT_LENGTH_SECS)]
+		transport = "tcp"
+		if UDP:
+			transport = "udp"
+		cmd = ICN_STAGE_CMD + ['iperf', get_file_name(fail, actors), str(IPERF_INTERVAL_SECS), str(EXPERIMENT_LENGTH_SECS), transport]
 		logging.info("[CP10.7] call: {}".format(" ".join(cmd)))
 		subprocess.call(cmd)
 		#popen = subprocess.Popen(cmd)
-
-		# else:
-		# 	cmd = ICN_STAGE_CMD + ['iperf', get_file_name(fail, actors), str(IPERF_INTERVAL_SECS)]
-		# 	logging.info("+--- NO FAIL EVALUATION [CP10.1nofail] cmd: {}".format(" ".join(cmd)))
-		# 	subprocess.call(cmd)
 
 		logging.info("")
 		logging.info("")
@@ -239,10 +249,10 @@ def start_director():
 
 
 def stop_script(script):
-	cmd = "pgrep -f {}".format(script)
+	cmd = "pgrep -f '{}' ".format(script)
 	results = commands.getoutput(cmd)
 	for pid in results.split("\n"):
-		cmd = "sudo kill {}".format(pid)
+		cmd = "sudo kill {} -SIGKILL".format(pid)
 		logging.info("\t+--- Stopping script cmd: {}".format(cmd))
 		commands.getoutput(cmd)
 
@@ -252,9 +262,10 @@ def stop_workers():
 
 
 def stop_iperf3():
-		cmd = "sudo pkill iperf3"
-		logging.info("Stopping iperf3... [CP12] cmd: {}\n".format(cmd))
-		subprocess.call(cmd, shell=True)
+		logging.info("Stopping iperf server... [CP12] \n")
+		stop_script("iperf")
+
+		logging.info("Stopping iperf3 client... [CP13]\n")
 		stop_script("iperf3_client.py")
 		logging.info("")
 		logging.info("")
@@ -305,33 +316,63 @@ def main():
 
 	# shows input parameters
 	logging.info("")
-	logging.info("INPUT")
+	logging.info("SETTINGS")
 	logging.info("---------------------")
 	logging.info("\t Logging level : {}".format(args.log))
 	logging.info("\t Fail Actors   : {}".format(FAIL_ACTORS_MODELS))
 	logging.info("\n")
 
 	delete_actors_storage()
-	stop_director()
 
-	net, h1, h2, s1 = start_mininet()
-	start_director()
-
+	results = []
 	count_fail = 1
 	for fail_actors in FAIL_ACTORS_MODELS:
+
+		if MANAGE_DIRECTOR:
+			stop_director()
+
+		net, h1, h2, s1 = start_mininet()
+
+		if MANAGE_DIRECTOR:
+			start_director()
+
 		logging.info("\n\n\n\n")
 		logging.info(" ({}/{}) FAIL? ACTORS?: {}".format(count_fail, len(FAIL_ACTORS_MODELS), fail_actors))
 		logging.info("---------------------\n")
 		stop_iperf3()
 		stop_workers()
+		results += [get_file_name(fail_actors[0], fail_actors[1])]
 		run_play(net, h1, h2, s1, fail_actors)
 		logging.info("---------------------\n")
 		logging.info(" ({}/{}) DONE FAIL? ACTORS?: {}\n\n\n".format(count_fail, len(FAIL_ACTORS_MODELS), fail_actors))
 		count_fail += 1
 
-	stop_mininet(net)
-	stop_director()
-	stop_iperf3()
+		stop_mininet(net)
+		if MANAGE_DIRECTOR:
+			stop_director()
 
+	stop_iperf3()
+	stop_workers()
+	IPERF_INTERVAL_SECS = 1
+	EXPERIMENT_LENGTH_SECS = 60 * 10
+	transport = "tcp"
+	if UDP:
+		transport = "udp"
+
+	logging.info("")
+	logging.info("PLOTTING")
+	logging.info("---------------------")
+	fileout = "result_interval-{}s_length-{}s_{}".format(IPERF_INTERVAL_SECS, EXPERIMENT_LENGTH_SECS, transport)
+	cmd = "python3 plot.py --out {} ".format(fileout)
+	for r in results:
+		cmd += " " + r
+
+	logging.info("cmd         : {}".format(cmd))
+	cmd_shlex = shlex.split(cmd)
+	logging.info("cmd_shlex   : {}".format(cmd_shlex))
+	subprocess.call(cmd_shlex)
+
+
+# subprocess.call(cmd)
 if __name__ == '__main__':
 		sys.exit(main())

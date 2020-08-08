@@ -42,9 +42,8 @@ class Channel(object):
 		if pkey is None or pkey == "":
 			self.pkey = None
 		else:
-			self.pkey = paramiko.rsakey.RSAKey(file_obj=io.StringIO(pkey),password=password)
+			self.pkey = paramiko.rsakey.RSAKey(file_obj=io.StringIO(pkey), password=password)
 			password = None
-		
 
 		self.password = password
 		self.path = "~/"
@@ -54,7 +53,7 @@ class Channel(object):
 				password=self.password, pkey=self.pkey, timeout=self.timeout)
 			#logging.debug('connect_n')
 		except Exception as e:
-			#logging.debug('connect_f')
+			logging.debug('Excepetion: {}'.format(e))
 			raise e
 		self.scp = scp.SCPClient(self.ssh.get_transport())
 		self.connected = True
@@ -79,15 +78,20 @@ class Channel(object):
 
 	def chkdir(self, path):
 		stdout,_ = self.run("[ -d %s ]" % path)
-		return stdout.channel.recv_exit_status()==0
+		return stdout.channel.recv_exit_status() == 0
 
 	def chkfile(self, path):
 		stdout,_ = self.run("[ -f %s ]" % path)
-		return stdout.channel.recv_exit_status()==0
+		return stdout.channel.recv_exit_status() == 0
 
 	def chdir(self, path):
+
+		if type(path) is bytes:
+			path = path.decode('utf-8')
+
 		if path[-1] != "/":
-			path+= "/"
+			path += "/"
+
 		if path[0] in ["/", "~"]:
 			if self.chkdir(path):
 				self.path = path
