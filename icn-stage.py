@@ -211,7 +211,7 @@ def run_command(zookeeper_controller, command, options=None):
             logging.error(msg)
 
     elif command == 'iperf':
-        logging.info("*** iperf3 begin options: {}\n".format(options))
+        logging.info("*** iperf evaluation begin options: {}\n".format(options))
         zookeeper_controller.set_controller_client()
         try:
             file_out_name = DEFAULT_IPERF_FILE_OUT
@@ -228,6 +228,10 @@ def run_command(zookeeper_controller, command, options=None):
 
                 if len(options) > 3:
                     transport = options[3]
+                    if transport == "udp":
+                        transport = "--udp"
+                    else:
+                        transport = ""
 
             file_err_name = "{}.err".format(file_out_name)
 
@@ -240,21 +244,24 @@ def run_command(zookeeper_controller, command, options=None):
                 #subprocess.call(cmd, timeout=server_time_secs, shell=True)
                 #cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, iperf_interval)
 
-                cmd = "iperf --server --port {} --interval {} --format m --time {} --{}".format(iperf_port, iperf_interval, server_time_secs, transport)
-                param = shlex.split(cmd)
-                logging.info("[IPERF] out: {} Command: {}".format(file_out_name, cmd))
+                cmd_iperf = 'iperf --server --port {} --interval {} --format m --time {} {}'.format(iperf_port, iperf_interval, server_time_secs, transport)
+                param_iperf = shlex.split(cmd_iperf)
+                cmd_ts = 'ts -s "%.S"'
+                param_ts = shlex.split(cmd_ts)
+                logging.info("[IPERF] param iperf: {}".format(param_iperf))
+                logging.info("[IPERF] param ts   : {}".format(param_ts))
+
                 fout = open(file_out_name, 'w')
                 ferr = open(file_err_name, 'w')
-                popen = subprocess.Popen(param, stdout=fout, stderr=ferr)
-                pid = popen.pid
+                popen_iperf = subprocess.Popen(param_iperf, stdout=subprocess.PIPE)
+                popen_ts = subprocess.Popen(param_ts, stdin=popen_iperf.stdout, stdout=fout, stderr=ferr)
 
                 cmd = ['python3', 'iperf3_client.py',
                        '--host', zookeeper_controller.get_ip_adapter(),
                        '--port', iperf_port,
-                       '--time', client_time_secs]
+                       '--time', client_time_secs,
+                       transport]
 
-                if transport == "udp":
-                    cmd += ['--{}'.format(transport)]
                 # TODO remove the need for a tar.gz
                 experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
                                     "experiments/iperf3/", "iperf3.tar.gz")
@@ -262,13 +269,13 @@ def run_command(zookeeper_controller, command, options=None):
                 logging.info("Waiting... ")
                 for i in trange(server_time_secs):
                     sleep(1)
-                # cmd = "kill {}".format(pid)
-                # param = shlex.split(cmd)
-                # logging.info("Command: {}".format(cmd))
-                # subprocess.call(param)
+                cmd = "kill {}".format(popen_iperf.pid)
+                param = shlex.split(cmd)
+                logging.info("Command: {}".format(cmd))
+                subprocess.call(param)
 
             except subprocess.TimeoutExpired as e:
-                logging.info("Iperf3 finished: {}".format(e))
+                logging.info("Iperf finished: {}".format(e))
 
             except Exception as e:
                 # if "timed out" in format(e):
@@ -276,12 +283,12 @@ def run_command(zookeeper_controller, command, options=None):
                 # else:
                 #     logging.error("Exception: {}".format(e))
                 logging.error("Exception: {}".format(e))
-                cmd = "sudo kill {} -SIGINT".format(pid)
+                cmd = "sudo kill {} -SIGINT".format(popen_iperf.pid)
                 logging.info("Command: {}".format(cmd))
                 subprocess.call(cmd)
 
             logging.info("\n")
-            logging.info("*** iperf3 end!")
+            logging.info("*** Iperf evaluation end!")
 
         except Exception as e:
             logging.error("Exception: {}".format(e))
@@ -430,4 +437,23 @@ def main():
 
 
 if __name__ == '__main__':
+    # cmd_iperf = 'iperf --server --port 10005 --interval 5 --format m --time 5 --tcp '
+    # cmd_ts = 'ts -s "%.S"'
+    # param_iperf = shlex.split(cmd_iperf)
+    # param_ts = shlex.split(cmd_ts)
+    # print("[IPERF] param iperf: {}".format(param_iperf))
+    # print("[IPERF] param ts   : {}".format(param_ts))
+    #
+    # popen_iperf = subprocess.Popen(param_iperf, stdout=subprocess.PIPE)
+    #
+    # fout = open("test.out", 'w')
+    # ferr = open("test.err", 'w')
+    # popen_iperf = subprocess.Popen(param_ts, stdin=popen_iperf.stdout, stdout=fout, stderr=ferr)
+    #
+    # sleep(6)
+    # fout.close()
+    # ferr.close()
+
+
+    #print(fout.)
     sys.exit(main())

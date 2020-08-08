@@ -31,3 +31,5 @@ results_fail-ON_recover-OFF_interval-1s_length-600s_tcp.txt
 results_fail-OFF_recover-ON_interval-1s_length-600s_tcp.txt
 result_interval-1s_length-600s_tcp.png
 result_interval-1s_length-600s_tcp.pdf
+*.pdf
+*.png
