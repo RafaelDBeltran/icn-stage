@@ -106,7 +106,7 @@ def introduce_fail(net, destination):
 	if source is not None:
 		sleep_secs = SLEEP_SECS_TO_FAIL - int(diff_time)
 		logging.info("\n\n+--- Sleeping {} secs ...  [CP10.5]".format(sleep_secs))
-		sleep(sleep_secs-10)
+		sleep(sleep_secs)
 
 		# since iperf3 only support one client simultaneously, we need to close the connection first!
 		#stop_script("iperf3_client.py")
@@ -267,7 +267,7 @@ def stop_workers():
 	stop_script("daemon_worker.py")
 
 
-def stop_iperf3():
+def stop_iperf():
 		logging.info("Stopping iperf server... [CP12] \n")
 		stop_script("iperf")
 
@@ -345,7 +345,7 @@ def main():
 		logging.info("\n\n\n\n")
 		logging.info(" ({}/{}) FAIL? ACTORS?: {}".format(count_fail, len(FAIL_ACTORS_MODELS), fail_actors))
 		logging.info("---------------------\n")
-		stop_iperf3()
+		stop_iperf()
 		stop_workers()
 		results += [get_file_name(fail_actors[0], fail_actors[1])]
 		run_play(net, h1, h2, s1, fail_actors)
@@ -354,10 +354,10 @@ def main():
 		count_fail += 1
 
 		stop_mininet(net)
-		if MANAGE_DIRECTOR:
-			stop_director()
 
-	stop_iperf3()
+	if MANAGE_DIRECTOR:
+		stop_director()
+	stop_iperf()
 	stop_workers()
 	IPERF_INTERVAL_SECS = 1
 	EXPERIMENT_LENGTH_SECS = 60 * 10

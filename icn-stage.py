@@ -244,7 +244,7 @@ def run_command(zookeeper_controller, command, options=None):
                 #subprocess.call(cmd, timeout=server_time_secs, shell=True)
                 #cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, iperf_interval)
 
-                cmd_iperf = 'iperf --server --port {} --interval {} --format m --time {} {}'.format(iperf_port, iperf_interval, server_time_secs, transport)
+                cmd_iperf = 'iperf --server --port {} --interval {} --format m --time {} {} '.format(iperf_port, iperf_interval, server_time_secs, transport)
                 param_iperf = shlex.split(cmd_iperf)
                 cmd_ts = 'ts -s'
                 param_ts = shlex.split(cmd_ts)

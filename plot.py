@@ -50,7 +50,65 @@ def process(data):
 	return result_x, result_y
 
 
-def plotLine(dataset, fileout, xlim, ylim):
+def plot_line(dataset, fileout, xlim, ylim):
+	logging.info("PLOT LINE")
+
+	tableau20 = defTableu()
+
+	plots = len(dataset.keys())
+	logging.info("number of plots: {}".format(plots))
+	fig = plt.figure(figsize=(12, 9))
+	# fig, axs = plt.subplots(plots, figsize=(12, 9), sharex=True, sharey=True)
+	# fig.set_size_inches(12, 12)
+	width = 0.35
+
+	i = 1
+	logging.info("Processing {}".format(plots))
+	logging.info("-------------")
+	for key in dataset.keys():
+		logging.debug("key : {}".format(key))
+
+		data = dataset[key]
+		logging.debug("data: {}".format(data))
+
+		x_axis, y_axis = process(data)
+		# logging.debug("x_axis: {}".format(x_axis))
+		# logging.debug("y_axis: {}".format(y_axis))
+
+		# ax = fig.add_subplot("{}1{}".format(plots, i), sharex=True, sharey=True)
+		ax = fig.add_subplot(plots, 1, i)
+		# axs[i].spines["left"].set_visible(False)
+		# axs[i].spines["right"].set_visible(False)
+		ax.get_xaxis().tick_bottom()
+		ax.get_yaxis().tick_left()
+		# ax.set_title(key)
+		ax.set_ylabel("Bandwidth (Mbits/sec)")
+		if i == plots:
+			ax.set_xlabel("seconds")
+		ax.set_xlim([0, xlim])
+		ax.set_ylim([0.0, ylim])
+		# axs[i].bar(x_axis, y_axis, width= color=tableau20[i])
+		ax.plot(x_axis, y_axis, label=key, linestyle="-", linewidth=2, color=tableau20[i])
+		ax.legend(loc="lower left")
+		# , bbox_to_anchor=[0, 1], 				ncol=2, shadow=False, fancybox=False)
+
+		# if self.upperbond >0 : axs[i].plot(dataset.index,[upperbond]* len(dataset.index),"--", lw=2, color="red", alpha=0.5)
+		# if self.upperbond >0 : axs[i].plot(dataset.index,[lowerbond]* len(dataset.index),"--", lw=2, color="red", alpha=0.5)
+		i += 1
+
+	# plt.title(title)
+	logging.info("Plotting {}".format(plots))
+	logging.info("-----------")
+
+	for type in ['png', 'pdf']:
+		fileout_complete = "{}_line.{}".format(fileout, type)
+		logging.info(" filename: {}".format(fileout_complete))
+		plt.savefig(fileout_complete, bbox_inches="tight")
+
+
+def plot_bar(dataset, fileout, xlim, ylim):
+	logging.info("PLOT BAR")
+
 	tableau20 = defTableu()
 
 	plots = len(dataset.keys())
@@ -80,13 +138,13 @@ def plotLine(dataset, fileout, xlim, ylim):
 		ax.get_xaxis().tick_bottom()
 		ax.get_yaxis().tick_left()
 		#ax.set_title(key)
-		ax.set_ylabel("Mbits/sec")
+		ax.set_ylabel("Bandwidth (Mbits/sec)")
 		if i == plots:
 			ax.set_xlabel("seconds")
 		ax.set_xlim([0, xlim])
 		ax.set_ylim([0.0, ylim])
 		#axs[i].bar(x_axis, y_axis, width= color=tableau20[i])
-		ax.plot(x_axis, y_axis, label=key, linestyle="-", linewidth=2, color=tableau20[i])
+		ax.bar(x_axis, y_axis, label=key, linestyle="-", linewidth=2, color=tableau20[i])
 		ax.legend(loc="lower left")
 			#, bbox_to_anchor=[0, 1], 				ncol=2, shadow=False, fancybox=False)
 
@@ -99,7 +157,7 @@ def plotLine(dataset, fileout, xlim, ylim):
 	logging.info("-----------")
 
 	for type in ['png', 'pdf']:
-		fileout_complete = "{}.{}".format(fileout, type)
+		fileout_complete = "{}_bar.{}".format(fileout, type)
 		logging.info(" filename: {}".format(fileout_complete))
 		plt.savefig(fileout_complete, bbox_inches="tight")
 
@@ -161,8 +219,8 @@ def main():
 
 		logging.info("Plotting")
 		logging.info("-------------")
-		plotLine(data_set, args.out, args.xlim, args.ylim)
-
+		#plot_line(data_set, args.out, args.xlim, args.ylim)
+		plot_bar(data_set, args.out, args.xlim, args.ylim)
 
 if __name__ == '__main__':
 	sys.exit(main())
