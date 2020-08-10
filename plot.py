@@ -36,6 +36,7 @@ def process(data):
 			value_x = line.split(" ")[0]
 			# format HH:MM:SS example 00:02:59
 			value_x = (int(value_x.split(":")[0])*60*60) + (int(value_x.split(":")[1])*60) + (int(value_x.split(":")[2]))
+			print("{} {}".format( line.split(" ")[0], value_x))
 			value_y = float(line.split(" ")[1])
 
 		except Exception as e:
@@ -55,7 +56,7 @@ def plotLine(dataset, fileout, xlim, ylim):
 	plots = len(dataset.keys())
 	logging.info("number of plots: {}".format(plots))
 	fig = plt.figure(figsize=(12, 9))
-	#f, axs = plt.subplots(plots, sharex=True, sharey=True)
+	#fig, axs = plt.subplots(plots, figsize=(12, 9), sharex=True, sharey=True)
 	#fig.set_size_inches(12, 12)
 	width = 0.35
 
@@ -80,7 +81,8 @@ def plotLine(dataset, fileout, xlim, ylim):
 		ax.get_yaxis().tick_left()
 		#ax.set_title(key)
 		ax.set_ylabel("Mbits/sec")
-		ax.set_xlabel("seconds")
+		if i == plots:
+			ax.set_xlabel("seconds")
 		ax.set_xlim([0, xlim])
 		ax.set_ylim([0.0, ylim])
 		#axs[i].bar(x_axis, y_axis, width= color=tableau20[i])
