@@ -33,7 +33,9 @@ def process(data):
 	result_y = []
 	for line in data:
 		try:
-			value_x = float(line.split(" ")[0])
+			value_x = line.split(" ")[0]
+			# format HH:MM:SS example 00:02:59
+			value_x = (int(value_x.split(":")[0])*60*60) + (int(value_x.split(":")[1])*60) + (int(value_x.split(":")[2]))
 			value_y = float(line.split(" ")[1])
 
 		except Exception as e:
@@ -76,8 +78,8 @@ def plotLine(dataset, fileout, xlim, ylim):
 		#axs[i].spines["right"].set_visible(False)
 		ax.get_xaxis().tick_bottom()
 		ax.get_yaxis().tick_left()
-		ax.set_title(key)
-		ax.set_ylabel("Mbits/s")
+		#ax.set_title(key)
+		ax.set_ylabel("Mbits/sec")
 		ax.set_xlabel("seconds")
 		ax.set_xlim([0, xlim])
 		ax.set_ylim([0.0, ylim])

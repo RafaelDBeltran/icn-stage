@@ -39,7 +39,7 @@ IPERF_INTERVAL_SECS = 1
 EXPERIMENT_LENGTH_SECS = 60 * 10
 UDP = False
 FAIL_ACTORS_MODELS = []
-#FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
+FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
 FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
 FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
 

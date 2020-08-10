@@ -246,7 +246,7 @@ def run_command(zookeeper_controller, command, options=None):
 
                 cmd_iperf = 'iperf --server --port {} --interval {} --format m --time {} {}'.format(iperf_port, iperf_interval, server_time_secs, transport)
                 param_iperf = shlex.split(cmd_iperf)
-                cmd_ts = 'ts -s "%.S"'
+                cmd_ts = 'ts -s'
                 param_ts = shlex.split(cmd_ts)
                 logging.info("[IPERF] param iperf: {}".format(param_iperf))
                 logging.info("[IPERF] param ts   : {}".format(param_ts))
