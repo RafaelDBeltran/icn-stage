@@ -4,11 +4,15 @@ import os
 import sys
 import shlex
 
+
 # import matplotlib.font_manager
 # from matplotlib import rcParams
 # #rcParams['font.family'] = 'sans-serif'
 # rcParams['font.sans-serif'] = ['Verdana']
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+
 import subprocess
 import argparse
 import logging
@@ -33,23 +37,6 @@ def get_key(key):
 			return key_titles[k]
 
 	return key
-
-
-
-def defTableu():
-	# source: http://www.randalolson.com/2014/06/28/how-to-make-beautiful-data-visualizations-in-python-with-matplotlib/
-	# These are the "Tableau 20" colors as RGB.
-	tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),
-				 (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),
-				 (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),
-				 (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),
-				 (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]
-
-	# Scale the RGB values to the [0, 1] range, which is the format matplotlib accepts.
-	for i in range(len(tableau20)):
-		r, g, b = tableau20[i]
-		tableau20[i] = (r / 255., g / 255., b / 255.)
-	return tableau20
 
 
 def process2(data):
@@ -122,72 +109,80 @@ def process(data):
 		result_y += [value_y]
 
 	return result_x, result_y
-
-
-def plot_line(dataset, fileout, xlim, ylim):
-	logging.info("PLOT LINE")
-
-	tableau20 = defTableu()
-
-	plots = len(dataset.keys())
-	logging.info("number of plots: {}".format(plots))
-	fig = plt.figure(figsize=(12, 9))
-	fig.rcParams["font.family"] = "serif"
-	# fig, axs = plt.subplots(plots, figsize=(12, 9), sharex=True, sharey=True)
-	# fig.set_size_inches(12, 12)
-	width = 0.35
-
-	i = 1
-	logging.info("Processing {}".format(plots))
-	logging.info("-------------")
-	for key in dataset.keys():
-		logging.debug("key : {}".format(key))
-
-		data = dataset[key]
-		logging.debug("data: {}".format(data))
-
-		x_axis, y_axis = process(data)
-		# logging.debug("x_axis: {}".format(x_axis))
-		# logging.debug("y_axis: {}".format(y_axis))
-
-		# ax = fig.add_subplot("{}1{}".format(plots, i), sharex=True, sharey=True)
-		ax = fig.add_subplot(plots, 1, i)
-
-		# axs[i].spines["left"].set_visible(False)
-		# axs[i].spines["right"].set_visible(False)
-		ax.get_xaxis().tick_bottom()
-		ax.get_yaxis().tick_left()
-		# ax.set_title(key)
-		ax.set_ylabel("Bandwidth (Mbits/sec)")
-		if i == plots:
-			ax.set_xlabel("Running time (seconds)")
-		ax.set_xlim([0, xlim])
-		ax.set_ylim([0.0, ylim])
-		# axs[i].bar(x_axis, y_axis, width= color=tableau20[i])
-		ax.plot(x_axis, y_axis, label=key, linestyle="-", linewidth=2, color=tableau20[i])
-		ax.legend(loc="lower left")
-		# , bbox_to_anchor=[0, 1], 				ncol=2, shadow=False, fancybox=False)
-
-		# if self.upperbond >0 : axs[i].plot(dataset.index,[upperbond]* len(dataset.index),"--", lw=2, color="red", alpha=0.5)
-		# if self.upperbond >0 : axs[i].plot(dataset.index,[lowerbond]* len(dataset.index),"--", lw=2, color="red", alpha=0.5)
-		i += 1
-
-	# plt.title(title)
-	logging.info("Plotting {}".format(plots))
-	logging.info("-----------")
-
-	for type in ['png', 'pdf']:
-		fileout_complete = "{}_line.{}".format(fileout, type)
-		logging.info(" filename: {}".format(fileout_complete))
-		plt.savefig(fileout_complete, bbox_inches="tight")
+#
+#
+# def plot_line(dataset, fileout, xlim, ylim):
+# 	logging.info("PLOT LINE")
+#
+# 	plots = len(dataset.keys())
+# 	logging.info("number of plots: {}".format(plots))
+# 	fig = plt.figure(figsize=(12, 9))
+# 	fig.rcParams["font.family"] = "serif"
+# 	# fig, axs = plt.subplots(plots, figsize=(12, 9), sharex=True, sharey=True)
+# 	# fig.set_size_inches(12, 12)
+# 	width = 0.35
+#
+# 	i = 1
+# 	logging.info("Processing {}".format(plots))
+# 	logging.info("-------------")
+# 	for key in dataset.keys():
+# 		logging.debug("key : {}".format(key))
+#
+# 		data = dataset[key]
+# 		logging.debug("data: {}".format(data))
+#
+# 		x_axis, y_axis = process(data)
+# 		# logging.debug("x_axis: {}".format(x_axis))
+# 		# logging.debug("y_axis: {}".format(y_axis))
+#
+# 		# ax = fig.add_subplot("{}1{}".format(plots, i), sharex=True, sharey=True)
+# 		ax = fig.add_subplot(plots, 1, i)
+#
+# 		# axs[i].spines["left"].set_visible(False)
+# 		# axs[i].spines["right"].set_visible(False)
+# 		ax.get_xaxis().tick_bottom()
+# 		ax.get_yaxis().tick_left()
+# 		# ax.set_title(key)
+# 		ax.set_ylabel("Bandwidth (Mbits/sec)")
+# 		if i == plots:
+# 			ax.set_xlabel("Running time (seconds)")
+# 		ax.set_xlim([0, xlim])
+# 		ax.set_ylim([0.0, ylim])
+# 		# axs[i].bar(x_axis, y_axis, width= color=tableau20[i])
+# 		ax.plot(x_axis, y_axis, label=key, linestyle="-", linewidth=2, color=tableau20[i])
+# 		ax.legend(loc="lower left")
+# 		# , bbox_to_anchor=[0, 1], 				ncol=2, shadow=False, fancybox=False)
+#
+# 		# if self.upperbond >0 : axs[i].plot(dataset.index,[upperbond]* len(dataset.index),"--", lw=2, color="red", alpha=0.5)
+# 		# if self.upperbond >0 : axs[i].plot(dataset.index,[lowerbond]* len(dataset.index),"--", lw=2, color="red", alpha=0.5)
+# 		i += 1
+#
+# 	# plt.title(title)
+# 	logging.info("Plotting {}".format(plots))
+# 	logging.info("-----------")
+#
+# 	for type in ['png', 'pdf']:
+# 		fileout_complete = "{}_line.{}".format(fileout, type)
+# 		logging.info(" filename: {}".format(fileout_complete))
+# 		plt.savefig(fileout_complete, bbox_inches="tight")
 
 
 def plot_bar(dataset, fileout, xlim, ylim):
 	logging.info("PLOT BAR")
-
-	tableau20 = defTableu()
-
 	plots = len(dataset.keys())
+
+	# full list
+	# https://matplotlib.org/2.0.2/examples/color/colormaps_reference.html
+	tab10 = cm = plt.get_cmap('tab10')
+	values = range(plots)
+	cNorm = colors.Normalize(vmin=0, vmax=9)
+	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=tab10)
+
+	# viridis = cm = plt.get_cmap('viridis')
+	# values = range(plots)
+	# cNorm = colors.Normalize(vmin=0, vmax=9)
+	# scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=viridis)
+
 	logging.info("number of plots: {}".format(plots))
 	fig = plt.figure(figsize=(12, 9))
 	#fig, axs = plt.subplots(plots, figsize=(12, 9), sharex=True, sharey=True)
@@ -226,7 +221,9 @@ def plot_bar(dataset, fileout, xlim, ylim):
 		if ylim is not None:
 			ax.set_ylim([0.0, ylim])
 		#axs[i].bar(x_axis, y_axis, width= color=tableau20[i])
-		ax.bar(x_axis, y_axis, label=get_key(key), color=tableau20[(i-1)*2%20]) #, width=.1, color=tableau20[i])
+		colorVal = scalarMap.to_rgba(values[i-1])
+		ax.bar(x_axis, y_axis, label=get_key(key), color=colorVal)
+		#ax.bar(x_axis, y_axis, label=get_key(key), color=tableau20[(i-1)*2%20]) #, width=.1, color=tableau20[i])
 		ax.legend(loc="lower left", framealpha=1.0)
 			#, bbox_to_anchor=[0, 1], 				ncol=2, shadow=False, fancybox=False)
 
