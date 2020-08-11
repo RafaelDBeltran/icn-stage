@@ -6,7 +6,6 @@ import subprocess
 import sys
 import logging
 import argparse
-import iperf3
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_LOGGING_LEVEL = logging.INFO
@@ -52,8 +51,8 @@ def main():
 	logging.info("")
 
 
-	# # run iperf3
-	# client = iperf3.Client()
+	# # run iperf
+	# client = iperf.Client()
 	# logging.debug("Client instantiated")
 	# client.duration = args.time
 	# client.server_hostname = args.host
@@ -69,7 +68,7 @@ def main():
 	if args.udp:
 		udp = "--udp"
 	# # run iperf2
-	cmd = "iperf --client {} --port {} --time {} {}".format(args.host, args.port, args.time, udp)
+	cmd = "iperf --client {} --window 1024 --port {} --time {} {}".format(args.host, args.port, args.time, udp)
 	print(cmd)
 	result = subprocess.call(cmd, shell=True)
 	print(result)

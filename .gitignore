@@ -33,3 +33,4 @@ result_interval-1s_length-600s_tcp.png
 result_interval-1s_length-600s_tcp.pdf
 *.pdf
 *.png
+results_*

@@ -2,32 +2,29 @@
 # -*- coding: iso-8859-15 -*-
 
 #
-#	@author: Nelson Antonio Antunes Junior
+#	@original author: Nelson Antonio Antunes Junior
 #	@email: nelson.a.antunes at gmail.com
 #	@date: (DD/MM/YYYY) 24/01/2017
-# commit
+
 import argparse
-import sys, socket, time, multiprocessing, subprocess, signal
+import socket
+import multiprocessing
+import subprocess
 import datetime
-# TODO#
-import threading
-
-from modules.model import worker
-from zookeeper_controller import ZookeeperController
-
-sys.path.append(r'~/myRuns/modules')
+import tarfile
+import os
 import logging
+#sys.path.append(r'~/myRuns/modules')
 
+# icn-stage bibs
 from modules.conlib.controller_client import *
 from modules.conlib.remote_access import Channel
-
+from modules.model import worker
+from zookeeper_controller import ZookeeperController
 from modules.extralib.daemon import Daemon
 from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
-import json
-import tarfile
-import os
 
 '''
 data = json.load(open('config.json'))
@@ -767,7 +764,6 @@ def main():
 				logging.info("Unable to run director daemon (ensemble)")
 			else:
 				logging.info("Director daemon is running [PID=%d]" % director_daemon_pid)
-
 
 		elif args.cmd == 'stop':
 			logging.info("Stopping director daemon (ensemble)")

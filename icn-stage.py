@@ -4,7 +4,7 @@
 __author__ = 'Rafael  '
 __email__ = ' @unipampa.edu.br'
 __version__ = '{0}.{0}.{5}'
-__credits__ = ['PPGA', 'LEA', 'Unipampa@Alegrete']
+__credits__ = ['PPGA', 'LEA', 'Unipampa@alegrete']
 
 #general bibs
 import sys
@@ -16,8 +16,6 @@ import logging
 import subprocess
 from time import sleep
 import shlex
-# specific bibs
-from iperf3 import iperf3
 
 import daemon_director
 
@@ -100,7 +98,7 @@ def add_worker(controller_client):
 
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
-    for i in trange(30*count):
+    for i in trange(100):
         sleep(1)
     logging.info("Adding Actors...DONE")
 
@@ -240,11 +238,7 @@ def run_command(zookeeper_controller, command, options=None):
             server_time_secs = int(client_time_secs) + 10
 
             try:
-                #cmd = "iperf3 --server --port {} --interval {} --format m -J 1>{} 2>{}&".format(iperf_port, interval_secs, file_out_name, file_err_name)
-                #subprocess.call(cmd, timeout=server_time_secs, shell=True)
-                #cmd = "iperf3 --server --port {} --interval {} --format m -J".format(iperf_port, iperf_interval)
-
-                cmd_iperf = 'iperf --server --port {} --interval {} --format m --time {} {} '.format(iperf_port, iperf_interval, server_time_secs, transport)
+                cmd_iperf = 'iperf --server --window 1024 --port {} --interval {} --format m --time {} {} '.format(iperf_port, iperf_interval, server_time_secs, transport)
                 param_iperf = shlex.split(cmd_iperf)
                 cmd_ts = 'ts -s'
                 param_ts = shlex.split(cmd_ts)
@@ -256,15 +250,15 @@ def run_command(zookeeper_controller, command, options=None):
                 popen_iperf = subprocess.Popen(param_iperf, stdout=subprocess.PIPE)
                 popen_ts = subprocess.Popen(param_ts, stdin=popen_iperf.stdout, stdout=fout, stderr=ferr)
 
-                cmd = ['python3', 'iperf3_client.py',
+                cmd = ['python3', 'iperf_client.py',
                        '--host', zookeeper_controller.get_ip_adapter(),
                        '--port', iperf_port,
                        '--time', client_time_secs,
                        transport]
 
                 # TODO remove the need for a tar.gz
-                experiment_skeleton('iperf3', cmd, zookeeper_controller.controller_client,
-                                    "experiments/iperf3/", "iperf3.tar.gz")
+                experiment_skeleton('iperf', cmd, zookeeper_controller.controller_client,
+                                    "experiments/iperf/", "iperf.tar.gz")
 
                 logging.info("Waiting... ")
                 for i in trange(server_time_secs):
@@ -295,7 +289,7 @@ def run_command(zookeeper_controller, command, options=None):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-            cmd = "sudo pkill iperf3"
+            cmd = "sudo pkill iperf"
             logging.info("Command: {}".format(cmd))
             subprocess.call(cmd, shell=True)
 

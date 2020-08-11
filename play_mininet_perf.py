@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # -*- coding: iso-8859-15 -*-
 
 # general imports
@@ -23,8 +23,6 @@ from mininet.node import Controller, RemoteController, OVSController
 from mininet.node import CPULimitedHost, Host, Node
 from mininet.node import OVSKernelSwitch, UserSwitch
 from mininet.node import IVSSwitch
-#from mininet.cli import CLI
-#from mininet.log import setLogLevel, info
 from mininet.link import TCLink, Intf
 from mininet.nodelib import NAT
 
@@ -33,21 +31,23 @@ ICN_STAGE_CMD = ['python3', 'icn-stage.py']
 DEFAULT_RUN_DIRECTOR = True
 DEFAULT_RUN_MININET = True
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_LOG_LEVEL = logging.DEBUG
+DEFAULT_LOG_LEVEL = logging.INFO
 
 # SLEEP_SECS_TO_FAIL = 60 * 2
 # IPERF_INTERVAL_SECS = 1
 # EXPERIMENT_LENGTH_SECS = 60 * 10
 
-SLEEP_SECS_TO_FAIL = 60 * 2
-IPERF_INTERVAL_SECS = 5
-EXPERIMENT_LENGTH_SECS = 60 * 5
+SLEEP_SECS_TO_FAIL = 100 * 1
+IPERF_INTERVAL_SECS = 1
+EXPERIMENT_LENGTH_SECS = 60 * 10
+DIRECTOR_SLEEP_SECS = "1"
 
 UDP = False
 FAIL_ACTORS_MODELS = []
-FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
-FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
 FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
+FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
+FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
+
 
 MANAGE_DIRECTOR = True
 results = []
@@ -69,10 +69,6 @@ def get_file_name(fail, actors, iperf_interval_secs=IPERF_INTERVAL_SECS, experim
 	logging.info(" name: {}".format(name))
 	return name
 
-#FAIL_ON_LOG_FILE_NAME = 'results_fail_ON_{}s.json'.format(IPERF_INTERVAL_SECS)
-#FAIL_OFF_LOG_FILE_NAME = 'results_fail_OFF_{}s.json'.format(IPERF_INTERVAL_SECS)
-#from subprocess import STDOUT, check_output
-
 
 def get_host(net, addr):
 	result = None
@@ -85,35 +81,32 @@ def get_host(net, addr):
 	return result
 
 
-def introduce_fail(net, destination):
+def introduce_fault(net, destination, source=None):
 	busy_actor = None  # "10.0.0.1"
 	start_time = time.time()
+	
+	if source is None:
+		cmd = "python3 zookeeper_controller.py"
+		logging.info("[CP10.21] commands.getoutput: {}".format(cmd))
+		output = commands.getoutput(cmd)
+	
+		cmd = "cat busyactor.txt"
+		logging.info("[CP10.22] commands.getoutput: {}".format(cmd))
+		busy_actor = commands.getoutput(cmd)
+		#busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
+		logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
 
-	cmd = "python3 zookeeper_controller.py"
-	logging.info("[CP10.21] commands.getoutput: {}".format(cmd))
-	output = commands.getoutput(cmd)
-
-	cmd = "cat busyactor.txt"
-	logging.info("[CP10.22] commands.getoutput: {}".format(cmd))
-	busy_actor = commands.getoutput(cmd)
-	#busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
-	logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
+		source = get_host(net, busy_actor)
 
 	diff_time = time.time() - start_time
 	logging.info("\n\n+--- FAIL EVALUATION [CP10.4] diff_time: {}\n".format(diff_time))
-
-	source = get_host(net, busy_actor)
 	if source is not None:
 		sleep_secs = SLEEP_SECS_TO_FAIL - int(diff_time)
 		logging.info("\n\n+--- Sleeping {} secs ...  [CP10.5]".format(sleep_secs))
 		sleep(sleep_secs)
 
-		# since iperf3 only support one client simultaneously, we need to close the connection first!
-		#stop_script("iperf3_client.py")
-		#sleep(10)
-
-		#net.configLinkStatus(source, destination, 'down')
 		logging.info("+--- introducing fail  [CP10.6]---+ link source: {} destination: {}\n".format(source, destination))
+		# net.configLinkStatus(source, destination, 'down')
 		net.delLinkBetween(source, destination)
 		logging.info("+--- Finish fail ...  [CP10.7]---+\n")
 	else:
@@ -146,11 +139,10 @@ def start_mininet():
 
 	logging.info('*** Begin adding links [CP06]\n')
 	# Add links
-	# bw in Mbit/s
+	# bw in Mbits/sec
 	host_link = partial(TCLink, bw=1)
 	net.addLink(h1, s1, cls=host_link)
 	net.addLink(h2, s1, cls=host_link)
-	# net.addLink(h3, s1, cls=host_link)
 	net.addLink(nat, s1)
 	logging.info('*** End adding switch and links [CP06.done]\n\n')
 
@@ -191,19 +183,24 @@ def run_play(net, h1, h2, s1, fail_actors):
 		logging.info("+--- Removing the link from h2 to s1 [CP09.3]")
 		#net.configLinkStatus(h2, s1, 'down')
 		net.delLinkBetween(h2, s1)
+		# make sure failed actor is off
+		sleep(30)
 
 	#else:
 	#	net.addLink(h2, s1)
 		#net.configLinkStatus(h2, s1, 'up')
 
-	fail_thread = None
+	fault_thread = None
 	try:
 		if fail:
 			logging.info("+--- FAIL EVALUATION [CP10.1fail] ---+\n")
 			# run TCP iperf
-			# fail_thread = threading.Thread(target=introduce_fail, args=(None, None))
-			fail_thread = threading.Thread(target=introduce_fail, args=(net, s1,))
-			fail_thread.start()
+			# fail_thread = threading.Thread(target=introduce_fault, args=(None, None))
+			if actors == 1:
+				fault_thread = threading.Thread(target=introduce_fault, args=(net, s1, h1,))
+			else:
+				fault_thread = threading.Thread(target=introduce_fault, args=(net, s1,))
+			fault_thread.start()
 		else:
 			logging.info("+--- NO FAIL EVALUATION [CP10.2nofail] ---+\n")
 
@@ -222,9 +219,9 @@ def run_play(net, h1, h2, s1, fail_actors):
 		print("Exception: {} \n\n\n".format(e))
 
 	finally:
-		if fail_thread is not None:
+		if fault_thread is not None:
 			logging.info("waiting for join fail thread... [CP10.5] timeout=---+\n")
-			fail_thread.join()
+			fault_thread.join()
 		logging.info("")
 		logging.info("")
 
@@ -248,7 +245,7 @@ def stop_director():
 def start_director():
 	# start director
 	logging.info("\t+--- Starting director... [CP-1]")
-	cmd = ICN_STAGE_CMD + ['start']
+	cmd = ICN_STAGE_CMD + ['start', "--sleep", DIRECTOR_SLEEP_SECS]
 	logging.debug("subprocess.call: {}".format(cmd))
 	subprocess.call(cmd)
 	logging.debug("\t+--- Starting director done. [CP-1.done] \n\n")
@@ -271,8 +268,8 @@ def stop_iperf():
 		logging.info("Stopping iperf server... [CP12] \n")
 		stop_script("iperf")
 
-		logging.info("Stopping iperf3 client... [CP13]\n")
-		stop_script("iperf3_client.py")
+		logging.info("Stopping iperf client... [CP13]\n")
+		stop_script("iperf_client.py")
 		logging.info("")
 		logging.info("")
 
@@ -357,10 +354,10 @@ def main():
 
 	if MANAGE_DIRECTOR:
 		stop_director()
+
 	stop_iperf()
 	stop_workers()
-	IPERF_INTERVAL_SECS = 1
-	EXPERIMENT_LENGTH_SECS = 60 * 10
+
 	transport = "tcp"
 	if UDP:
 		transport = "udp"
@@ -368,16 +365,16 @@ def main():
 	logging.info("")
 	logging.info("PLOTTING")
 	logging.info("---------------------")
-	fileout = "result_interval-{}s_length-{}s_{}".format(IPERF_INTERVAL_SECS, EXPERIMENT_LENGTH_SECS, transport)
-	cmd = "python3 plot.py --out {} ".format(fileout)
-	for r in results:
-		cmd += " " + r
+	fileout = "result_interval-{}s_length-{}s_dirsleep-{}_{}".format(IPERF_INTERVAL_SECS, EXPERIMENT_LENGTH_SECS, DIRECTOR_SLEEP_SECS, transport)
+	cmd = "python3 plot.py --xlim {} --out {} ".format(EXPERIMENT_LENGTH_SECS, fileout)
+	for result in results:
+		cmd += " " + result
 
 	logging.info("cmd         : {}".format(cmd))
 	cmd_shlex = shlex.split(cmd)
-	logging.info("cmd_shlex   : {}".format(cmd_shlex))
+	logging.debug("cmd_shlex   : {}".format(cmd_shlex))
 	subprocess.call(cmd_shlex)
-
+	logging.info("cmd         : {}".format(cmd))
 
 # subprocess.call(cmd)
 if __name__ == '__main__':
