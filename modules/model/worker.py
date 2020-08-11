@@ -19,6 +19,7 @@ def bytes_to_str(input):
 	else:
 		return input
 
+
 class Worker(object):
 	"""docstring for Worker"""
 
