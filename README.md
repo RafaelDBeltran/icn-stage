@@ -8,7 +8,7 @@ You can run ICN-stage in your machine:
     ./install.sh -s
     ```   
 
-We strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mininet testbed for the developing purposes.
+However, we strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mininet testbed for the developing purposes.
 
 1. Configure you VM (this step may take ~2 hours)
     ```sh
@@ -19,21 +19,26 @@ We strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mi
     ```sh
     local-host$ vagrant ssh 
     ```
-    
-3. run ICN-Stage
+
+
+3. Then, you can run a play.
+    ```sh
+    vagrant$ sudo ./play_mininet_perf.py
+    ```
+
+
+4. You can also manually operate ICN-Stage. 
     ```sh
     vagrant$ ./icn-stage.py
     ```
-    
-4. in another terminal, run mininet
+      
+5. In this case, you'll need manually to run the Mininet in another terminal.
     ```sh
     local-host$ vagrant ssh 
-     vagrant$ sudo mn --nat --topo linear,3
+    vagrant$ sudo mn --nat --topo linear,3
      ```
 
     
-
-
 # IN Building !!!
 
 
