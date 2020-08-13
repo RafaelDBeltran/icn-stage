@@ -7,7 +7,7 @@ import os, sys, time, logging, time
 from modules.extralib.daemon import Daemon
 from modules.worklib.worker_client import *
 
-DEFAULT_LOG_LEVEL = logging.DEBUG
+DEFAULT_LOG_LEVEL = 100 #logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 ACTOR_CONFIG = "info.cfg"
 DEFAULT_SLEEP_SECONDS = 5

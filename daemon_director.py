@@ -30,7 +30,7 @@ from modules.model.role import Role
 data = json.load(open('config.json'))
 my_adapter_ip = ConfigHelper(data["zookeeper_adapter"])
 '''
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = 100 #logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 30
 

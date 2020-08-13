@@ -431,23 +431,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # cmd_iperf = 'iperf --server --port 10005 --interval 5 --format m --time 5 --tcp '
-    # cmd_ts = 'ts -s "%.S"'
-    # param_iperf = shlex.split(cmd_iperf)
-    # param_ts = shlex.split(cmd_ts)
-    # print("[IPERF] param iperf: {}".format(param_iperf))
-    # print("[IPERF] param ts   : {}".format(param_ts))
-    #
-    # popen_iperf = subprocess.Popen(param_iperf, stdout=subprocess.PIPE)
-    #
-    # fout = open("test.out", 'w')
-    # ferr = open("test.err", 'w')
-    # popen_iperf = subprocess.Popen(param_ts, stdin=popen_iperf.stdout, stdout=fout, stderr=ferr)
-    #
-    # sleep(6)
-    # fout.close()
-    # ferr.close()
-
-
-    #print(fout.)
     sys.exit(main())
