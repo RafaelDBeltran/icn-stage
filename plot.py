@@ -82,20 +82,21 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 				# TODO parse input to calcule content size
 				value_y = (8 * 1000 * 8) / (1000.0*1000)  # 8KB -> Mbits
 			else:
-				logging.error("Data unknown: {}".format(data_type))
+				logging.error("Data type unknown: {}".format(data_type))
+				sys.exit(-1)
 
 			if value_x not in results:
 				results[value_x] = value_y
 			else:
 				results[value_x] += value_y
-			logging.info("x:{} y:{} line:'{}'".format(value_x, value_y, line))
+			logging.debug("x:{} y:{} line:'{}'".format(value_x, value_y, line))
 
 		except Exception as e:
 			logging.error("Exception while reading line: '{}' exception: {} ".format(line, e))
 			continue
 
 	for key in sorted(results.keys()):
-		print("x:{} y:{} ".format(key, results[key]))
+		logging.debug("x:{} y:{} ".format(key, results[key]))
 		result_x += [key]
 		result_y += [results[key]]
 
@@ -121,9 +122,9 @@ def process(data, data_type=DEFAULT_TYPE):
 
 			value_x -= first_value
 			value_y = 0.0
-			if data_type == "ndn":
+			if data_type == "iperf":
 				value_y = float(line.split(" ")[1])
-			elif data_type == "iperf":
+			elif data_type == "ndn":
 				# TODO parse input to calcule content size
 				value_y = 8 * 1000 * 8 / 1000.0 # 8KB -> Mbits
 			else:
@@ -207,13 +208,11 @@ def plot_bar(dataset, fileout, xlim, ylim):
 		ax.legend(loc="lower left", framealpha=1.0)
 		i += 1
 
-	# plt.title(title)
-	logging.info("Saving {}".format(plots))
-	logging.info("-----------")
-
+	logging.info("Saving")
+	logging.info("------")
 	for type in ['png', 'pdf']:
 		fileout_complete = "{}_bar.{}".format(fileout, type)
-		logging.info(" filename: {}".format(fileout_complete))
+		logging.info("\tfilename: {}".format(fileout_complete))
 		plt.savefig(fileout_complete, bbox_inches="tight")
 
 
@@ -233,7 +232,7 @@ def main():
 	parser.add_argument("--xlim", "-x", help=help_msg, default=X_LIM, type=int)
 
 	help_msg = "y axis Bandwidth (Mbits/sec)"
-	parser.add_argument("--ylim", "-y", help=help_msg, default=Y_LIM, type=int)
+	parser.add_argument("--ylim", "-y", help=help_msg, default=Y_LIM, type=float)
 
 	help_msg = "type [iperf|ndn]"
 	parser.add_argument("--type", "-t", help=help_msg, default=DEFAULT_TYPE, type=str)
@@ -257,7 +256,7 @@ def main():
 	logging.info("\t xlim          : {}".format(args.xlim))
 	logging.info("\t ylim          : {}".format(args.ylim))
 	logging.info("\t out           : {}".format(args.out))
-	logging.info("\t data type     : {}".format(args.type))
+	logging.info("\t type          : {}".format(args.type))
 	logging.info("\t files         : {}".format(args.files))
 	logging.info("")
 
