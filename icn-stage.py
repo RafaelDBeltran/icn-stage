@@ -85,11 +85,12 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
     print("current log level: %d (DEBUG=%d, INFO=%d)" % (_log_level, logging.DEBUG, logging.INFO))
 
 
-def add_worker(controller_client):
+def add_worker(controller_client, max_actors=None):
     logging.info("Adding Actors...")
     count = 0
     for i in data['workers']:
         count += 1
+
         new_worker = Worker(i["remote_hostname"],
                         i["remote_username"],
                         password=i["remote_password"],
@@ -98,6 +99,12 @@ def add_worker(controller_client):
 
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
+        logging.debug("max_actors: {} count: {}".format(max_actors, count))
+        if max_actors is not None and max_actors == count:
+            logging.info("Limit! max_actors: {} count: {}".format(max_actors, count))
+            break
+
+
     for i in trange(100):
         sleep(1)
     logging.info("Adding Actors...DONE")
@@ -136,7 +143,7 @@ def help_msg():
     stop     :
     restart  :
     status   :
-    addactors:
+    addactors: max actors
     test     :
     iperf    : file_out_name_str iperf_interval_secs client_time_secs (tcp|udp)
     ndn      :
@@ -183,8 +190,11 @@ def run_command(zookeeper_controller, command, options=None):
         daemon_director.status()
 
     elif command == 'addactors':
+        max_actors = None
+        if options is not None:
+            max_actors = int(options[0])
         zookeeper_controller.set_controller_client()
-        add_worker(zookeeper_controller.controller_client)
+        add_worker(zookeeper_controller.controller_client, max_actors)
 
     elif command == 'test':
         logging.info("*** test tcp begin\n")
