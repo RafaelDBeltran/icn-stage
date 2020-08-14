@@ -34,3 +34,8 @@ result_interval-1s_length-600s_tcp.pdf
 *.pdf
 *.png
 results_*
+.DS_Store
+failures_recov.txt
+ndn_requests_output.txt
+.DS_Store
+failures_recov.txt

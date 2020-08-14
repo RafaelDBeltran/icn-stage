@@ -95,12 +95,12 @@ def introduce_fault(net, destination, source=None):
 		busy_actor = commands.getoutput(cmd)
 		#busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
 		logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
-
 		source = get_host(net, busy_actor)
 
-	diff_time = time.time() - start_time
-	logging.info("\n\n+--- FAIL EVALUATION [CP10.4] diff_time: {}\n".format(diff_time))
+	logging.info("\n\n+--- FAIL EVALUATION [CP10.4] \n")
 	if source is not None:
+
+		diff_time = time.time() - start_time
 		sleep_secs = SLEEP_SECS_TO_FAIL - int(diff_time)
 		logging.info("\n\n+--- Sleeping {} secs ...  [CP10.5]".format(sleep_secs))
 		sleep(sleep_secs)
@@ -173,22 +173,18 @@ def run_play(net, h1, h2, s1, fail_actors):
 	logging.info("+--- Clean zookeepeer done [CP09.1.done]\n\n")
 
 	# start actors
-	cmd = ICN_STAGE_CMD + ['addactors']
+	cmd = ICN_STAGE_CMD + ['addactors', str(actors)]
 	logging.info("+--- Adding actors [CP09.2] call: {}".format(" ".join(cmd)))
 	subprocess.call(cmd)
 	logging.info("+--- Adding actors done [CP09.2.done]\n\n")
 
-	if actors == 1:
-		#net.addLink(h2, s1, cls=host_link)
-		logging.info("+--- Removing the link from h2 to s1 [CP09.3]")
-		#net.configLinkStatus(h2, s1, 'down')
-		net.delLinkBetween(h2, s1)
-		# make sure failed actor is off
-		sleep(30)
-
-	#else:
-	#	net.addLink(h2, s1)
-		#net.configLinkStatus(h2, s1, 'up')
+	# if actors == 1:
+	# 	#net.addLink(h2, s1, cls=host_link)
+	# 	logging.info("+--- Removing the link from h2 to s1 [CP09.3]")
+	# 	#net.configLinkStatus(h2, s1, 'down')
+	# 	net.delLinkBetween(h2, s1)
+	# 	# make sure failed actor is off
+	# 	#sleep(30)
 
 	fault_thread = None
 	try:

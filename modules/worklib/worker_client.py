@@ -97,7 +97,7 @@ class Experiment(object):
 		return shlex.split(self.parameters)[1]
 		#return self.parameters.split(" ")[1]
 
-	# # TODO fix: this won't work in a mininet with multiple instances
+
 	def ps_based_is_running(self):
 		logging.debug('\t\t\t #Checkpoint-EXP-4')
 
@@ -285,7 +285,7 @@ class WorkerClient(object):
 				logging.info(output)
 
 			else:
-				msg = " stderr not found: {}".format(stderr)
+				msg = " stderr not found: {}".format(exp_obj.stderr)
 				logging.debug(msg)
 
 		except Exception as e:
