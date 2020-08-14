@@ -57,13 +57,16 @@ def call_ndn_exp():
 
 class NDN_traffic:
     def traffic_start(self):
-        print("Starting NFD")
-        subprocess.run(["sudo nfd -c /usr/local/etc/ndn/NFD_low_CS.conf > /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
-        time.sleep(5)
+        #print("Starting NFD")
+        subprocess.run(["sudo nfd -c /usr/local/etc/ndn/NFD_low_CS.conf &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        #subprocess.run(["sudo nfd-start &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        
+        time.sleep(2)
         print("Starting NDN Traffic Server")
         try:
-            subprocess.run(["ndn-traffic-server ndn_conf/ndn-traffic-server.conf"], shell=True,  stderr = subprocess.DEVNULL)
-            time.sleep(20)
+            subprocess.run(["ndn-traffic-server ndn_conf/ndn-traffic-server.conf >> ndn_requests_output.txt "], shell=True,  stderr = subprocess.DEVNULL)
+            logging.info("Waiting... ")
+
         except:
             print("Finalized by actor")
         finally:
