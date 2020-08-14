@@ -178,14 +178,6 @@ def run_play(net, h1, h2, s1, fail_actors):
 	subprocess.call(cmd)
 	logging.info("+--- Adding actors done [CP09.2.done]\n\n")
 
-	# if actors == 1:
-	# 	#net.addLink(h2, s1, cls=host_link)
-	# 	logging.info("+--- Removing the link from h2 to s1 [CP09.3]")
-	# 	#net.configLinkStatus(h2, s1, 'down')
-	# 	net.delLinkBetween(h2, s1)
-	# 	# make sure failed actor is off
-	# 	#sleep(30)
-
 	fault_thread = None
 	try:
 		if fail:
@@ -297,7 +289,7 @@ def delete_actors_storage():
 def main():
 
 	# parse arguments
-	parser = argparse.ArgumentParser(description='*** An Iperf3 based ICN-Stage Play ***')
+	parser = argparse.ArgumentParser(description='*** An Iperf based ICN-Stage Play ***')
 
 	help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
 	parser.add_argument("--log", "-l", help=help_msg, default=DEFAULT_LOG_LEVEL, type=int)
