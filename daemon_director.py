@@ -32,7 +32,7 @@ my_adapter_ip = ConfigHelper(data["zookeeper_adapter"])
 '''
 LOG_LEVEL = 100 #logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_SLEEP_SECONDS = 30
+DEFAULT_SLEEP_SECONDS = 5
 
 _controllerport = "2181"
 _pyvers = "3.6.9"
@@ -91,9 +91,9 @@ def get_ip():
 class RPM(multiprocessing.Process):
 #class RPM(threading.Thread):
 
-	def __init__(self, sleep_seconds, zk_addr):
+	def __init__(self, zk_addr, sleep_seconds=DEFAULT_SLEEP_SECONDS):
 		super().__init__()
-		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
+		self.sleep_seconds = sleep_seconds
 		#self.controller_client = None
 		self.zk_addr = zk_addr
 
@@ -639,14 +639,14 @@ class DirectorDaemon(Daemon):
 		self.controller_client.watch_new_tasks(self.task_handler)  # RM
 		# self.controller_client.watch_new_tasks(self.test_task_handler)  # RM
 		logging.debug("Instantiating RPM sleep_seconds: {} zk_addr: {}".format(self.sleep_seconds, self.zookeeper_ip_port))
-		rpm = RPM(self.sleep_seconds, self.zookeeper_ip_port)
+		rpm = RPM(self.zookeeper_ip_port, self.sleep_seconds)
 		rpm.daemon = True
 
 		while not self.exit:
 			if not rpm.is_alive():
 				logging.debug("Instantiating RPM sleep_seconds: {} zk_addr: {}".format(self.sleep_seconds,
 																				   self.zookeeper_ip_port))
-				rpm = RPM(self.sleep_seconds, self.zookeeper_ip_port)
+				rpm = RPM(self.zookeeper_ip_port, self.sleep_seconds)
 				rpm.daemon = True
 				logging.debug("Starting RPM")
 				rpm.start()

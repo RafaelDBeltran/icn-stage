@@ -152,7 +152,7 @@ function icn-stage {
     fi
 
     #pushd icn-stage
-	  $install python3-pip iperf3 moreutils
+	  $install python3-pip moreutils
 	  pip3 install --upgrade pip
   	pip3 install -r requirements.txt
   	# cp settings_actors_vagrant.json.example settings_actors.json

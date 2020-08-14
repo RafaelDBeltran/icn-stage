@@ -50,48 +50,18 @@ def main():
 	logging.info("\t UDP            : {}".format(args.udp))
 	logging.info("")
 
-
-	# # run iperf
-	# client = iperf.Client()
-	# logging.debug("Client instantiated")
-	# client.duration = args.time
-	# client.server_hostname = args.host
-	# client.port = args.port
-	# if args.udp:
-	# 	client.protocol = 'udp'
-
 	logging.info("RUN")
 	logging.info("---------------------")
-	# logging.info('\tConnecting to {0}:{1}'.format(client.server_hostname, client.port))
-	# result = client.run()
+
 	udp = ""
 	if args.udp:
 		udp = "--udp"
+
 	# # run iperf2
 	cmd = "iperf --client {} --window 1024 --port {} --time {} {}".format(args.host, args.port, args.time, udp)
 	print(cmd)
 	result = subprocess.call(cmd, shell=True)
 	print(result)
-
-	#
-	# if result.error:
-	# 	logging.error(result.error)
-	# else:
-	# 	logging.info('')
-	# 	logging.info('\tTest completed:')
-	# 	logging.info('\t\tstarted at         {0}'.format(result.time))
-	# 	logging.info('\t\tbytes transmitted  {0}'.format(result.bytes))
-	# 	logging.info('\t\tjitter (ms)        {0}'.format(result.jitter_ms))
-	# 	logging.info('\t\tavg cpu load       {0}%\n'.format(result.local_cpu_total))
-	# 	logging.info('')
-	# 	logging.info('\tAverage transmitted data:')
-	# 	logging.info('\t\tbits per second      (bps)   {0}'.format(result.bps))
-	# 	logging.info('\t\tKilobits per second  (kbps)  {0}'.format(result.kbps))
-	# 	logging.info('\t\tMegabits per second  (Mbps)  {0}'.format(result.Mbps))
-	# 	logging.info('\t\tKiloBytes per second (kB/s)  {0}'.format(result.kB_s))
-	# 	logging.info('\t\tMegaBytes per second (MB/s)  {0}'.format(result.MB_s))
-	#
-	# logging.info("done.")
 
 
 if __name__ == '__main__':
