@@ -18,7 +18,7 @@ import argparse
 import logging
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-Y_LIM = 1.0
+Y_LIM = None
 X_LIM = None
 
 DEFAULT_LOG_LEVEL = logging.INFO
@@ -79,8 +79,7 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 			if data_type == "iperf":
 				value_y = float(line.split(" ")[1])
 			elif data_type == "ndn":
-				# TODO parse input to calcule content size
-				value_y = (8 * 1000 * 8) / (1000.0*1000)  # 8KB -> Mbits
+				value_y = 1
 			else:
 				logging.error("Data type unknown: {}".format(data_type))
 				sys.exit(-1)
@@ -103,50 +102,49 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 	return result_x, result_y
 
 
-def process(data, data_type=DEFAULT_TYPE):
-	first_value = None
-	result_x = []
-	result_y = []
-	for line in data:
-		# it's [SUM] line
-		if "Mbits/sec" in line:
-			continue
+# def process(data, data_type=DEFAULT_TYPE):
+# 	first_value = None
+# 	result_x = []
+# 	result_y = []
+# 	for line in data:
+# 		# it's [SUM] line
+# 		if "Mbits/sec" in line:
+# 			continue
+#
+# 		try:
+# 			value_x = line.split(" ")[0]
+#
+# 			# x format: HH:MM:SS example: 00:02:59
+# 			value_x = (int(value_x.split(":")[0])*60*60) + (int(value_x.split(":")[1])*60) + (int(value_x.split(":")[2]))
+# 			if first_value is None:
+# 				first_value = value_x
+#
+# 			value_x -= first_value
+# 			value_y = 0.0
+# 			if data_type == "iperf":
+# 				value_y = float(line.split(" ")[1])
+# 			elif data_type == "ndn":
+# 				value_y = 1
+# 			else:
+# 				logging.error("Data unknown: {}".format(data_type))
+#
+# 			logging.debug("{} {} {}".format(line.split(" ")[0], value_x, value_y))
+#
+# 		except Exception as e:
+# 			logging.error("Exception while reading line: {} exception: {} ".format(line, e))
+# 			continue
+#
+# 		result_x += [value_x]
+# 		result_y += [value_y]
+#
+# 	return result_x, result_y
 
-		try:
-			value_x = line.split(" ")[0]
 
-			# x format: HH:MM:SS example: 00:02:59
-			value_x = (int(value_x.split(":")[0])*60*60) + (int(value_x.split(":")[1])*60) + (int(value_x.split(":")[2]))
-			if first_value is None:
-				first_value = value_x
-
-			value_x -= first_value
-			value_y = 0.0
-			if data_type == "iperf":
-				value_y = float(line.split(" ")[1])
-			elif data_type == "ndn":
-				# TODO parse input to calculate content size
-				value_y = 8 * 1000 * 8 / 1000.0 # 8KB -> Mbits
-			else:
-				logging.error("Data unknown: {}".format(data_type))
-
-			logging.debug("{} {} {}".format(line.split(" ")[0], value_x, value_y))
-
-		except Exception as e:
-			logging.error("Exception while reading line: {} exception: {} ".format(line, e))
-			continue
-
-		result_x += [value_x]
-		result_y += [value_y]
-
-	return result_x, result_y
-
-
-def plot_bar(dataset, fileout, xlim, ylim):
+def plot_bar(dataset, fileout, xlim, ylim, data_type):
 	logging.info("PLOT BAR")
 	plots = len(dataset.keys())
 
-	# full list
+	# full list of color maps
 	# https://matplotlib.org/2.0.2/examples/color/colormaps_reference.html
 	tab10 = cm = plt.get_cmap('tab10')
 	values = range(plots)
@@ -160,8 +158,12 @@ def plot_bar(dataset, fileout, xlim, ylim):
 	# add a big axis, hide frame invisible
 	ax_invis = fig.add_subplot(111, frameon=False)
 	fig.subplots_adjust(hspace=.5)
-	ax_invis.set_ylim([0, 1.0])
-	ax_invis.set_ylabel("Bandwidth (Mbits/sec)")
+
+	if data_type == "ndn":
+		ax_invis.set_ylabel("Interests Received")
+	else:
+		ax_invis.set_ylabel("Bandwidth (Mbits/sec)")
+
 	ax_invis.set_xlabel("Running time (seconds)")
 
 	# hide tick and tick label of the big axes
@@ -194,7 +196,10 @@ def plot_bar(dataset, fileout, xlim, ylim):
 		# if i == plots:
 		# 	ax.set_xlabel("Running time (seconds)")
 
-		ax.set_yticks([1.0, 0.5, 0.0])
+		if ylim == 1:
+			ax.set_yticks([1.0, 0.5, 0.0])
+		elif ylim == 10:
+			ax.set_yticks([10, 5, 0])
 
 		if xlim is not None:
 			ax.set_xlim([0, xlim])
@@ -283,7 +288,7 @@ def main():
 
 	logging.info("Plotting")
 	logging.info("--------")
-	plot_bar(data_set, args.out, args.xlim, args.ylim)
+	plot_bar(data_set, args.out, args.xlim, args.ylim, args.type)
 
 
 if __name__ == '__main__':
