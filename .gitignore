@@ -26,8 +26,6 @@ iperfPlotter/
 l.txt
 f.txt
 busyactor.txt
-*.pdf
-*.png
 results_backup*
 ndn-traffic_results_*
 .DS_Store
