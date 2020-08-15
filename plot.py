@@ -160,9 +160,9 @@ def plot_bar(dataset, fileout, xlim, ylim, data_type):
 	fig.subplots_adjust(hspace=.5)
 
 	if data_type == "ndn":
-		ax_invis.set_ylabel("Interests Received")
+		ax_invis.set_ylabel("Interests received by publisher")
 	else:
-		ax_invis.set_ylabel("Bandwidth (Mbits/sec)")
+		ax_invis.set_ylabel("Iperf Server Bandwidth (Mbits/sec)")
 
 	ax_invis.set_xlabel("Running time (seconds)")
 
