@@ -3,15 +3,21 @@ import time
 import sys
 
 time.sleep(10)
-
+subprocess.run(["sudo cp NFD_low_CS.conf /usr/local/etc/ndn/"],shell = True)
+time.sleep(2)
+subprocess.run(["sudo nfd -c /usr/local/etc/ndn/NFD_low_CS.conf > /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 subprocess.run(["nfdc", "face", "create", "udp://"+sys.argv[1]])
-
-time.sleep(5)
-
 subprocess.run(["nfdc", "route", "add", "/example/", "udp://"+sys.argv[1]])
 
 time.sleep(10)
+'''
+-h [ --help ]                 print this help message and exit
+-c [ --count ] arg            total number of Interests to be generated
+-i [ --interval ] arg (=1000) Interest generation interval in milliseconds
+-q [ --quiet ]                turn off logging of Interest generation/Data reception
+interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds 
+'''
 try:
-    subprocess.run(["ndn-traffic-client -q -c 20 ndn-traffic-client.conf >> ndn_traffic_output.txt"],shell = True)
+    subprocess.run(["ndn-traffic-client -c 6000 -i 100 ndn-traffic-client.conf >> ndn_traffic_output.txt"],shell = True)
 finally:
     subprocess.run(["sudo nfd-stop"], shell = True)
