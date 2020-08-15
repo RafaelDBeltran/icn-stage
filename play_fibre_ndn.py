@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: iso-8859-15 -*-
 
 # general imports
@@ -9,22 +9,12 @@ import sys
 import subprocess
 import threading
 from time import sleep
-import commands
+#import commands
 import time
 import subprocess
 from functools import partial
 import shlex
-
-# mininet imports
-# from mininet.log import setLogLevel, info
-# from mininet.net import Mininet
-# from mininet.cli import CLI
-# from mininet.node import Controller, RemoteController, OVSController
-# from mininet.node import CPULimitedHost, Host, Node
-# from mininet.node import OVSKernelSwitch, UserSwitch
-# from mininet.node import IVSSwitch
-# from mininet.link import TCLink, Intf
-# from mininet.nodelib import NAT
+import zookeeper_controller as zc
 
 # constants
 ICN_STAGE_CMD = ['python3', 'icn-stage.py']
@@ -43,8 +33,8 @@ EXPERIMENT_LENGTH_SECS = 60 * 10
 DIRECTOR_SLEEP_SECS = "1"
 
 FAIL_ACTORS_MODELS = []
-#FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
-#FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
+FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
+FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
 FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
 
 
@@ -69,7 +59,9 @@ def get_file_name(fail, actors, experiment_length_secs=EXPERIMENT_LENGTH_SECS):
 def define_iptables(jump):
 
 	cmd = "cat busyactor.txt"
-	busy_actor = commands.getoutput(cmd)
+	#busy_actor = commands.getoutput(cmd)
+	busy_actor = subprocess.check_output(cmd, shell = True)
+	busy_actor = busy_actor.decode('utf-8')
 	logging.info("[CP10.22] commands.getoutput: {}".format(busy_actor))
 	
 
@@ -84,14 +76,17 @@ def introduce_fault():
 	start_time = time.time()
 	
 	cmd = "python3 zookeeper_controller.py"
-	logging.info("[CP10.21] commands.getoutput: {}".format(cmd))
-	output = commands.getoutput(cmd)
 
-	cmd = "cat busyactor.txt"
-	logging.info("[CP10.22] commands.getoutput: {}".format(cmd))
-	busy_actor = commands.getoutput(cmd)
-	#busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
-	logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
+	zc.get_source('10.200.0.6:2181')
+	
+	# logging.info("[CP10.21] commands.getoutput: {}".format(cmd))
+	# output = commands.getoutput(cmd)
+
+	# cmd = "cat busyactor.txt"
+	# logging.info("[CP10.22] commands.getoutput: {}".format(cmd))
+	# busy_actor = commands.getoutput(cmd)
+	# #busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
+	# logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
 
 
 	diff_time = time.time() - start_time
@@ -178,7 +173,8 @@ def stop_director():
 
 		cmd = "rm -f /tmp/daemon_director_default.pid"
 		logging.info("\t+--- Removing director pid cmd: {}".format(cmd))
-		commands.getoutput(cmd)
+		#commands.getoutput(cmd)
+		subprocess.call(cmd,shell=True)
 		logging.info("\t+--- Stopping director(s)... done. [CP-2.done] ")
 
 
@@ -193,11 +189,14 @@ def start_director():
 
 def stop_script(script):
 	cmd = "pgrep -f '{}' ".format(script)
-	results = commands.getoutput(cmd)
+	#results = commands.getoutput(cmd)
+	results = subprocess.check_output(cmd,shell=True)
+	results = results.decode('utf-8')
 	for pid in results.split("\n"):
 		cmd = "sudo kill {} -SIGKILL".format(pid)
 		logging.info("\t+--- Stopping script cmd: {}".format(cmd))
-		commands.getoutput(cmd)
+		subprocess.call(cmd,shell=True)
+		#commands.getoutput(cmd)
 
 
 def stop_workers():
@@ -260,11 +259,11 @@ def main():
 		logging.info("---------------------\n")
 
 		stop_workers()
-		subprocess.call("mv ndn_requests_output.txt {}".format(get_file_name(fail_actors[0], fail_actors[1])),shell=True)
+		#subprocess.call("mv ndn_requests_output.txt {}".format(get_file_name(fail_actors[0], fail_actors[1])),shell=True)
 		results += [get_file_name(fail_actors[0], fail_actors[1])]
 		
 		run_play(fail_actors)
-		
+		subprocess.call("mv ndn_requests_output.txt {}".format(get_file_name(fail_actors[0], fail_actors[1])),shell=True)
 		logging.info("---------------------\n")
 		logging.info(" ({}/{}) DONE FAIL? ACTORS?: {}\n\n\n".format(count_fail, len(FAIL_ACTORS_MODELS), fail_actors))
 		count_fail += 1
