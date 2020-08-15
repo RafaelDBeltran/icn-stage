@@ -26,7 +26,7 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
     ```sh
     vagrant$ ./icn-stage.py
     ```
-    
+    ![ICN-Stage Screenshot](/images/icn-stage-screenshot.png)
     
     
 2. In this case, you may want to run the Mininet in another terminal.
@@ -53,6 +53,9 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
     ```sh
     vagrant$ python3 plot.py --type iperf --out plot_mn_iperf --xlim 600 --ylim 1.0 results_acm_icn/results_*
     ```
+    
+    ![Mininet-iperf play](/images/mn_iperf_bar.png)
+    ![Mininet-iperf play](/images/mn_iperf_bar.pdf)
     
 2. Plot previosly generated results obtained from play_fibre_ndn.py
     ```sh
