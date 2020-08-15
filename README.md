@@ -48,12 +48,12 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
 # Plot results
 1. Plot previosly generated results obtained from play_mininet_perf.py
     ```sh
-    vagrant$ python3 plot.py --out mn_iperf --xlim 600 results/acm_icm/results_*
+    vagrant$ python3 plot.py --type iperf --out plot_mn_iperf --xlim 600 --ylim 1.0 results_acm_icn/results_*
     ```
     
 2. Plot previosly generated results obtained from play_fibre_ndn.py
     ```sh
-    vagrant$ python3 plot.py --out mn_iperf --xlim 600 results/acm_icm/ndn-traffic_results_*
+    vagrant$ python3 plot.py --type ndn --out plot_fibre_ndn --xlim 600 --ylim 10 results_acm_icn/ndn-traffic_results_*
     ```
 
 
