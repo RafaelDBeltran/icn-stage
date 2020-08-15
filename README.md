@@ -20,6 +20,7 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
     local-host$ vagrant ssh 
     ```
 
+
 # Run CLI
 1. You can manually operate ICN-Stage using its CLI. 
     ```sh
@@ -28,19 +29,21 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
 2. In this case, you may want to run the Mininet in another terminal.
     ```sh
     local-host$ vagrant ssh 
-    vagrant$ sudo mn --nat --topo linear,3
+    vagrant@ubuntu-bionic:~/icn-stage$ sudo mn --nat --topo linear,3
      ```
      
 # Run a play    
 1. You can run a play using Mininet
     ```sh
-    vagrant$ sudo ./play_mininet_perf.py
+    vagrant@ubuntu-bionic:~/icn-stage$ sudo ./play_mininet_perf.py
     ```
     
 2. If you have access to FIBRE, you can run
     ```sh
-    vagrant$ sudo ./play_fibre_ndn.py
+    vagrant@ubuntu-bionic:~/icn-stage$ sudo ./play_fibre_ndn.py
     ```
+
+
 
 # Plot results
 1. Plot previosly generated results obtained from play_mininet_perf.py
