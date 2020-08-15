@@ -26,14 +26,10 @@ iperfPlotter/
 l.txt
 f.txt
 busyactor.txt
-results_fail-ON_recover-ON_interval-1s_length-600s_tcp.txt
-results_fail-ON_recover-OFF_interval-1s_length-600s_tcp.txt
-results_fail-OFF_recover-ON_interval-1s_length-600s_tcp.txt
-result_interval-1s_length-600s_tcp.png
-result_interval-1s_length-600s_tcp.pdf
 *.pdf
 *.png
-results_*
+results_backup*
+ndn-traffic_results_*
 .DS_Store
 failures_recov.txt
 ndn_requests_output.txt
