@@ -61,7 +61,8 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
     ```sh
     vagrant$ python3 plot.py --type ndn --out plot_fibre_ndn --xlim 600 --ylim 10 results_acm_icn/ndn-traffic_results_*
     ```
-
+    ![FIBRE-ndn play](/images/plot_fibre_ndn_bar.png)
+    ![FIBRE-ndn play](/images/plot_fibre_ndn_bar.pdf)
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
