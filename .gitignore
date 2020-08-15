@@ -27,6 +27,10 @@ l.txt
 f.txt
 busyactor.txt
 results_backup*
+
+*.pdf
+*.png
+!images/**
 ndn-traffic_results_*
 .DS_Store
 failures_recov.txt
