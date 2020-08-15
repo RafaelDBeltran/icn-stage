@@ -31,7 +31,7 @@ results_backup*
 *.pdf
 *.png
 !images/**
-ndn-traffic_results_*
+/ndn-traffic_results_*
 .DS_Store
 failures_recov.txt
 ndn_requests_output.txt
