@@ -62,6 +62,8 @@ class NDN_traffic:
         #subprocess.run(["sudo nfd-start &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         
         time.sleep(2)
+        #TODO O tempo do experimento esta estatico em 10m
+        subprocess.run("sleep 3m && sudo nfd-stop &", shell = True)
         print("Starting NDN Traffic Server")
         try:
             subprocess.run(["ndn-traffic-server ndn_conf/ndn-traffic-server.conf >> ndn_requests_output.txt "], shell=True,  stderr = subprocess.DEVNULL)
