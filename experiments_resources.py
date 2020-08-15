@@ -63,9 +63,10 @@ class NDN_traffic:
         
         time.sleep(2)
         #TODO O tempo do experimento esta estatico em 10m
-        subprocess.run("sleep 10m && sudo nfd-stop &", shell = True)
+        subprocess.run("sleep 10m && sudo nfd-stop &", shell=True)
         print("Starting NDN Traffic Server")
         try:
+            subprocess.run(["sudo rm ndn_requests_output.txt"], shell=True)
             subprocess.run(["ndn-traffic-server ndn_conf/ndn-traffic-server.conf >> ndn_requests_output.txt "], shell=True,  stderr = subprocess.DEVNULL)
             logging.info("Waiting... ")
 
@@ -73,7 +74,7 @@ class NDN_traffic:
             print("Finalized by actor")
         finally:
             print("Stopping NFD")
-            subprocess.run(["sudo nfd-stop"],shell = True, stderr = subprocess.DEVNULL)
+            subprocess.run(["sudo nfd-stop"], shell=True, stderr=subprocess.DEVNULL)
         print("Experiment complete. Check the output logs on the Actor")
 
 def call_ndn_traffic():

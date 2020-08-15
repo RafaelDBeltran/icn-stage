@@ -84,9 +84,9 @@ def get_busy_actor(zk_addr='10.0.2.15:2181'):
 	count_attempts = 0
 	while count_attempts < MAX_ATTEMPTS:
 		count_attempts += 1
-		logging.info("count_attempts: {}".format(count_attempts))
+		logging.debug("count_attempts: {}".format(count_attempts))
 		for actor in zk.get_children('/connected/busy_workers'):
-			logging.info("found_actor!: {}".format(actor))
+			logging.debug("found_actor!: {}".format(actor))
 			return actor
 		sleep(1)
 
@@ -167,11 +167,13 @@ def run_play(fail_actors):
 			logging.info("waiting for join fail thread... [CP10.5] timeout=---+\n")
 			fault_thread.join()
 
-		cmd = "sudo iptables --flush"
-		logging.debug("Running cmd: {}".format(cmd))
-		cmd_shlex = shlex.split(cmd)
-		logging.debug("Running cmd_shlex: {}".format(cmd_shlex))
-		subprocess.call(cmd_shlex)
+		cmds = ["sudo iptables --flush","sudo iptables -P INPUT ACCEPT","sudo iptables -P FORWARD ACCEPT","sudo iptables -P OUTPUT ACCEPT"]
+
+		for cmd in cmds:
+			logging.debug("Running cmd: {}".format(cmd))
+			cmd_shlex = shlex.split(cmd)
+			logging.debug("Running cmd_shlex: {}".format(cmd_shlex))
+			subprocess.call(cmd_shlex)
 
 		logging.info("")
 		logging.info("")
@@ -294,17 +296,17 @@ def main():
 	logging.info("PLOTTING")
 	logging.info("---------------------")
 	fileout = "NDN-traffic_length-{}s_dirsleep-{}".format(EXPERIMENT_LENGTH_SECS, DIRECTOR_SLEEP_SECS)
-	cmd = "python3 plot.py --type ndn --xlim {} --out {} ".format(EXPERIMENT_LENGTH_SECS, fileout)
+	cmd = "python3 plot.py --type ndn --xlim {} --ylim 10 --out {} ".format(EXPERIMENT_LENGTH_SECS, fileout)
 	#python3 plot.py --type ndn ndn_requests_output.txt -l 10 -x 600
 	for result in results:
 		cmd += " " + result
 
-	logging.info("cmd         : {}".format(cmd))
+	logging.debug("cmd         : {}".format(cmd))
 	cmd_shlex = shlex.split(cmd)
 	logging.debug("cmd_shlex   : {}".format(cmd_shlex))
 	subprocess.call(cmd_shlex)
-	logging.info("cmd         : {}".format(cmd))
+	logging.debug("cmd         : {}".format(cmd))
 
-# subprocess.call(cmd)
+
 if __name__ == '__main__':
-		sys.exit(main())
+	sys.exit(main())
