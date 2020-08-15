@@ -18,15 +18,15 @@ MAX_ATTEMPTS = 60*3
 
 def get_source(zk_addr='10.0.2.15:2181'):
 
-    print("get_source zk_addr: {}".format(zk_addr))
+    logging.info("get_source zk_addr: {}".format(zk_addr))
     zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=250))
-    print("zk: {}".format(zk))
+    logging.info("zk: {}".format(zk))
     zk.add_listener(lambda x: os._exit(1) if x == KazooState.LOST else None)
     zk.start()
 
     file_name = "busyactor.txt"
     subprocess.call(["rm", "-f", file_name])
-    fout = open(file_name, 'w')
+    fout = open(file_name, 'w+')
     busy_actor = None
     count_attempts = 0
     while busy_actor is None and count_attempts < MAX_ATTEMPTS:
@@ -180,7 +180,7 @@ class ZookeeperController:
 
         #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
 
-    # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
+    # TODO Hï¿½ varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_tasks(self):
 
         logging.info("\tRemoving tasks... ")
@@ -201,7 +201,7 @@ class ZookeeperController:
 
         logging.info("\tRemoving experiments from workers done.\n")
 
-    # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
+    # TODO Hï¿½ varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
         print(nowStr(), "Reseting workers...\n")
 

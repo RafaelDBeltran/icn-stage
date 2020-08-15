@@ -65,28 +65,31 @@ def define_iptables(jump):
 	logging.info("[CP10.22] commands.getoutput: {}".format(busy_actor))
 	
 
-	cmd = "sudo iptables -A INPUT -s {} -j {}".format(busy_actor, jump)
+	cmd = "sudo iptables -{} INPUT -s {} -j DROP".format(jump, busy_actor)
 	logging.debug("CMD: {}".format(cmd))
 	subprocess.call(cmd, shell = True)
-	subprocess.call("sudo iptables save", shell = True)
+	#subprocess.call("sudo iptables save", shell = True)
+	#subprocess.call("sudo iptables-save", shell = True)
 
 
 def introduce_fault():
 	busy_actor = None  # "10.0.0.1"
 	start_time = time.time()
 	
-	cmd = "python3 zookeeper_controller.py"
+	#cmd = "python3 zookeeper_controller.py"
 
 	zc.get_source('10.200.0.6:2181')
 	
-	# logging.info("[CP10.21] commands.getoutput: {}".format(cmd))
-	# output = commands.getoutput(cmd)
+	#logging.info("[CP10.21] commands.getoutput: {}".format(cmd))
+	#output = subprocess.check_output(cmd, shell=True)
+	#output = output.decode('utf-8')
 
-	# cmd = "cat busyactor.txt"
-	# logging.info("[CP10.22] commands.getoutput: {}".format(cmd))
-	# busy_actor = commands.getoutput(cmd)
-	# #busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
-	# logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
+	cmd = "cat busyactor.txt"
+	logging.info("[CP10.22] commands.getoutput: {}".format(cmd))
+	busy_actor = subprocess.check_output(cmd, shell=True)
+	busy_actor = busy_actor.decode('utf-8')
+	#busy_actor = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=SLEEP_SECS_TO_FAIL)
+	logging.info("[CP10.3] busy_actor: '{}'".format(busy_actor))
 
 
 	diff_time = time.time() - start_time
@@ -97,7 +100,7 @@ def introduce_fault():
 		sleep(sleep_secs)
 		
 		#TODO 14/08 bloquear port ndn 6363 e zookeeper #fazer metodo
-		define_iptables('DROP')
+		define_iptables('A')
 
 		logging.info("+--- introducing fail  [CP10.6]---+ busy actor: {} \n".format(busy_actor))
 
@@ -155,7 +158,7 @@ def run_play(fail_actors):
 			logging.info("waiting for join fail thread... [CP10.5] timeout=---+\n")
 			fault_thread.join()
 		#TODO restaurar portas
-		define_iptables('ACCEPT')
+		define_iptables('D')
 
 		logging.info("")
 		logging.info("")
