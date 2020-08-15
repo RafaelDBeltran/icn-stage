@@ -84,9 +84,9 @@ def get_busy_actor(zk_addr='10.0.2.15:2181'):
 	count_attempts = 0
 	while count_attempts < MAX_ATTEMPTS:
 		count_attempts += 1
-		print("count_attempts: {}".format(count_attempts))
+		logging.info("count_attempts: {}".format(count_attempts))
 		for actor in zk.get_children('/connected/busy_workers'):
-			print("found_actor!: {}".format(actor))
+			logging.info("found_actor!: {}".format(actor))
 			return actor
 		sleep(1)
 
@@ -96,6 +96,7 @@ def get_busy_actor(zk_addr='10.0.2.15:2181'):
 def introduce_fault():
 
 	start_time = time.time()
+	#TODO solve this hard coded address
 	busy_actor = get_busy_actor('10.200.0.6:2181')
 
 	diff_time = time.time() - start_time
