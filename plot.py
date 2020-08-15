@@ -125,7 +125,7 @@ def process(data, data_type=DEFAULT_TYPE):
 			if data_type == "iperf":
 				value_y = float(line.split(" ")[1])
 			elif data_type == "ndn":
-				# TODO parse input to calcule content size
+				# TODO parse input to calculate content size
 				value_y = 8 * 1000 * 8 / 1000.0 # 8KB -> Mbits
 			else:
 				logging.error("Data unknown: {}".format(data_type))

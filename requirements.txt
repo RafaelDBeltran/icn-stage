@@ -7,4 +7,3 @@ tqdm
 psutil
 progressbar2
 logging-reset
-iperf3
