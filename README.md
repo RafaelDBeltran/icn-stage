@@ -8,7 +8,7 @@ You can install ICN-stage in your machine:
     ./install.sh -s
     ```   
 
-However, we strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mininet testbed for the developing purposes.
+However, we strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mininet testbed for developing purposes.
 
 1. Configure you VM (this step may take ~2 hours)
     ```sh
@@ -26,6 +26,9 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
     ```sh
     vagrant$ ./icn-stage.py
     ```
+    
+    
+    
 2. In this case, you may want to run the Mininet in another terminal.
     ```sh
     local-host$ vagrant ssh 
