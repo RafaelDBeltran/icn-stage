@@ -107,7 +107,7 @@ def introduce_fault():
 		sleep(sleep_secs)
 		logging.info("+--- introducing fail  [CP10.6]---+ busy actor: {} \n".format(busy_actor))
 
-		cmd = "sudo iptables -A INPUT -s {} -j DROP".format(busy_actor)
+		cmd = "sudo iptables -A INPUT --source {} --jump DROP".format(busy_actor)
 		logging.debug("Running cmd: {}".format(cmd))
 		cmd_shlex = shlex.split(cmd)
 		logging.debug("Running cmd_shlex: {}".format(cmd_shlex))
@@ -167,7 +167,7 @@ def run_play(fail_actors):
 			logging.info("waiting for join fail thread... [CP10.5] timeout=---+\n")
 			fault_thread.join()
 
-		cmd = "sudo iptables -F"
+		cmd = "sudo iptables --flush"
 		logging.debug("Running cmd: {}".format(cmd))
 		cmd_shlex = shlex.split(cmd)
 		logging.debug("Running cmd_shlex: {}".format(cmd_shlex))
