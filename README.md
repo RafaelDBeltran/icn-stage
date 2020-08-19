@@ -24,7 +24,7 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
 # Run CLI
 1. You can manually operate ICN-Stage using its CLI. 
     ```sh
-    vagrant$ ./icn-stage.py
+   vagrant@ubuntu-bionic:~/icn-stage$ ./icn-stage.py
     ```
     ![ICN-Stage Screenshot](/images/icn-stage-screenshot.png)
     
