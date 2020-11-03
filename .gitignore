@@ -1,4 +1,4 @@
-apache-zookeeper-3.6.1/
+apache-zookeeper-3.6.2/
 scripts_de_falha/
 myNDNversion/
 ~/
@@ -21,7 +21,7 @@ ndn-src/
 mininet/
 mini-ndn/
 .idea/
-apache-zookeeper-3.6.1-bin/
+apache-zookeeper-3.6.2-bin/
 iperfPlotter/
 l.txt
 f.txt
@@ -38,3 +38,4 @@ ndn_requests_output.txt
 .DS_Store
 failures_recov.txt
 ICN-Stage_ensamble
+apache-zookeeper-3.6.2-bin.tar.gz*

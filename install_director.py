@@ -40,13 +40,13 @@ LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SETTINGS_FILE = 'settings.json'
 DEFAULT_REQUIREMENTS_FILE = 'requirements.txt'
-DEFAULT_ZK_SETTINGS_FILE_DIR = 'apache-zookeeper-3.6.1/conf/zoo.cfg'
+DEFAULT_ZK_SETTINGS_FILE_DIR = 'apache-zookeeper-3.6.2/conf/zoo.cfg'
 DEFAULT_VALUE_SETTINGS = [5, 6000, 12000, 10, 5, 2181, 256]
 DEFAULT_ZK_LOCAL_MYID = 'data/zk/datadir/myid'
 DEFAULT_PATHS = ['data', 'data/zk', 'data/zk/datadir']
 DEFAULT_REPOSIT_DEPENDENCES = []
-DEFAULT_ZK_DIR = 'apache-zookeeper-3.6.1'
-DEFAULT_REPOSIT_ZK = 'http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz'
+DEFAULT_ZK_DIR = 'apache-zookeeper-3.6.2'
+DEFAULT_REPOSIT_ZK = 'http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.2/apache-zookeeper-3.6.2-bin.tar.gz'
 DEFAULT_REPOSIT_ICNSTAGE = 'https://github.com/kayua/icn-stage'
 DEFAULT_SERVER_SETTINGS = ['ID', 'Host', 'User', 'Password']
 DEFAULT_DEPENDENCES = ['kazoo', 'paramiko', 'scp', 'netifaces', 'pyfiglet', 'tqdm', 'psutil']
@@ -74,7 +74,7 @@ class ZookeeperEnsembleSettings:
 """
     server_list = []
     def __init__(self):
-        #TODO revisar uso de metodos dentro do init. Tipicamente, isso não deveria acontecer
+        #TODO revisar uso de metodos dentro do init. Tipicamente, isso nï¿½o deveria acontecer
         self.read_settings_file()
         self.write_settings_in_file()
 
@@ -216,18 +216,18 @@ class Installer:
     def local_install_zookeeeper():
 
         logging.info('  Starting Zookeeper installer.\n')
-        logging.info('     > Downloading Apache-Zookeeper-3.6.1\n')
+        logging.info('     > Downloading Apache-Zookeeper-3.6.2\n')
 
         try:
 
             cmd = ['wget', DEFAULT_REPOSIT_ZK]
             subprocess.call(cmd)
             logging.info('      > Extracting files from Apache Zookeeper.\n')
-            cmd = ['tar', 'zxf', 'apache-zookeeper-3.6.1-bin.tar.gz']
+            cmd = ['tar', 'zxf', 'apache-zookeeper-3.6.2-bin.tar.gz']
             subprocess.run(cmd)
-            cmd = ['mv', 'apache-zookeeper-3.6.1-bin', 'apache-zookeeper-3.6.1']
+            cmd = ['mv', 'apache-zookeeper-3.6.2-bin', 'apache-zookeeper-3.6.2']
             subprocess.run(cmd)
-            cmd = ['rm', 'apache-zookeeper-3.6.1-bin.tar.gz']
+            cmd = ['rm', 'apache-zookeeper-3.6.2-bin.tar.gz']
             subprocess.run(cmd)
             logging.info('-' * 32 + '\n')
 
@@ -415,19 +415,19 @@ class Installer:
     @staticmethod
     def remote_install_zookeeper(connection):
 
-        logging.info('Starting Apache-Zookeeper-3.6.1 remote installer.\n')
-        logging.info('     > Downloading Apache-Zookeeper-3.6.1.tar.gz. Please wait...\n')
+        logging.info('Starting Apache-Zookeeper-3.6.2 remote installer.\n')
+        logging.info('     > Downloading Apache-Zookeeper-3.6.2.tar.gz. Please wait...\n')
 
         try:
 
             cmd = 'wget '+DEFAULT_REPOSIT_ZK
             connection.cmd(cmd)
             logging.info('     > Extracting files from Apache Zookeeper. Please wait...\n')
-            cmd = 'tar zxf apache-zookeeper-3.6.1-bin.tar.gz'
+            cmd = 'tar zxf apache-zookeeper-3.6.2-bin.tar.gz'
             connection.cmd(cmd)
-            cmd = 'mv apache-zookeeper-3.6.1-bin icn-stage/apache-zookeeper-3.6.1'
+            cmd = 'mv apache-zookeeper-3.6.2-bin icn-stage/apache-zookeeper-3.6.2'
             connection.cmd(cmd)
-            cmd = 'rm apache-zookeeper-3.6.1-bin.tar.gz'
+            cmd = 'rm apache-zookeeper-3.6.2-bin.tar.gz'
             connection.cmd(cmd)
             logging.info('  Apache-Zookeeper installation completed.\n\n')
 

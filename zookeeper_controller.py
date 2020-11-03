@@ -71,7 +71,7 @@ def get_diff_tabs(n, word):
 
 
 class ZookeeperController:
-    DEFAULT_ZOOKEEPER_PATH = "./apache-zookeeper-3.6.1/"
+    DEFAULT_ZOOKEEPER_PATH = "./apache-zookeeper-3.6.2/"
     DEFAULT_CONFIG_FILE = "config.json"
     DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
     minSessionTimeout=30000\n\

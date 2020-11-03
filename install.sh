@@ -162,13 +162,13 @@ function icn-stage {
 	  # cp settings_director_local.json.example settings_director.json
 	  # cp settings_director_ensemble.json.example settings_director.json
 	  #TODO replace with something as $ ./install_director.py vagrant-box
-	  if [ ! -d "./apache-zookeeper-3.6.1" ]; then
-	    wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
-	    tar zxf apache-zookeeper-3.6.1-bin.tar.gz
-	    mv apache-zookeeper-3.6.1-bin apache-zookeeper-3.6.1
-	    rm -f apache-zookeeper-3.6.1-bin.tar.gz
+	  if [ ! -d "./apache-zookeeper-3.6.2" ]; then
+	    wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.2/apache-zookeeper-3.6.2-bin.tar.gz
+	    tar zxf apache-zookeeper-3.6.2-bin.tar.gz
+	    mv apache-zookeeper-3.6.2-bin apache-zookeeper-3.6.2
+	    rm -f apache-zookeeper-3.6.2-bin.tar.gz
 	  fi
-	  #ls -s apache-zookeeper-3.6.1-bin zookeeper
+	  #ls -s apache-zookeeper-3.6.2-bin zookeeper
 
     #popd
 }
