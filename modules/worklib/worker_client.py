@@ -9,7 +9,7 @@ from kazoo.client import *
 import kazoo, traceback, threading, imp, os, time, subprocess
 import sys
 import logging
-
+from .monitor import Monitor
 # STATIC PATHS
 class PATHS(object):
 	CONNECTED_FREE = "/connected/free_workers"
@@ -100,7 +100,7 @@ class Experiment(object):
 
 	def ps_based_is_running(self):
 		logging.debug('\t\t\t #Checkpoint-EXP-4')
-
+		aux = Monitor(self.popen.pid, './experiments/{}/process_monitor.csv'.format(self.name))
 		#script = self.get_main_script()
 		#cmd = "ps aux | grep %s | grep -v grep " % script
 		cmd = "ps -p {} | grep -v TTY ".format(self.popen.pid)
@@ -111,6 +111,7 @@ class Experiment(object):
 		logging.debug("result: {}".format(r))
 		#self.printd("ps_based_is_running - r " + r)
 		is_running = True
+		aux.run_monitor()
 		if r == "" or '<defunct>' in r:
 			self.ferr.close()
 			self.fout.close()
