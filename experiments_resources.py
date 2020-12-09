@@ -58,7 +58,7 @@ def call_ndn_exp():
 class NDN_traffic:
     def traffic_start(self):
         #print("Starting NFD")
-        subprocess.run(["sudo nfd -c /usr/local/etc/ndn/NFD_low_CS.conf &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        subprocess.run(["sudo nfd -c /usr/local/etc/ndn/low.conf &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         #subprocess.run(["sudo nfd-start &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         
         time.sleep(2)
