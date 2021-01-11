@@ -58,12 +58,13 @@ def call_ndn_exp():
 class NDN_traffic:
     def traffic_start(self):
         #print("Starting NFD")
+        subprocess.run(["sudo cp ./experiments/test_traffic/low.conf /usr/local/etc/ndn/"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         subprocess.run(["sudo nfd -c /usr/local/etc/ndn/low.conf &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         #subprocess.run(["sudo nfd-start &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         
         time.sleep(2)
         #TODO O tempo do experimento esta estatico em 10m
-        subprocess.run("sleep 13m && sudo nfd-stop &", shell=True)
+        subprocess.run("sleep 10m && sudo nfd-stop &", shell=True)
         print("Starting NDN Traffic Server")
         try:
             subprocess.run(["sudo rm ndn_requests_output.txt"], shell=True)
