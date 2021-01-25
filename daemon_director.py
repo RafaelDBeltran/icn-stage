@@ -14,6 +14,7 @@ import datetime
 import tarfile
 import os
 import logging
+
 #sys.path.append(r'~/myRuns/modules')
 
 # icn-stage bibs
@@ -119,12 +120,13 @@ class RPM(multiprocessing.Process):
 		if len(workers) > 0:
 			workers_disconnected = set([x for x in workers if x.status != 'BUSY' or x.status != 'IDLE'])
 		workers = set(workers)
+		string_var_aux = None
 
 		starting_time = time.time()
 		last = starting_time
 		while not exit:
 			now = time.time()
-			logging.debug("RPM[CP1.1] now: ".format(now))
+			logging.debug("RPM[CP1.1] now: {}".format(now))
 
 			try:
 				with open("rpm_activity.log", "w+") as fa:
@@ -198,12 +200,13 @@ class RPM(multiprocessing.Process):
 
 						print("%16f, \t%50s, \t%13s, \t%24s, \t%24s" % (
 							worker.active_time, worker.hostname, worker.status, last_login, dcnx_time), file=fa)
+						string_var_aux = worker.hostname
 
 			except Exception as e:
 				logging.error("RPM[CP99] Exception: {}".format(e))
 
 				with open("rpm_output.log", "a+") as fo:
-					print(time.time(), worker.hostname, " exception: ", e, file=fo)
+					print(time.time(), string_var_aux, " exception: ", e, file=fo)
 
 			finally:
 				fa.close()
@@ -211,7 +214,7 @@ class RPM(multiprocessing.Process):
 			last = now
 			time.sleep(self.sleep_seconds)
 
-		run_controller_client.close()
+		#run_controller_client.close()
 
 
 class DirectorDaemon(Daemon):
@@ -403,7 +406,7 @@ class DirectorDaemon(Daemon):
 
 								for role in exp.roles:
 									logging.debug("RECOVER_ACTOR [13.1] role: {}".format(role))
-									logging.debug("RECOVER_ACTOR [13.2] role.id: {} exp.actor.role_id: ".format(role.id, exp.actor.role_id))
+									logging.debug("RECOVER_ACTOR [13.2] role.id: {} exp.actor.role_id: {} ".format(role.id, exp.actor.role_id))
 									if role.id == exp.actor.role_id:
 										logging.debug("RECOVER_ACTOR [14] role: {}".format(role))
 
@@ -592,9 +595,11 @@ class DirectorDaemon(Daemon):
 					channel.chdir(remote_dir)
 					stdout, stderr = channel.run(worker.get_command_stop())
 					# print datetime.datetime.now(), worker.hostname, "cmd: python %s stop" %(_worker_daemon), "stdout: ", stdout, "stderr: ", stderr
+
 					logging.debug('START_WORKER task_start_work: TRY p2')
 					#stdout, stderr = channel.run("python3 %s --id %s start" % (_worker_daemon, worker.actor_id))
 					stdout, stderr = channel.run(worker.get_command_start())
+
 					logging.debug('START_WORKER task_start_work: TRY p3 {}'.format(stdout))
 					stderr_str = stderr.read().strip()
 					stdout_str = stdout.read().strip()

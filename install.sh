@@ -163,7 +163,7 @@ function icn-stage {
 	  # cp settings_director_ensemble.json.example settings_director.json
 	  #TODO replace with something as $ ./install_director.py vagrant-box
 	  if [ ! -d "./apache-zookeeper-3.6.2" ]; then
-	    wget http://mirror.nbtelecom.com.br/apache/zookeeper/zookeeper-3.6.2/apache-zookeeper-3.6.2-bin.tar.gz
+	    wget https://downloads.apache.org/zookeeper/zookeeper-3.6.2/apache-zookeeper-3.6.2-bin.tar.gz
 	    tar zxf apache-zookeeper-3.6.2-bin.tar.gz
 	    mv apache-zookeeper-3.6.2-bin apache-zookeeper-3.6.2
 	    rm -f apache-zookeeper-3.6.2-bin.tar.gz

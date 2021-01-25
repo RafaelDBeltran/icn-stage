@@ -97,7 +97,7 @@ class ControllerClient:
 			logging.debug("Kazoo start done. ")
 
 		except Exception as e:
-			logging.error("Exception while connecting with Zookeeper:\n\n", e)
+			logging.error("Exception while connecting with Zookeeper:{}".format(e))
 		logging.debug("End Controller Client init ")
 
 	def config_stop(self):
