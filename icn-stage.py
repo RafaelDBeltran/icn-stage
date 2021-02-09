@@ -55,6 +55,7 @@ from zookeeper_controller import ZookeeperController
 from experiments_resources import call_tcp_server
 from experiments_resources import call_ndn_exp
 from experiments_resources import call_ndn_traffic
+from experiments_resources import call_ndn_traffic_server
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -91,11 +92,7 @@ def add_worker(controller_client, max_actors=None):
     for i in data['workers']:
         count += 1
 
-        new_worker = Worker(i["remote_hostname"],
-                        i["remote_username"],
-                        password=i["remote_password"],
-                        actor_id=i["actor_id"],
-                        pkey=sundry.get_pkey(i["remote_pkey_path"]))
+        new_worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], actor_id=i["actor_id"], pkey=sundry.get_pkey(i["remote_pkey_path"]))
 
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
@@ -190,10 +187,11 @@ def run_command(zookeeper_controller, command, options=None):
         daemon_director.status()
 
     elif command == 'addactors':
+        zookeeper_controller.set_controller_client()
         max_actors = None
         if options is not None:
             max_actors = int(options[0])
-        zookeeper_controller.set_controller_client()
+        
         add_worker(zookeeper_controller.controller_client, max_actors)
 
     elif command == 'test':
@@ -332,6 +330,23 @@ def run_command(zookeeper_controller, command, options=None):
                                 "experiments/test_traffic/",
                                 "test_traffic.tar.gz")
             call_ndn_traffic()
+        except Exception as e:
+            logging.error("Exception: {}".format(e))
+            msg = "Hint: don't forget to add actors!"
+            logging.error(msg)
+
+    elif command == 'traffic2':
+        zookeeper_controller.set_controller_client()
+        try:
+            cmd = ['python3', 
+            'ndn_client.py',
+            '{}'.format(str(zookeeper_controller.get_ip_adapter()))]
+
+            experiment_skeleton('ndn_traffic_generator2', cmd,
+                                zookeeper_controller.controller_client,
+                                "experiments/test_traffic2/",
+                                "test_traffic2.tar.gz")
+            call_ndn_traffic_server(zookeeper_controller.get_ip_adapter(),10000)
         except Exception as e:
             logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"

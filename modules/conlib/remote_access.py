@@ -53,7 +53,7 @@ class Channel(object):
 				password=self.password, pkey=self.pkey, timeout=self.timeout)
 			#logging.debug('connect_n')
 		except Exception as e:
-			logging.debug('Excepetion: {}'.format(e))
+			print('Excepetion: {}'.format(e))
 			raise e
 		self.scp = scp.SCPClient(self.ssh.get_transport())
 		self.connected = True

@@ -477,7 +477,7 @@ class DirectorDaemon(Daemon):
 				self.controller_client.task_del(task_now)
 
 			elif task_cmd == COMMANDS.NEW_WORKER:
-
+				logging.info("HERE:new_worker")
 				logging.info("NEW_WORKER task_args: %s" % str(task_args))
 				# logging.debug(type(task_args["worker"]))
 				# logging.debug('Literal_Debug: ' + task_args["worker"].decode('utf-8'))
@@ -522,7 +522,7 @@ class DirectorDaemon(Daemon):
 				self.controller_client.task_del(task_now)
 
 			elif task_cmd == COMMANDS.INSTALL_WORKER:
-
+				logging.info("HERE:install_worker")
 				logging.info("INSTALL_WORKER task_args: %s" % str(task_args))
 
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))

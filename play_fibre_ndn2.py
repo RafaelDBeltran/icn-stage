@@ -37,7 +37,7 @@ DIRECTOR_SLEEP_SECS = "1"
 
 FAIL_ACTORS_MODELS = []
 FAIL_ACTORS_MODELS += [[False, 2]] # without fail, with recover (avaliable)
-FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
+#FAIL_ACTORS_MODELS += [[True, 1]] # with fail, without recover
 FAIL_ACTORS_MODELS += [[True, 2]] # with fail, with recover
 
 MAX_ATTEMPTS = 100
@@ -153,7 +153,7 @@ def run_play(fail_actors):
 		else:
 			logging.info("+--- NO FAIL EVALUATION [CP10.2nofail] ---+\n")
 
-		cmd = ICN_STAGE_CMD + ['traffic']
+		cmd = ICN_STAGE_CMD + ['traffic2']
 		logging.info("[CP10.7] call: {}".format(" ".join(cmd)))
 		subprocess.call(cmd)
 		#popen = subprocess.Popen(cmd)

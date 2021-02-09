@@ -23,7 +23,7 @@ class Daemon(object):
     Usage: subclass the Daemon class and override the run() method
     """
     # def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, pidfile, stdin='./in.txt', stdout='./out.txt', stderr='./err.txt'):
 
         log.debug('Created daemon. stdin=%s, stdout=%s, stderr=%s' %
                   (stdin, stdout, stderr))

@@ -123,7 +123,7 @@ class ZookeeperEnsembleSettings:
 
                 except ValueError:
 
-                    logging.error('The configuration Settings.json file may be corrupted.', ValueError)
+                    logging.error('The configuration Settings.json file may be corrupted {}'.format(ValueError))
         else:
 
             logging.error('The configuration Settings.json file not found.')
@@ -162,7 +162,7 @@ class Connect:
             print('')
         except ValueError:
 
-            logging.error(' Connection refused.', ValueError)
+            logging.error(' Connection refused {}'.format(ValueError))
             self.State = False
 
     def get_state_connection(self):
@@ -201,8 +201,8 @@ class Installer:
 
         try:
 
-            self.local_install_zookeeeper()
-            self.local_install_dependence()
+            #self.local_install_zookeeeper()
+            #self.local_install_dependence()
             self.local_create_dir()
             self.local_settings_zookeeper()
 
@@ -210,7 +210,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('Error during installation.', ValueError)
+            logging.error('Error during installation {}'.format(ValueError))
 
     @staticmethod
     def local_install_zookeeeper():
@@ -233,7 +233,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('It is not possible to install Apache-Zookeeper', ValueError)
+            logging.error('It is not possible to install Apache-Zookeeper {}'.format(ValueError))
             quit()
 
     @staticmethod
@@ -256,7 +256,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('It is not possible to install dependence.', ValueError)
+            logging.error('It is not possible to install dependence. {}'.format(ValueError))
             quit()
 
     def local_settings_zookeeper(self):
@@ -277,7 +277,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('Settings Apache-Zookeeper file.', ValueError)
+            logging.error('Settings Apache-Zookeeper file. {}'.format(ValueError))
             quit()
 
     @staticmethod
@@ -313,7 +313,7 @@ class Installer:
 
                 except ValueError:
 
-                    logging.error('Error during installation', ValueError)
+                    logging.error('Error during installation {}'.format(ValueError))
 
             else:
 
@@ -389,7 +389,7 @@ class Installer:
 
             except ValueError:
 
-                logging.error('It is not possible to install dependencies.', ValueError)
+                logging.error('It is not possible to install dependencies. {}'.format(ValueError))
                 quit()
 
     @staticmethod
@@ -409,7 +409,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('Downloading of ICN-Stage failed!.', ValueError)
+            logging.error('Downloading of ICN-Stage failed!. {}'.format(ValueError))
             quit()
 
     @staticmethod
@@ -433,7 +433,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('Error Apache-Zookeeper install.', ValueError)
+            logging.error('Error Apache-Zookeeper install. {}'.format(ValueError))
 
     def remote_settings_zookeeper(self, connection, server):
 
@@ -449,7 +449,7 @@ class Installer:
 
         except ValueError:
 
-            logging.error('Settings Apache-Zookeeper file.', ValueError)
+            logging.error('Settings Apache-Zookeeper file. {}'.format(ValueError))
             quit()
 
     @staticmethod

@@ -332,7 +332,7 @@ class ZookeeperController:
                     print(value[0])
 
             except Exception as e:
-                logging.error("Exception: ".format(e))
+                logging.error("Exception: {}".format(e))
 
             try:
                 count = 1
@@ -342,7 +342,7 @@ class ZookeeperController:
                     # print t
 
             except Exception as e:
-                logging.error("Exception: ".format(e))
+                logging.error("Exception: {}".format(e))
 
 if __name__ == '__main__':
     get_source()
