@@ -21,49 +21,6 @@ However, we strongly suggest you use a Vagrant + VirtualBox based VM, which cont
     ```
 
 
-# Run CLI
-1. You can manually operate ICN-Stage using its CLI. 
-    ```sh
-   vagrant@ubuntu-bionic:~/icn-stage$ ./icn-stage.py
-    ```
-    ![ICN-Stage Screenshot](/images/icn-stage-screenshot.png)
-    
-    
-2. In this case, you may want to run the Mininet in another terminal.
-    ```sh
-    local-host$ vagrant ssh 
-    vagrant@ubuntu-bionic:~/icn-stage$ sudo mn --nat --topo linear,3
-     ```
-     
-# Run a play    
-1. You can run a play using Mininet
-    ```sh
-    vagrant@ubuntu-bionic:~/icn-stage$ sudo ./play_mininet_perf.py
-    ```
-    
-2. If you have access to FIBRE, you can run
-    ```sh
-    vagrant@ubuntu-bionic:~/icn-stage$ sudo ./play_fibre_ndn.py
-    ```
-
-
-
-# Plot results
-1. Plot previosly generated results obtained from play_mininet_perf.py
-    ```sh
-    vagrant$ python3 plot.py --type iperf --out plot_mn_iperf --xlim 600 --ylim 1.0 results_acm_icn/results_*
-    ```
-    
-    ![Mininet-iperf play](/images/mn_iperf_bar.png)
-    ![Mininet-iperf play](/images/mn_iperf_bar.pdf)
-    
-2. Plot previosly generated results obtained from play_fibre_ndn.py
-    ```sh
-    vagrant$ python3 plot.py --type ndn --out plot_fibre_ndn --xlim 600 --ylim 10 results_acm_icn/ndn-traffic_results_*
-    ```
-    ![FIBRE-ndn play](/images/plot_fibre_ndn_bar.png)
-    ![FIBRE-ndn play](/images/plot_fibre_ndn_bar.pdf)
-
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
 
