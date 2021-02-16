@@ -187,7 +187,7 @@ class ZookeeperController:
     @staticmethod
     def get_status():
 
-        cmd = 'sudo apache-zookeeper-3.6.1/bin/./zkServer.sh status'
+        cmd = ' {}/zkServer.sh status'.format(DEFAULT_ZOOKEEPER_PATH)
         return os.popen(cmd).read()
 
     @staticmethod
@@ -228,14 +228,14 @@ class ZookeeperController:
     def start_zookeeper_service():
 
         logging.info("STARTING ZK")
-        cmd = ".{}/zkServer.sh start".format(DEFAULT_ZOOKEEPER_PATH)        
+        cmd = "{}/zkServer.sh start".format(DEFAULT_ZOOKEEPER_PATH)        
         subprocess.call(cmd, shell=True)
 
     @staticmethod
     def stop_zookeeper_service():
 
         logging.info("STOPPING ZK")
-        cmd = ".{}/zkServer.sh  stop".format(DEFAULT_ZOOKEEPER_PATH)
+        cmd = "{}/zkServer.sh  stop".format(DEFAULT_ZOOKEEPER_PATH)
         subprocess.call(cmd, shell=True)
 
     def reset_tasks(self):

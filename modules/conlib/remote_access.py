@@ -128,6 +128,13 @@ class Channel(object):
 			#logging.debug('putt 7')
 		return False
 
+	def direct_put(self, local_path, remote_path):
+
+		if self.connected and os.path.isfile(local_path):
+
+			self.scp.socket_timeout = 100
+			self.scp.put(local_path, remote_path)
+
 	def get(self, remote_path, local_path):
 		if self.connected and self.chkfile(self._actual_path(remote_path)):
 			if os.path.isfile(local_path):

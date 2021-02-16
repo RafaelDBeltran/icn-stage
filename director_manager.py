@@ -49,7 +49,7 @@ DEFAULT_CREATE_COMPRESS_FILE = True
 DEFAULT_LOG_LEVEL = logging.INFO
 DEFAULT_COMPRESS_FILE = 'icn-stage_gz.tar.gz'
 DEFAULT_COMPRESS_PATH = 'icn-stage_gz'
-DEFAULT_ZK_CONFIG_PATH = 'apache-zookeeper-3.6.1/conf'
+DEFAULT_ZK_CONFIG_PATH = '/opt/zookeeper/bin/conf'
 DEFAULT_DEPENDENCIES = ['update']
 DEFAULT_COMMAND_INSTALL = ['sudo', 'apt-get', 'install']
 DEFAULT_COMMAND_UPGRADE_PIP = ['pip3', 'install', '--upgrade', 'pip']
@@ -206,7 +206,7 @@ def compress_stage_dir():
 
 def generate_myid(my_id):
 
-    myid = open(('apache-zookeeper-3.6.1/bin/'+data['settings']['DataDir']+'/myid'), 'w')
+    myid = open(('/opt/zookeeper/bin/'+data['settings']['DataDir']+'/myid'), 'w')
     myid.write(str(my_id))
     myid.close()
     myid = open((data['settings']['DataDir']+'/myid'), 'w')
@@ -270,7 +270,7 @@ def remote_install(channel, id_machine, local_host):
     channel.run(cmd)
     cmd = 'python3 director_manager.py createid %s' % str(id_machine)
     a,b = channel.run(cmd)
-    cmd  = 'chmod +x apache-zookeeper-3.6.1/bin/zkServer.sh'
+    cmd  = 'chmod +x /opt/zookeeper/bin/zkServer.sh'
     a,b = channel.run(cmd)
     print('**************************')
     print(a.read(),b.read())
