@@ -41,5 +41,4 @@ for count,i in enumerate(data['Nodes']):
     channel.run("echo {} > /data/zookeeper/myid".format(count + 1))
 f.close() 
 
-
-print(ansemble_config_data)
+#TODO run the daemon_director_ensemble
