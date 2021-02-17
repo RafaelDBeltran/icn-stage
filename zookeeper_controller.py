@@ -90,7 +90,7 @@ class ZookeeperController:
     clientPortAddress=NEW_IP\n\
     maxClientCnxns=200\n\
     '''
-    ZK_CMD = ['{}/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH)]
+    #ZK_CMD = ['{}/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH)]
 
     def __init__(self, config_file_=DEFAULT_CONFIG_FILE, ensemble=False, ip_address='0.0.0.0', ip_list = None):
 
@@ -347,6 +347,7 @@ class ZookeeperController:
             channel = Channel(hostname=actor.hostname,
                               username=actor.username,
                               password=actor.password,
+                              pkey=actor.key,
                               timeout=30)
 
             logging.info("\t\tStopping actor daemon process at worker: {}".format(actor.hostname))

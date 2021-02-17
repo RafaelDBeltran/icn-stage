@@ -57,7 +57,7 @@ from experiments_resources import call_ndn_traffic
 _local_experiments_dir = "./"
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_LOG_LEVEL = logging.INFO
+DEFAULT_LOG_LEVEL = logging.DEBUG
 DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
 DEFAULT_IPERF_INTERVAL_SECS = 5
 DEFAULT_IPERF_FILE_OUT = "iperf.out"
@@ -109,7 +109,7 @@ def add_worker(controller_client, max_actors=None):
     for i in data['workers']:
     
         count += 1
-        new_worker = Worker(i["remote_hostname"],i["remote_username"],password=i["remote_password"],actor_id=i["actor_id"])
+        new_worker = Worker(i["remote_hostname"],i["remote_username"],password=i["remote_password"],actor_id=i["actor_id"],pkey=sundry.get_pkey(i["remote_pkey_path"]))
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
         logging.debug("max_actors: {} count: {}".format(max_actors, count))
@@ -148,29 +148,29 @@ def experiment_skeleton(experiment_name, commands, controller_client, experiment
     logging.debug("\tSending experiment done.\n")
 
 
-def addworkers():
+# def addworkers():
 
-    logging.info('+--- Remotely adding workers.')
-    num_actors = data['workers']
+#     logging.info('+--- Remotely adding workers.')
+#     num_actors = data['workers']
 
-    for i in data['controllers']:
+#     for i in data['controllers']:
     
-        logging.info(('Contacting nodes. HostName: ' + i["remote_hostname"]))
+#         logging.info(('Contacting nodes. HostName: ' + i["remote_hostname"]))
         
-        try:
+#         try:
         
-            channel = Channel(i["remote_hostname"], i["remote_username"], i["remote_password"], timeout=100)
-            remote_path = 'controller_' + str(i['controller_id'])
-            channel.chdir(remote_path)
-            cmd = 'sudo python3 icn-stage.py addactors '+str(len(num_actors)+' '+i["remote_hostname"])
-            channel.run(cmd)
-            break
+#             channel = Channel(i["remote_hostname"], i["remote_username"], i["remote_password"], sundry.get_pkey(i["remote_pkey_path"]), timeout=100)
+#             remote_path = 'controller_' + str(i['controller_id'])
+#             channel.chdir(remote_path)
+#             cmd = 'sudo python3 icn-stage.py addactors '+str(len(num_actors)+' '+i["remote_hostname"])
+#             channel.run(cmd)
+#             break
             
-        except:
+#         except:
         
-            pass
+#             pass
         
-        logging.info(('Controller: ID: ', i['controller_id'], 'Address: ', i['remote_hostname'], 'Port: ', str(i['ClientPort'])))
+#         logging.info(('Controller: ID: ', i['controller_id'], 'Address: ', i['remote_hostname'], 'Port: ', str(i['ClientPort'])))
 
 
 def help_msg():
@@ -396,7 +396,7 @@ def run_command(zookeeper_controller, command, options=None):
         
         for i in data['workers']:
 
-            worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], actor_id=i["actor_id"])
+            worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], actor_id=i["actor_id"],pkey=sundry.get_pkey(i["remote_pkey_path"]))
             zookeeper_controller.kill_actor_daemon(worker)
         
         zookeeper_controller.reset_workers()
