@@ -78,4 +78,17 @@ class Sundry:
             tar_file.add("%s" % (name))
         tar_file.close()
         os.chdir(current_dir)
+    @staticmethod
+    def get_ensemble_ips(json_file):
+        f = open(json_file)
+        data = json.load(f)
+        JSON_PORT = None
+        JSON_ADRESS = ''
 
+        for i in data['Settings']:
+            JSON_PORT = i['ClientPort']
+
+        for i in data['Nodes']: 
+            JSON_ADRESS += (i['remote_host']+':'+str(JSON_PORT)+',')
+
+        return JSON_ADRESS[:-1]

@@ -9,6 +9,7 @@ import json
 import time
 from modules.conlib.controller_client import ControllerClient
 from modules.conlib.remote_access import Channel
+from modules.util.tools import Sundry
 from time import sleep
 from kazoo.client import *
 import kazoo
@@ -38,16 +39,6 @@ def get_source(zk_addr='10.0.2.15:2181'):
             fout.close()
             sys.exit(0)
         sleep(1)
-    # cmd = "python3 ./icn-stage.py print /connected/busy_workers > l.txt"
-    # subprocess.call(cmd)
-    # result = ""
-    # while result == "":
-    # 	cmd = 'cat l.txt | grep "01:01" | cut -d ":" -f 2 | cut -d "." -f 2-'
-    # 	result = os.getoutput(cmd)
-    # 	sleep(1)
-    # print("FOUND! busy_actor: {}".format(busy_actor))
-    #print("{}".format(busy_actor))
-    #return busy_actor
 
 def nowStr():
     return time.strftime(TIME_FORMAT, time.localtime())
@@ -98,7 +89,9 @@ class ZookeeperController:
                 ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
             sys.exit(-1)
 
-        self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
+        #self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
+        sundry_instance = Sundry()
+        self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
         logging.info("zookeeper_ip_port: {}".format(self.zookeeper_ip_port))
         self.create_zookeeper_config_file()
 

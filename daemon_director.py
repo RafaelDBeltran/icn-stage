@@ -14,7 +14,7 @@ import datetime
 import tarfile
 import os
 import logging
-
+import json
 #sys.path.append(r'~/myRuns/modules')
 
 # icn-stage bibs
@@ -26,7 +26,7 @@ from modules.extralib.daemon import Daemon
 from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
-
+from modules.util.tools import Sundry
 '''
 data = json.load(open('config.json'))
 my_adapter_ip = ConfigHelper(data["zookeeper_adapter"])
@@ -77,16 +77,6 @@ def create_worklib(output_file_):
 	# close file
 	tar_file.close()
 	os.chdir(current_dir)
-
-
-def get_ip():
-	return [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in
-			[socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-
-
-# _realocate_timeout = 240
-# _restart_timeout = _realocate_timeout / 2
-
 
 # RPM = Resource Pool Manager
 class RPM(multiprocessing.Process):
@@ -224,7 +214,9 @@ class DirectorDaemon(Daemon):
 		self.zookeeper_controller = ZookeeperController()
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
-		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
+		#self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
+		sundry_instance = Sundry()
+		self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
 
 	def set_sleep_seconds(self, sleep_seconds):
 		self.sleep_seconds = sleep_seconds
@@ -495,10 +487,9 @@ class DirectorDaemon(Daemon):
 						remote_path = worker.get_remote_path()
 						channel.run("mkdir -p %s" % remote_path)
 						# rafael# colocando endereco estatico
-						# channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (get_ip(), _controllerport, worker.hostname, remote_path))
-						channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (
-						self.zookeeper_controller.get_ip_adapter(), _controllerport, worker.hostname, remote_path))
-
+						#channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (
+						#self.zookeeper_controller.get_ip_adapter(), _controllerport, worker.hostname, remote_path))
+						channel.run("echo \"server=192.168.133.105:2181,192.168.133.106:2181,192.168.133.107:2181\nhostname=%s\" > %s/info.cfg" % (worker.hostname, remote_path))
 						# TODO#
 						self.controller_client.worker_add(worker)
 						# TODO#
