@@ -47,6 +47,7 @@ from modules.conlib.controller_client import *
 from modules.model.experiment import Experiment
 from modules.model.role import Role
 from modules.model.worker import Worker
+from modules.ensemble.create_ensemble import Ensemble
 #load tools
 from modules.util.tools import View
 from modules.util.tools import Sundry
@@ -216,91 +217,6 @@ def run_command(zookeeper_controller, command, options=None):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
-    elif command == 'iperf':
-        logging.info("*** iperf evaluation begin options: {}\n".format(options))
-        zookeeper_controller.set_controller_client()
-        try:
-            file_out_name = DEFAULT_IPERF_FILE_OUT
-            iperf_interval = DEFAULT_IPERF_INTERVAL_SECS
-            client_time_secs = str(DEFAULT_IPERF_EXPERIMENT_SECS)
-            transport = DEFAFULT_IPERF_TRANSPORT
-            if options is not None:
-                file_out_name = options[0]
-                if len(options) > 1:
-                    iperf_interval = options[1]
-
-                if len(options) > 2:
-                    client_time_secs = options[2]
-
-                if len(options) > 3:
-                    transport = options[3]
-                    if transport == "udp":
-                        transport = "--udp"
-                    else:
-                        transport = ""
-
-            file_err_name = "{}.err".format(file_out_name)
-
-            iperf_port = '10005'
-
-            server_time_secs = int(client_time_secs) + 10
-
-            try:
-                cmd_iperf = 'iperf --server --window 1024 --port {} --interval {} --format m --time {} {} '.format(iperf_port, iperf_interval, server_time_secs, transport)
-                param_iperf = shlex.split(cmd_iperf)
-                cmd_ts = 'ts -s'
-                param_ts = shlex.split(cmd_ts)
-                logging.info("[IPERF] param iperf: {}".format(param_iperf))
-                logging.info("[IPERF] param ts   : {}".format(param_ts))
-
-                fout = open(file_out_name, 'w')
-                ferr = open(file_err_name, 'w')
-                popen_iperf = subprocess.Popen(param_iperf, stdout=subprocess.PIPE)
-                popen_ts = subprocess.Popen(param_ts, stdin=popen_iperf.stdout, stdout=fout, stderr=ferr)
-
-                cmd = ['python3', 'iperf_client.py',
-                       '--host', zookeeper_controller.get_ip_adapter(),
-                       '--port', iperf_port,
-                       '--time', client_time_secs,
-                       transport]
-
-                # TODO remove the need for a tar.gz
-                experiment_skeleton('iperf', cmd, zookeeper_controller.controller_client,
-                                    "experiments/iperf/", "iperf.tar.gz")
-
-                logging.info("Waiting... ")
-                for i in trange(server_time_secs):
-                    sleep(1)
-                cmd = "kill {}".format(popen_iperf.pid)
-                param = shlex.split(cmd)
-                logging.info("Command: {}".format(cmd))
-                subprocess.call(param)
-
-            except subprocess.TimeoutExpired as e:
-                logging.info("Iperf finished: {}".format(e))
-
-            except Exception as e:
-                # if "timed out" in format(e):
-                #     logging.info("Iperf finished: {}".format(e))
-                # else:
-                #     logging.error("Exception: {}".format(e))
-                logging.error("Exception: {}".format(e))
-                cmd = "sudo kill {} -SIGINT".format(popen_iperf.pid)
-                logging.info("Command: {}".format(cmd))
-                subprocess.call(cmd)
-
-            logging.info("\n")
-            logging.info("*** Iperf evaluation end!")
-
-        except Exception as e:
-            logging.error("Exception: {}".format(e))
-            msg = "Hint: don't forget to add actors!"
-            logging.error(msg)
-
-            cmd = "sudo pkill iperf"
-            logging.info("Command: {}".format(cmd))
-            subprocess.call(cmd, shell=True)
-
     elif command == 'ndn':
         zookeeper_controller.set_controller_client()
         try:
@@ -352,6 +268,8 @@ def run_command(zookeeper_controller, command, options=None):
             msg = "Hint: don't forget to add actors!"
             logging.error(msg)
 
+    elif command == 'ensemble-start':
+        _ = Ensemble()
     elif command == 'reset':
         zookeeper_controller.set_controller_client()
         for i in data['workers']:
@@ -442,17 +360,29 @@ def main():
         # Initialize view
         view = View()
         view.print_view()
+        import socket
+        serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        serv.bind(('0.0.0.0', 8080))
+        serv.listen(5)
         while True:
-            commands = input('ICN-Stage >> ')
-            commands = commands.split(" ")
-            command = commands[0]
+            conn, addr = serv.accept()
 
-            options = None
-            if len(commands) > 1:
-                options = commands[1:]
+            while True:
+                data = conn.recv(4096)
+                #commands = input('ICN-Stage >> ')
+                #commands = commands.split(" ")
+                #command = commands[0]
 
-            logging.debug("command: {} options: {}".format(command, options))
-            run_command(zookeeper_controller, command, options)
+                options = None
+                #if len(commands) > 1:
+                #    options = commands[1:]
+                print(data.decode('utf-8'))
+                logging.debug("command: {} options: {}".format(data.decode('utf-8'), options))
+                run_command(zookeeper_controller, data.decode('utf-8'), options)
+                if not data:
+                    break
+        print('here')
+        conn.close()
 
 
 if __name__ == '__main__':
