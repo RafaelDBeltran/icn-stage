@@ -161,12 +161,15 @@ class DirectorEnsembleDaemon(Daemon):
                                 if current_data == b'1' and get_process_status() == True:
                                     #Subprocess que executa o icn-stage
                                     print("########### I am the choice one")
+                               
                                     pass
                                 elif current_data == b'1' and get_process_status() == False:
                                     print("########### I am the choice one: start thats nowwwww")
+                                    subprocess.call("python3 /home/paciente/icn-stage/icn-stage.py", shell=True)
                                 elif current_data == b'0' and get_process_status() == True:
                                     try:
                                         kill_process("icn_stage.py")
+                                        kill_process("daemon_director.py")
                                         print("########### I'm not the choice one")
                                     except:
                                         pass

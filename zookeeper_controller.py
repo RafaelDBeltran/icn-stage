@@ -89,9 +89,9 @@ class ZookeeperController:
                 ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
             sys.exit(-1)
 
-        #self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
+        self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
         sundry_instance = Sundry()
-        self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
+        #self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
         logging.info("zookeeper_ip_port: {}".format(self.zookeeper_ip_port))
         self.create_zookeeper_config_file()
 

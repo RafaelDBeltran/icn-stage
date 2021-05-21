@@ -214,9 +214,9 @@ class DirectorDaemon(Daemon):
 		self.zookeeper_controller = ZookeeperController()
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
-		#self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
+		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 		sundry_instance = Sundry()
-		self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
+		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
 
 	def set_sleep_seconds(self, sleep_seconds):
 		self.sleep_seconds = sleep_seconds
