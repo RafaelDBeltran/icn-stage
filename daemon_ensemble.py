@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import psutil
 import time
@@ -18,13 +20,15 @@ pattern = "(follower|leader)"
 from kazoo.client import KazooClient
 import numpy
 #from datetime import datetime
+import sys
+sys.path.insert(0,'..')
+#from extralib.daemon import Daemon
 from modules.extralib.daemon import Daemon
 #from zookeeper_controller import ZookeeperController
 
 DEFAULT_SLEEP_SECONDS = 60
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_IP_ADDRESS = '0.0.0.0'
 DEFAULT_SLEEP_CHECKING = 10
 
 if LOG_LEVEL == logging.DEBUG:
@@ -34,6 +38,9 @@ else:
     logging.basicConfig(format='%(asctime)s %(message)s',
                 datefmt=TIME_FORMAT, level=LOG_LEVEL, filemode='w')
 
+def get_ip_adapter(adapter):
+
+    return ni.ifaddresses(adapter)[ni.AF_INET][0]['addr']
 
 def detect_my_role(hp,port):
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -47,9 +54,7 @@ def detect_my_role(hp,port):
 
     return role.group()
 
-def get_ip_adapter(adapter):
-
-    return ni.ifaddresses(adapter)[ni.AF_INET][0]['addr']
+DEFAULT_IP_ADDRESS = get_ip_adapter('enp0s8')
 
 def ping(ip):
     try:
@@ -101,7 +106,7 @@ class DirectorEnsembleDaemon(Daemon):
 
             self.role_path = "/zookeeper/roles/{}".format(get_ip_adapter('enp0s8'))
 
-            self.zk = KazooClient(hosts = DEFAULT_IP_ADDRESS+':2181')
+            self.zk = KazooClient(hosts = DEFAULT_IP_ADDRESS+':2181',connection_retry = 10)
             self.zk.start()
 
             if self.zk.exists(self.role_path):
@@ -233,6 +238,14 @@ def main():
         director_ensemble = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
         #director_ensemble.set_sleep_secs(args.sleep)
         director_ensemble.start()
+
+        while(True):
+            process_status = subprocess.Popen("ps aux | grep daemon_ensemble.py", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            for line in process_status.stdout.readlines():
+                if "python3 icn-stage.py" in line.decode('utf-8'):
+                    break
+                else:
+                    director_ensemble.start()
 
     elif sys.argv[1] == '--stop':
 

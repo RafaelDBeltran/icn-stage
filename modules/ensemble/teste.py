@@ -42,24 +42,8 @@ class Ensemble:
             channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
                     password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
 
-            channel.run("sudo mkdir /opt/")
-            channel.run("sudo wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P /opt/")
-            #channel.run("cd && cd /opt/")
-            channel.run("cd && cd /opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz")
-            channel.run("cd && cd /opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper")
-            channel.run("cd && cd /opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz")
-            channel.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "/opt/zookeeper/conf/zoo.cfg")
-        
-            channel.run("rm -rf /data/zookeeper/ ")
-            channel.run("mkdir -p /data/zookeeper")
-            print("echo {} > /data/zookeeper/myid".format(i['remote_id']))
-            channel.run("echo {} > /data/zookeeper/myid".format(i['remote_id']))
-            channel.run("bash /opt/zookeeper/bin/zkServer.sh stop")
-            time.sleep(3)
-            channel.run("bash /opt/zookeeper/bin/zkServer.sh start")
-            time.sleep(15)
-            channel.run("bash /home/paciente/opt/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
-            #channel.run("python3 daemon_ensemble.py --start ")
+            channel.run("bash /root/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+            channel.run("cd /root/root/modules/ensemble & python3 daemon_ensemble.py --start")
             #channel.run("echo `pwd` > path.out ")
 
         f.close() 

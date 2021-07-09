@@ -270,6 +270,7 @@ def run_command(zookeeper_controller, command, options=None):
 
     elif command == 'ensemble-start':
         _ = Ensemble()
+        
     elif command == 'reset':
         zookeeper_controller.set_controller_client()
         for i in data['workers']:
