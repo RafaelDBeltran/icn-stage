@@ -240,9 +240,10 @@ def main():
         director_ensemble.start()
 
         while(True):
+            time.sleep(2.5)
             process_status = subprocess.Popen("ps aux | grep daemon_ensemble.py", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for line in process_status.stdout.readlines():
-                if "python3 icn-stage.py" in line.decode('utf-8'):
+                if "daemon_ensemble.py" in line.decode('utf-8'):
                     break
                 else:
                     director_ensemble.start()

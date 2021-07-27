@@ -6,4 +6,5 @@ while True:
     client.send(str.encode(input("Command:> ")))
 
 
+
 client.close()
