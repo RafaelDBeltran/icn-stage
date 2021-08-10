@@ -30,7 +30,7 @@ class Ensemble:
         server.3=your_zookeeper_node_3:2888:3888\n\
         '''
 
-        f = open('settings.json')
+        f = open('config.json')
 
         data = json.load(f)
         for count, i in enumerate(data['Nodes']): 

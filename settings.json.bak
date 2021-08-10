@@ -1,0 +1,40 @@
+
+{
+    "Nodes": [
+
+        {
+            "remote_id": "1",
+            "remote_host": "192.168.133.22",
+            "remote_username": "root",
+            "remote_password": "123",
+            "remote_pkey_path": "/home/paciente/.ssh/id_rsa"
+        },
+        {
+            "remote_id": "2",
+            "remote_host": "192.168.133.23",
+            "remote_username": "root",
+            "remote_password": "123",
+            "remote_pkey_path": "/home/paciente/.ssh/id_rsa"
+        },
+ 	    {
+            "remote_id": "3",
+            "remote_host": "192.168.133.24",
+            "remote_username": "root",
+            "remote_password": "123",
+            "remote_pkey_path": "/home/paciente/.ssh/id_rsa"
+        }
+	 
+
+ ],
+    "Settings": [
+        {
+            "TickTime": 0,
+            "MinSessionTimeOut": 6000,
+            "MaxSessionTimeOut": 1200,
+            "InitLimit": 10,
+            "SyncLimit": 5,
+            "ClientPort": 2181,
+            "MaxClientCnxns": 256
+        }
+    ]
+}
