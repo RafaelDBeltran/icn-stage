@@ -125,9 +125,9 @@ class ZookeeperController:
 
     def create_zookeeper_config_file(self):
 
-        subprocess.call("sudo mkdir /opt/", shell=True)
+        subprocess.call("mkdir /opt/", shell=True)
 
-        subprocess.call("sudo wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P /opt/", shell=True)
+        subprocess.call("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P /opt/", shell=True)
         subprocess.call("cd && cd /opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
         subprocess.call("cd && cd /opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper", shell=True)
         subprocess.call("cd && cd /opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
