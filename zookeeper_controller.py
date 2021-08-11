@@ -62,7 +62,7 @@ def get_diff_tabs(n, word):
 
 
 class ZookeeperController:
-    DEFAULT_ZOOKEEPER_PATH = "/opt/zookeeper/"
+    DEFAULT_ZOOKEEPER_PATH = "~/opt/zookeeper/"
     DEFAULT_CONFIG_FILE = "config.json"
     DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
     minSessionTimeout=30000\n\
@@ -125,12 +125,12 @@ class ZookeeperController:
 
     def create_zookeeper_config_file(self):
 
-        subprocess.call("mkdir /opt/", shell=True)
+        subprocess.call("mkdir ~/opt/", shell=True)
 
-        subprocess.call("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P /opt/", shell=True)
-        subprocess.call("cd && cd /opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
-        subprocess.call("cd && cd /opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper", shell=True)
-        subprocess.call("cd && cd /opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
+        subprocess.call("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P ~/opt/", shell=True)
+        subprocess.call("cd && cd ~/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
+        subprocess.call("cd && cd ~/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper", shell=True)
+        subprocess.call("cd && cd ~/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
 
         new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
         zookeeper_config_file = "%s/conf/zoo.cfg"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
