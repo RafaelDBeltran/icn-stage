@@ -10,7 +10,6 @@ import time
 from modules.conlib.controller_client import ControllerClient
 from modules.conlib.remote_access import Channel
 from modules.util.tools import Sundry
-from modules.ensemble.create_ensemble import Ensemble
 from time import sleep
 from kazoo.client import *
 import kazoo
@@ -125,7 +124,14 @@ class ZookeeperController:
         return netifaces.ifaddresses(self.adapter)[netifaces.AF_INET][0]['addr']
 
     def create_zookeeper_config_file(self):
-        _ = Ensemble(default_action='Active')
+
+        subprocess.call("sudo mkdir /opt/", shell=True)
+
+        subprocess.call("sudo wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P /opt/", shell=True)
+        subprocess.call("cd && cd /opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
+        subprocess.call("cd && cd /opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper", shell=True)
+        subprocess.call("cd && cd /opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
+
         new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
         zookeeper_config_file = "%s/conf/zoo.cfg"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
         text_file = open(zookeeper_config_file, "w")
