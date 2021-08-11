@@ -14,7 +14,7 @@ import time
 sundry = Sundry()
 _timeout = 2
 class Ensemble:
-    def __init__(self):                
+    def __init__(self, default_action = None):                
         self.ANSEMBLE_CONFIG_DATA = '''
         tickTime=2000\n\
         dataDir=/data/zookeeper\n\
@@ -54,11 +54,12 @@ class Ensemble:
             channel.run("mkdir -p /data/zookeeper")
             print("echo {} > /data/zookeeper/myid".format(i['remote_id']))
             channel.run("echo {} > /data/zookeeper/myid".format(i['remote_id']))
-            channel.run("bash /opt/zookeeper/bin/zkServer.sh stop")
-            time.sleep(3)
-            channel.run("bash /opt/zookeeper/bin/zkServer.sh start")
-            time.sleep(15)
-            channel.run("bash /home/paciente/opt/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+            if(default_action != None):
+                channel.run("bash /opt/zookeeper/bin/zkServer.sh stop")
+                time.sleep(3)
+                channel.run("bash /opt/zookeeper/bin/zkServer.sh start")
+                time.sleep(15)
+                channel.run("bash /home/paciente/opt/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
             #channel.run("python3 daemon_ensemble.py --start ")
             #channel.run("echo `pwd` > path.out ")
 

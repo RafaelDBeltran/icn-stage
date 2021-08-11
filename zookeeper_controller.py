@@ -10,6 +10,7 @@ import time
 from modules.conlib.controller_client import ControllerClient
 from modules.conlib.remote_access import Channel
 from modules.util.tools import Sundry
+from modules.ensemble.create_ensemble import Ensemble
 from time import sleep
 from kazoo.client import *
 import kazoo
@@ -62,7 +63,7 @@ def get_diff_tabs(n, word):
 
 
 class ZookeeperController:
-    DEFAULT_ZOOKEEPER_PATH = "./apache-zookeeper-3.6.2/"
+    DEFAULT_ZOOKEEPER_PATH = "/opt/zookeeper/"
     DEFAULT_CONFIG_FILE = "config.json"
     DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
     minSessionTimeout=30000\n\
@@ -124,6 +125,7 @@ class ZookeeperController:
         return netifaces.ifaddresses(self.adapter)[netifaces.AF_INET][0]['addr']
 
     def create_zookeeper_config_file(self):
+        _ = Ensemble(default_action='Active')
         new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
         zookeeper_config_file = "%s/conf/zoo.cfg"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
         text_file = open(zookeeper_config_file, "w")

@@ -269,7 +269,7 @@ def run_command(zookeeper_controller, command, options=None):
             logging.error(msg)
 
     elif command == 'ensemble-start':
-        _ = Ensemble()
+        _ = Ensemble(default_action='Active')
         
     elif command == 'reset':
         zookeeper_controller.set_controller_client()
