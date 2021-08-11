@@ -134,6 +134,7 @@ class ZookeeperController:
 
         new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
         zookeeper_config_file = "%s/conf/zoo.cfg"%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        zookeeper_config_file = zookeeper_config_file.replace('//', '/')
         text_file = open(zookeeper_config_file, "w")
         text_file.write(new_my_config_file)
         text_file.close()
