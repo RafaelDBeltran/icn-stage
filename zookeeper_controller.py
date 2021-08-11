@@ -74,7 +74,7 @@ class ZookeeperController:
     clientPortAddress=NEW_IP\n\
     maxClientCnxns=200\n\
     '''
-    ZK_CMD = ['%s/bin/zkServer.sh' % DEFAULT_ZOOKEEPER_PATH]
+    ZK_CMD = ['{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH).replace('//','/')]
 
     def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
         logging.info("looking for zookeeper config file: {}".format(config_file_))
