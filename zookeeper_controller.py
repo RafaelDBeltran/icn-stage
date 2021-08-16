@@ -62,7 +62,7 @@ def get_diff_tabs(n, word):
 
 
 class ZookeeperController:
-    DEFAULT_ZOOKEEPER_PATH = "~/opt/zookeeper/"
+    DEFAULT_ZOOKEEPER_PATH = "/home/minion/opt/zookeeper/"
     DEFAULT_CONFIG_FILE = "config.json"
     DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
     minSessionTimeout=30000\n\
@@ -150,8 +150,8 @@ class ZookeeperController:
     def is_running():
         cmd = ZookeeperController.ZK_CMD.replace('//','/')
         cmd = cmd + ' status'
-        subprocess.run('cat ~/teste.dat')
-        return_code = subprocess.run(cmd).returncode
+        subprocess.run('cat ~/teste.dat', shell = True)
+        return_code = subprocess.run(cmd, shell = True).returncode
         
         if return_code == 0:
             return True
