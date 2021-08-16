@@ -149,7 +149,7 @@ class ZookeeperController:
     @staticmethod
     def is_running():
         cmd = ZookeeperController.ZK_CMD.replace('//','/')
-        cmd.append('status')
+        cmd = cmd + ' status'
         return_code = subprocess.run(cmd).returncode
         if return_code == 0:
             return True
