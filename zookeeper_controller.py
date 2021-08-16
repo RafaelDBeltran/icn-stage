@@ -150,7 +150,9 @@ class ZookeeperController:
     def is_running():
         cmd = ZookeeperController.ZK_CMD.replace('//','/')
         cmd = cmd + ' status'
+        subprocess.run('cat ~/teste.dat')
         return_code = subprocess.run(cmd).returncode
+        
         if return_code == 0:
             return True
         else:
