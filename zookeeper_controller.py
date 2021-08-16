@@ -74,7 +74,7 @@ class ZookeeperController:
     clientPortAddress=NEW_IP\n\
     maxClientCnxns=200\n\
     '''
-    ZK_CMD = ['{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH).replace('//','/')]
+    ZK_CMD = '{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH)
 
     def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
         logging.info("looking for zookeeper config file: {}".format(config_file_))
@@ -148,7 +148,7 @@ class ZookeeperController:
 
     @staticmethod
     def is_running():
-        cmd = ZookeeperController.ZK_CMD
+        cmd = ZookeeperController.ZK_CMD.replace('//','/')
         cmd.append('status')
         return_code = subprocess.run(cmd).returncode
         if return_code == 0:
