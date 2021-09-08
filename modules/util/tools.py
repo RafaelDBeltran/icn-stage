@@ -46,6 +46,7 @@ class View:
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from Crypto.PublicKey import RSA
 import tarfile
 import os
 
@@ -54,18 +55,20 @@ class Sundry:
 
     @staticmethod
     def get_pkey(path):
-        with open(path, "rb") as key_file:
-            private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
-            )
+        # with open(path, "rb") as key_file:
+        #     private_key = serialization.load_pem_private_key(
+        #         key_file.read(),
+        #         password=None,
+        #         backend=default_backend()
+        #     )
 
-        pem = private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption())
-
+        # pem = private_key.private_bytes(
+        #     encoding=serialization.Encoding.PEM,
+        #     format=serialization.PrivateFormat.TraditionalOpenSSL,
+        #     encryption_algorithm=serialization.NoEncryption())
+        
+        f = open(path,'r')
+        pem = RSA.importKey(f.read(),  passphrase='')
         return pem.decode('utf-8')
 
     @staticmethod
