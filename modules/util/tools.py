@@ -55,21 +55,19 @@ class Sundry:
 
     @staticmethod
     def get_pkey(path):
-        # with open(path, "rb") as key_file:
-        #     private_key = serialization.load_pem_private_key(
-        #         key_file.read(),
-        #         password=None,
-        #         backend=default_backend()
-        #     )
+        with open(path, "rb") as key_file:
+            private_key = serialization.load_pem_private_key(
+                key_file.read(),
+                password=None,
+                backend=default_backend()
+            )
 
-        # pem = private_key.private_bytes(
-        #     encoding=serialization.Encoding.PEM,
-        #     format=serialization.PrivateFormat.TraditionalOpenSSL,
-        #     encryption_algorithm=serialization.NoEncryption())
-        
-        f = open(path,'r')
-        pem = RSA.importKey(f.read(),  passphrase='')
-        return pem
+        pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption())
+
+        return pem.decode('utf-8')
 
     @staticmethod
     def compress_dir(input_dir_, output_file_):
