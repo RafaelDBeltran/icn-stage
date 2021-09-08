@@ -62,7 +62,8 @@ def get_diff_tabs(n, word):
 
 
 class ZookeeperController:
-    DEFAULT_ZOOKEEPER_PATH = "/home/minion/opt/zookeeper/"
+    DEFAULT_USER_PATH = "/home/minion"
+    DEFAULT_ZOOKEEPER_PATH = DEFAULT_USER_PATH + "/opt/zookeeper/"
     DEFAULT_CONFIG_FILE = "config.json"
     DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
     minSessionTimeout=30000\n\
@@ -125,32 +126,26 @@ class ZookeeperController:
 
     def create_zookeeper_config_file(self):
 
-        subprocess.call("mkdir ~/opt/", shell=True)
+        subprocess.call("mkdir {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
 
-        subprocess.call("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P ~/opt/", shell=True)
-        subprocess.call("cd && cd ~/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
-        subprocess.call("cd && cd ~/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper", shell=True)
-        subprocess.call("cd && cd ~/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz", shell=True)
+        subprocess.call("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
+        subprocess.call("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
+        subprocess.call("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
+        subprocess.call("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
 
         new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
-        subprocess.call("echo " + "'{}'".format(new_my_config_file) + " > " + "~/opt/zookeeper/conf/zoo.cfg", shell=True)
-
-        # zookeeper_config_file = "{}/conf/zoo.cfg".format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
-        # zookeeper_config_file = zookeeper_config_file.replace('//', '/')
-        # text_file = open(zookeeper_config_file, "w+")
-        # text_file.write(new_my_config_file)
-        # text_file.close()
+        subprocess.call("echo " + "'{}'".format(new_my_config_file) + " > " + "/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH), shell=True)
 
     @staticmethod
     def get_status():
-        cmd = '%s/bin/zkServer.sh status' % ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        cmd = '{}/bin/zkServer.sh status'.format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
         return os.popen(cmd).read()
 
     @staticmethod
     def is_running():
         cmd = ZookeeperController.ZK_CMD.replace('//','/')
         cmd = cmd + ' status'
-        subprocess.run('cat ~/teste.dat', shell = True)
+
         return_code = subprocess.run(cmd, shell = True).returncode
         
         if return_code == 0:
@@ -160,7 +155,7 @@ class ZookeeperController:
 
     @staticmethod
     def am_i_the_leader():
-        cmd = '%s/bin/zkServer.sh status'%ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        cmd = '{}/bin/zkServer.sh status'.format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
         status = os.popen(cmd).read()
         try:
             if status.index('leader'):
@@ -175,18 +170,18 @@ class ZookeeperController:
     @staticmethod
     def start_zookeeper_service():
         logging.info("STARTING ZK")
-        cmd = "%s/bin/zkServer.sh start" % ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        cmd = "{}/bin/zkServer.sh start".format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
         subprocess.call(cmd, shell=True)
 
     @staticmethod
     def stop_zookeeper_service():
         logging.info("STOPPING ZK")
-        cmd = "%s/bin/zkServer.sh stop" % ZookeeperController.DEFAULT_ZOOKEEPER_PATH
+        cmd = "{}/bin/zkServer.sh stop".format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
         subprocess.call(cmd, shell=True)
 
         #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
 
-    # TODO H� varias etapas redundantes, da pra reduzir pela metade esse metodo.
+    # TODO Há varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_tasks(self):
 
         logging.info("\tRemoving tasks... ")
