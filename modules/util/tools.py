@@ -69,7 +69,7 @@ class Sundry:
         
         f = open(path,'r')
         pem = RSA.importKey(f.read(),  passphrase='')
-        return pem.decode('utf-8')
+        return pem
 
     @staticmethod
     def compress_dir(input_dir_, output_file_):
