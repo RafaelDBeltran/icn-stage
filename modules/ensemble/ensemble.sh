@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 /home/paciente/opt/daemon_ensemble.py --start
+python3 /home/minion/opt/icn-stage/daemon_ensemble.py --start
 
 
 echo 'rodou' >> out.log
