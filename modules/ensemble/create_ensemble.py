@@ -60,7 +60,7 @@ class Ensemble:
                 time.sleep(3)
                 channel.run("bash {}/opt/zookeeper/bin/zkServer.sh start".format(self.DEFAULT_USER_PATH))
                 time.sleep(15)
-                channel.run("bash /home/minion/opt/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+                channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
             #channel.run("python3 daemon_ensemble.py --start ")
             #channel.run("echo `pwd` > path.out ")
 
