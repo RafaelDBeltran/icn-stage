@@ -8,3 +8,4 @@ psutil
 progressbar2
 logging-reset
 matplotlib
+pycryptodome
