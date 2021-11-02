@@ -86,9 +86,10 @@ class ZookeeperController:
 
         else:
             logging.info("Config file not found! Config file name: '%s'" % config_file_)
-            logging.info("You may want to create a config file from the available example: cp %s.example %s" % (
-                ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
-            sys.exit(-1)
+            # logging.info("You may want to create a config file from the available example: cp %s.example %s" % (
+            #     ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
+            # sys.exit(-1)
+            self.create_zookeeper_config_file()
 
         self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
         sundry_instance = Sundry()
