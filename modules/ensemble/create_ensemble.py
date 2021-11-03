@@ -14,7 +14,7 @@ import time
 sundry = Sundry()
 _timeout = 2
 class Ensemble:
-    DEFAULT_USER_PATH = "/home/minion"
+    DEFAULT_USER_PATH = "~/home/minion"
     def __init__(self, default_action = None):                
         self.ANSEMBLE_CONFIG_DATA = '''
         tickTime=2000\n\

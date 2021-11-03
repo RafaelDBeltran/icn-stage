@@ -170,7 +170,7 @@ class DirectorEnsembleDaemon(Daemon):
                                     pass
                                 elif current_data == b'1' and get_process_status() == False:
                                     print("########### I am the choice one: start thats nowwwww")
-                                    subprocess.call("python3 /home/paciente/icn-stage/icn-stage.py", shell=True)
+                                    subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
                                 elif current_data == b'0' and get_process_status() == True:
                                     try:
                                         kill_process("icn_stage.py")
