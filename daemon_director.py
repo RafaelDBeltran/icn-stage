@@ -216,16 +216,16 @@ class DirectorDaemon(Daemon):
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
 		try:
-			zk = KazooClient(hosts = '0.0.0.0:2181',connection_retry = 10)
+			zk = KazooClient(hosts = '192.168.133.83:2181',connection_retry = 10)
 			zk.start()
 
 			data, _ = zk.get("/zookeeper/roles/leader")
 			self.zookeeper_ip_port = data.decode('utf-8') +':2181'
-			logging.log("IP no modo ENSEMBLE {}".format(self.zookeeper_ip_port))
+			logging.debug("IP no modo ENSEMBLE {}".format(self.zookeeper_ip_port))
 		except:
 			self.zookeeper_controller = ZookeeperController()
 			self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
-			logging.log("IP no modo NORMAL {}".format(self.zookeeper_ip_port))
+			logging.debug("IP no modo NORMAL {}".format(self.zookeeper_ip_port))
 		sundry_instance = Sundry()
 		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
 
