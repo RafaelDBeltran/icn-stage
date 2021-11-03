@@ -22,8 +22,8 @@ class Ensemble:
         clientPort=2181\n\
         4lw.commands.whitelist=*\n\
         maxClientCnxns=60\n\
-        initLimit=10\n\
-        syncLimit=5\n\
+        initLimit=120\n\
+        syncLimit=120\n\
         standaloneEnabled=true\n\
         admin.enableServer=true\n\
         server.1=your_zookeeper_node_1:2888:3888\n\
