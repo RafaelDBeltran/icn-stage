@@ -14,7 +14,7 @@ import time
 sundry = Sundry()
 _timeout = 2
 class Ensemble:
-    DEFAULT_USER_PATH = "~/home/minion"
+    DEFAULT_USER_PATH = "/home/minion"
     def __init__(self, default_action = None):                
         self.ANSEMBLE_CONFIG_DATA = '''
         tickTime=2000\n\
@@ -43,8 +43,8 @@ class Ensemble:
             channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
                     password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
 
-            channel.run("sudo mkdir {}/opt/".format(self.DEFAULT_USER_PATH))
-            channel.run("sudo wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH))
+            channel.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH))
+            channel.run("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH))
             #channel.run("cd && cd /opt/")
             channel.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
             channel.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH))
