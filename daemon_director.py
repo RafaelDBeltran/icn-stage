@@ -27,7 +27,6 @@ from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
 from modules.util.tools import Sundry
-from kazoo.client import KazooClient
 '''
 data = json.load(open('config.json'))
 my_adapter_ip = ConfigHelper(data["zookeeper_adapter"])
@@ -212,20 +211,10 @@ class DirectorDaemon(Daemon):
 
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
-		
+		self.zookeeper_controller = ZookeeperController()
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
-		try:
-			zk = KazooClient(hosts = '192.168.133.83:2181',connection_retry = 10)
-			zk.start()
-
-			data, _ = zk.get("/zookeeper/roles/leader")
-			self.zookeeper_ip_port = data.decode('utf-8') +':2181'
-			logging.debug("IP no modo ENSEMBLE {}".format(self.zookeeper_ip_port))
-		except:
-			self.zookeeper_controller = ZookeeperController()
-			self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
-			logging.debug("IP no modo NORMAL {}".format(self.zookeeper_ip_port))
+		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 		sundry_instance = Sundry()
 		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
 
