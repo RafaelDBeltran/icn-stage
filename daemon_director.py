@@ -27,6 +27,7 @@ from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
 from modules.util.tools import Sundry
+from kazoo.client import KazooClient
 '''
 data = json.load(open('config.json'))
 my_adapter_ip = ConfigHelper(data["zookeeper_adapter"])
@@ -214,7 +215,14 @@ class DirectorDaemon(Daemon):
 		self.zookeeper_controller = ZookeeperController()
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
-		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
+		try:
+			zk = KazooClient(hosts = self.zookeeper_controller.zookeeper_ip_port+':2181',connection_retry = 10)
+			zk.start()
+
+			data, _ = zk.get("/zookeeper/roles/leader")
+			self.zookeeper_ip_port = data.decode('utf-8') +':2181'
+		except:
+			self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 		sundry_instance = Sundry()
 		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
 

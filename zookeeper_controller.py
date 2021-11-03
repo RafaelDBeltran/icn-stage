@@ -122,7 +122,7 @@ class ZookeeperController:
 
     def get_ip_adapter(self):
         # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
-        netifaces.ifaddresses(self.adapter)
+        # netifaces.ifaddresses(self.adapter)
         return netifaces.ifaddresses(self.adapter)[netifaces.AF_INET][0]['addr']
 
     def create_zookeeper_config_file(self):

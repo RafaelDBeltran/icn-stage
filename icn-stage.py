@@ -70,7 +70,7 @@ _log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
 data = json.load(open('config.json'))
-
+Ensemble_status = False
 
 def set_logging(level=DEFAULT_LOG_LEVEL):
 
@@ -270,6 +270,7 @@ def run_command(zookeeper_controller, command, options=None):
 
     elif command == 'ensemble-start':
         _ = Ensemble(default_action='Active')
+        Ensemble_status = True
         
     elif command == 'reset':
         zookeeper_controller.set_controller_client()
