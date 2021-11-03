@@ -53,8 +53,8 @@ class Ensemble:
         
             channel.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH))
             channel.run("mkdir -p {}/data/zookeeper".format(self.DEFAULT_USER_PATH))
-            print("echo {} > {}/data/zookeeper/myid".format(count, self.DEFAULT_USER_PATH))
-            channel.run("echo {} > {}/data/zookeeper/myid".format(count, self.DEFAULT_USER_PATH))
+            print("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
+            channel.run("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
             if(default_action != None):
                 channel.run("bash {}/opt/zookeeper/bin/zkServer.sh stop".format(self.DEFAULT_USER_PATH))
                 time.sleep(3)
