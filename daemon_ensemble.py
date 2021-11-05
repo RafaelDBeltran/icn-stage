@@ -161,7 +161,7 @@ class DirectorEnsembleDaemon(Daemon):
                         for i in list(self.my_dict.items()):
                             current_ip = get_ip_adapter('enp0s8')
                             if i != self.res and i[0] == current_ip:
-                                current_data, _ = self.zk.get_async("/zookeeper/roles/{}/status/".format(current_ip))
+                                current_data, _ = self.zk.get("/zookeeper/roles/{}/status/".format(current_ip))
                                 
                                 if current_data == b'1' and get_process_status() == True:
                                     #Subprocess que executa o icn-stage
@@ -181,6 +181,7 @@ class DirectorEnsembleDaemon(Daemon):
                                 else:
                                     print("########### Not to do")
                                     pass
+                    time.sleep(5)
                                     
                                 
 
