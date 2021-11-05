@@ -106,7 +106,7 @@ class DirectorEnsembleDaemon(Daemon):
 
             self.role_path = "/zookeeper/roles/{}".format(get_ip_adapter('enp0s8'))
 
-            self.zk = KazooClient(hosts = DEFAULT_IP_ADDRESS+':2181',connection_retry = 10)
+            self.zk = KazooClient(hosts = DEFAULT_IP_ADDRESS+':2181',connection_retry = 100, timeout = 60)
             self.zk.start()
 
             if self.zk.exists(self.role_path):
