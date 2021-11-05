@@ -240,13 +240,22 @@ def main():
         director_ensemble.start()
 
         while(True):
-            time.sleep(2.5)
-            process_status = subprocess.Popen("ps aux | grep daemon_ensemble.py", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            for line in process_status.stdout.readlines():
-                if "daemon_ensemble.py" in line.decode('utf-8'):
-                    break
-                else:
-                    director_ensemble.start()
+            #time.sleep(2.5)
+            # process_status = subprocess.Popen("ps aux | grep daemon_ensemble.py", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            # for line in process_status.stdout.readlines():
+            #     if "daemon_ensemble.py" in line.decode('utf-8'):
+            #         break
+            #     else:
+            #         director_ensemble.start()
+            p = subprocess.Popen(['pgrep', '-f', 'daemon_ensemble.py'], stdout=subprocess.PIPE)
+            out, err = p.communicate()
+
+            if len(out.strip()) == 0:
+                director_ensemble.start()
+            else:
+                break
+
+
 
     elif sys.argv[1] == '--stop':
 
