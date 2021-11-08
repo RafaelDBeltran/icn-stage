@@ -59,9 +59,23 @@ class Ensemble:
                 channel.run("bash {}/opt/zookeeper/bin/zkServer.sh stop".format(self.DEFAULT_USER_PATH))
                 time.sleep(3)
                 channel.run("bash {}/opt/zookeeper/bin/zkServer.sh start".format(self.DEFAULT_USER_PATH))
-                time.sleep(15)
+                # time.sleep(15)
+                # channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+            #channel.run("python3 daemon_ensemble.py --start ")
+            #channel.run("echo `pwd` > path.out ")
+
+
+        for count,i in enumerate(data['Nodes']): 
+
+            channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
+                    password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
+            if(default_action != None):
+
                 channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
             #channel.run("python3 daemon_ensemble.py --start ")
             #channel.run("echo `pwd` > path.out ")
+
+
+
 
         f.close() 
