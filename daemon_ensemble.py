@@ -50,9 +50,16 @@ def detect_my_role(hp,port):
     sk.send(b'srvr')
     role = sk.recv(1024)
     role = role.decode('utf-8')
-    role = re.search(pattern, role)
 
-    return role.group()
+    if role.find("leader") != -1: 
+        return "leader"
+    else:
+        return "follower"
+
+
+    # role = re.search(pattern, role)
+
+    # return role.group()
 
 DEFAULT_IP_ADDRESS = get_ip_adapter('enp0s8')
 
