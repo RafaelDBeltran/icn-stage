@@ -95,7 +95,7 @@ class ZookeeperController:
         sundry_instance = Sundry()
         #self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
         logging.info("zookeeper_ip_port: {}".format(self.zookeeper_ip_port))
-        self.create_zookeeper_config_file()
+        #self.create_zookeeper_config_file()
 
         if not self.is_running():
             logging.info("Zookeeper Service is not running.")
