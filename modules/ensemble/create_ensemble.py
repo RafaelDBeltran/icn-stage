@@ -91,8 +91,8 @@ class Ensemble:
 
             if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
 
-                daemon_ensemble_instacnce = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
-                daemon_ensemble_instacnce.start()
+                # daemon_ensemble_instacnce = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
+                # daemon_ensemble_instacnce.start()
                 # subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
                 #python3 /home/minion/icn-stage/daemon_ensemble.py --start
                 subprocess.call(['sh','./ensemble.sh'])
