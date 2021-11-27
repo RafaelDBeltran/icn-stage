@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import sys
-
+import netifaces
 
 # class ConfigHelper:
 #
@@ -93,3 +93,9 @@ class Sundry:
             JSON_ADRESS += (i['remote_host']+':'+str(JSON_PORT)+',')
 
         return JSON_ADRESS[:-1]
+
+    @staticmethod
+    def get_ip_adapter(adapter):
+        # Como o ip do fibre eh dinamico, essa funcao e necessaria para sempre pegar o ip dinamico para o zookeeper.
+        # netifaces.ifaddresses(self.adapter)
+        return netifaces.ifaddresses(adapter)[netifaces.AF_INET][0]['addr']

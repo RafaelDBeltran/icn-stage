@@ -1,5 +1,5 @@
 import json
-import os, sys
+import os, sys, subprocess
 try:
     currentdir = os.path.dirname(os.path.realpath(__file__))
     parentdir = os.path.dirname(currentdir)
@@ -40,40 +40,64 @@ class Ensemble:
 
         for count,i in enumerate(data['Nodes']): 
 
-            channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
-                    password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
+            if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
 
-            channel.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH))
-            channel.run("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH))
-            #channel.run("cd && cd /opt/")
-            channel.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
-            channel.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH))
-            channel.run("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
-            channel.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "{}/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH))
-        
-            channel.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH))
-            channel.run("mkdir -p {}/data/zookeeper".format(self.DEFAULT_USER_PATH))
-            print("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
-            channel.run("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
-            if(default_action != None):
-                channel.run("bash {}/opt/zookeeper/bin/zkServer.sh stop".format(self.DEFAULT_USER_PATH))
-                time.sleep(3)
-                channel.run("bash {}/opt/zookeeper/bin/zkServer.sh start".format(self.DEFAULT_USER_PATH))
-                # time.sleep(15)
-                # channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
-            #channel.run("python3 daemon_ensemble.py --start ")
-            #channel.run("echo `pwd` > path.out ")
+                subprocess.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "{}/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("mkdir -p {}/data/zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
+                print("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH), shell=True)
+                if(default_action != None):
+                    subprocess.run("bash {}/opt/zookeeper/bin/zkServer.sh stop".format(self.DEFAULT_USER_PATH), shell=True)
+                    time.sleep(3)
+                    subprocess.run("bash {}/opt/zookeeper/bin/zkServer.sh start".format(self.DEFAULT_USER_PATH), shell=True)
+            
+            else:
+                channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
+                        password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
+
+                channel.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH))
+                channel.run("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH))
+                #channel.run("cd && cd /opt/")
+                channel.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
+                channel.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH))
+                channel.run("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
+                channel.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "{}/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH))
+            
+                channel.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH))
+                channel.run("mkdir -p {}/data/zookeeper".format(self.DEFAULT_USER_PATH))
+                print("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
+                channel.run("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
+                if(default_action != None):
+                    channel.run("bash {}/opt/zookeeper/bin/zkServer.sh stop".format(self.DEFAULT_USER_PATH))
+                    time.sleep(3)
+                    channel.run("bash {}/opt/zookeeper/bin/zkServer.sh start".format(self.DEFAULT_USER_PATH))
+                    # time.sleep(15)
+                    # channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+                #channel.run("python3 daemon_ensemble.py --start ")
+                #channel.run("echo `pwd` > path.out ")
 
 
         for count,i in enumerate(data['Nodes']): 
 
-            channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
-                    password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
-            if(default_action != None):
+            if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
 
-                channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
-            #channel.run("python3 daemon_ensemble.py --start ")
-            #channel.run("echo `pwd` > path.out ")
+                subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+            
+            else:
+
+                channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
+                        password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
+                if(default_action != None):
+
+                    channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+                #channel.run("python3 daemon_ensemble.py --start ")
+                #channel.run("echo `pwd` > path.out ")
 
 
 
