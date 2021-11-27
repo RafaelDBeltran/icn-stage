@@ -12,7 +12,7 @@ import socket
 import re
 import random
 import netifaces as ni
-
+from retry import retry
 
 pattern = "(follower|leader)"
 
@@ -105,7 +105,8 @@ class DirectorEnsembleDaemon(Daemon):
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 
         super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
-        
+    
+    @retry(wait_random_min=1000, wait_random_max=2000)   
     def run(self):
         
         while True:
@@ -158,9 +159,9 @@ class DirectorEnsembleDaemon(Daemon):
                         break
             
             else:
+                
                 while True:
                     self.my_dict = {}
-
                     for i in self.zk.get_children("/zookeeper/roles/"):
                         data, _ = self.zk.get("/zookeeper/roles/{}".format(i))
                         self.my_dict[i] = data
