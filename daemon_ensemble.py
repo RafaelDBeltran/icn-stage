@@ -189,6 +189,7 @@ class DirectorEnsembleDaemon(Daemon):
                                 else:
                                     print("########### Not to do")
                                     pass
+            self.zk.stop()
 
                                     
                                 
