@@ -6,6 +6,7 @@ try:
     sys.path.append(parentdir)
     from conlib.remote_access import Channel
     from util.tools import Sundry
+    from daemon_ensemble import DirectorEnsembleDaemon
 except:
     print('Import error')    
 import time
@@ -87,7 +88,9 @@ class Ensemble:
 
             if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
 
-                subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+                daemon_ensemble_instacnce = DirectorEnsembleDaemon()
+                daemon_ensemble_instacnce.start()
+                # subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
             
             else:
 
