@@ -50,7 +50,7 @@ class Ensemble:
                 subprocess.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "{}/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH), shell=True)
                 subprocess.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH), shell=True)
                 subprocess.run("mkdir -p {}/data/zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
-                print("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH), shell=True)
+                print("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH))
                 subprocess.run("echo {} > {}/data/zookeeper/myid".format(count+1, self.DEFAULT_USER_PATH), shell=True)
                 if(default_action != None):
                     subprocess.run("bash {}/opt/zookeeper/bin/zkServer.sh stop".format(self.DEFAULT_USER_PATH), shell=True)
