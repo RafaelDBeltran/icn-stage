@@ -11,6 +11,9 @@ except:
     print('Import error')    
 import time
 
+pid_file = "/tmp/daemon_director_ensemble_%s.pid" % '1'
+stdout = "/tmp/daemon_director_ensemble_%s.stdout" % '1'
+stderr = "/tmp/daemon_director_ensemble_%s.stderr" % '1'
 
 sundry = Sundry()
 _timeout = 2
@@ -88,7 +91,7 @@ class Ensemble:
 
             if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
 
-                daemon_ensemble_instacnce = DirectorEnsembleDaemon()
+                daemon_ensemble_instacnce = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
                 daemon_ensemble_instacnce.start()
                 # subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
             
