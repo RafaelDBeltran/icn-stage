@@ -106,7 +106,7 @@ class DirectorEnsembleDaemon(Daemon):
 
         super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
     
-    @retry(wait_random_min=1000, wait_random_max=2000)   
+    @retry()   
     def run(self):
         
         while True:
