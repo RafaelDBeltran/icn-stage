@@ -111,18 +111,85 @@ class DirectorEnsembleDaemon(Daemon):
         
         while True:
             self.role = detect_my_role(DEFAULT_IP_ADDRESS,2181)
-            
-            if self.role is 'leader':
-                print('Sou o leader, sacou malandragem')
+
+            self.role_path = "/zookeeper/roles/{}".format(get_ip_adapter('enp0s8'))
+
+            self.zk = KazooClient(hosts = DEFAULT_IP_ADDRESS+':2181',connection_retry = 100, timeout = 60)
+            self.zk.start()
+
+            if self.zk.exists(self.role_path):
+                self.zk.set(self.role_path, str.encode(self.role))
+
             else:
-                print('Sou o seguidor')
+                self.zk.ensure_path("/zookeeper/roles")
+                self.zk.create(self.role_path, str.encode(self.role))
 
 
+            if self.role == 'leader':
+                self.my_dict = {}
 
+                for i in self.zk.get_children("/zookeeper/roles/"):
+                    data, _ = self.zk.get("/zookeeper/roles/{}".format(i))
+                    if data != b'leader':
+                        
+                        self.my_dict[i] = data
 
+                        self.res = key, val = random.choice(list(self.my_dict.items())) 
+                        print(self.res)
+                        if self.zk.exists("/zookeeper/roles/{}/status".format(self.res[0])):
+                            self.zk.set("/zookeeper/roles/{}/status".format(self.res[0]), b'1')
+                        else:
+                            self.zk.ensure_path("/zookeeper/roles/{}/status/".format(self.res[0]))
+                            self.zk.create("/zookeeper/roles/{}/status".format(self.res[0]), b'1')
 
+                        for i in list(self.my_dict.items()):
+                            if i != self.res:
+                                print(i)
+                                if self.zk.exists("/zookeeper/roles/{}/status".format(i[0])):
+                                    self.zk.set("/zookeeper/roles/{}/status".format(i[0]), b'0')
+                                else:
+                                    self.zk.ensure_path("/zookeeper/roles/{}/status/".format(i[0]))
+                                    self.zk.create("/zookeeper/roles/{}/status/".format(i[0]), b'0')
 
-
+                while True:
+                    if ping(self.res[0]):
+                        print("Success")
+                        time.sleep(5)
+                    else:
+                        break
+            
+            else:
+                
+                while True:
+                    self.my_dict = {}
+                    for i in self.zk.get_children("/zookeeper/roles/"):
+                        data, _ = self.zk.get("/zookeeper/roles/{}".format(i))
+                        self.my_dict[i] = data
+                        self.res = key, val = random.choice(list(self.my_dict.items())) 
+                        for i in list(self.my_dict.items()):
+                            current_ip = get_ip_adapter('enp0s8')
+                            if i != self.res and i[0] == current_ip:
+                                current_data, _ = self.zk.get("/zookeeper/roles/{}/status/".format(current_ip))
+                                
+                                if current_data == b'1' and get_process_status() == True:
+                                    #Subprocess que executa o icn-stage
+                                    print("########### I am the choice one")
+                               
+                                    pass
+                                elif current_data == b'1' and get_process_status() == False:
+                                    print("########### I am the choice one: start thats nowwwww")
+                                    subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
+                                elif current_data == b'0' and get_process_status() == True:
+                                    try:
+                                        kill_process("icn_stage.py")
+                                        kill_process("daemon_director.py")
+                                        print("########### I'm not the choice one")
+                                    except:
+                                        pass
+                                else:
+                                    print("########### Not to do")
+                                    pass
+            self.zk.stop()
 
                                     
                                 
