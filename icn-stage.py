@@ -71,6 +71,7 @@ sundry = Sundry()
 #Load config file
 data = json.load(open('config.json'))
 Ensemble_status = False
+Ensemble_zookeeper_controller = None
 
 def set_logging(level=DEFAULT_LOG_LEVEL):
 
@@ -173,7 +174,7 @@ def help_msg():
 #     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
-def run_command(zookeeper_controller, command, options=None):
+def run_command(zookeeper_controller = None, command = None, options=None):
 
     if command == 'start':
         daemon_director.start()
@@ -270,6 +271,7 @@ def run_command(zookeeper_controller, command, options=None):
 
     elif command == 'ensemble-start':
         _ = Ensemble(default_action='Active')
+        Ensemble_zookeeper_controller = ZookeeperController()
         Ensemble_status = True
         
     elif command == 'reset':
@@ -346,7 +348,7 @@ def run_command(zookeeper_controller, command, options=None):
 def main():
     set_logging()
     # Initialize the Zookeeper Controller (API)
-    zookeeper_controller = ZookeeperController()
+    zookeeper_controller = Ensemble_zookeeper_controller
 
     if len(sys.argv) > 1:
         # single command mode
