@@ -115,10 +115,7 @@ class DirectorEnsembleDaemon(Daemon):
             out, err = p.communicate()
             print(out)
             print(self.role)
-            # if (self.role == 'leader'):
-            #     print('Sou o leader, sacou malandragem')
-            # else:
-            #     print('Sou o seguidor')
+
 
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
@@ -126,7 +123,7 @@ class DirectorEnsembleDaemon(Daemon):
                 #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
                 print('Sou o lider e iniciei o icn-stage')
             elif (self.role != 'leader') and (out != b''):
-                subprocess.call("sleep 30s; kill {} &".format(out.decode('utf-8')), shell=True)
+                subprocess.call("sleep 30s; kill {} ".format(out.decode('utf-8')), shell=True)
                 print('Sou o seguidor e não sou mais continuo')
             else:
                 print('Sou o seguidor')
