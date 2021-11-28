@@ -113,17 +113,21 @@ class DirectorEnsembleDaemon(Daemon):
             self.role = detect_my_role(DEFAULT_IP_ADDRESS,2181)
             p = subprocess.Popen(['pgrep', '-f', 'icn-stage.py'], stdout=subprocess.PIPE)
             out, err = p.communicate()
-
+            
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
-            elif (self.role == 'leader') and (out == b''):
-                subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
-                print('Sou o lider e iniciei o icn-stage')
-            elif (self.role != 'leader') and (out != b''):
-                #subprocess.call("kill {} &".format(out.decode('utf-8')), shell=True)
-                print('Sou o seguidor e não sou mais continuo')
             else:
                 print('Sou o seguidor')
+            # if (self.role == 'leader') and (out != b''):
+            #     print('Sou o leader, sacou malandragem')
+            # elif (self.role == 'leader') and (out == b''):
+            #     subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
+            #     print('Sou o lider e iniciei o icn-stage')
+            # elif (self.role != 'leader') and (out != b''):
+            #     #subprocess.call("kill {} &".format(out.decode('utf-8')), shell=True)
+            #     print('Sou o seguidor e não sou mais continuo')
+            # else:
+            #     print('Sou o seguidor')
 
 
 def main():
