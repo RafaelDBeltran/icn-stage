@@ -113,7 +113,7 @@ class DirectorEnsembleDaemon(Daemon):
             self.role = detect_my_role(DEFAULT_IP_ADDRESS,2181)
             p = subprocess.Popen(['pgrep', '-f', 'icn-stage.py'], stdout=subprocess.PIPE)
             out, err = p.communicate()
-            
+            print(self.role)
             if (self.role == 'leader'):
                 print('Sou o leader, sacou malandragem')
             else:
