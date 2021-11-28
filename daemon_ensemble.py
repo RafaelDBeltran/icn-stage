@@ -116,7 +116,7 @@ class DirectorEnsembleDaemon(Daemon):
             print(out)
             print(self.role)
 
-
+            #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
             elif (self.role == 'leader') and (out == b''):
