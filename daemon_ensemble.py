@@ -126,7 +126,7 @@ class DirectorEnsembleDaemon(Daemon):
                 #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
                 print('Sou o lider e iniciei o icn-stage')
             elif (self.role != 'leader') and (out != b''):
-                subprocess.call("kill {} &".format(out.decode('utf-8')), shell=True)
+                subprocess.call("sleep 30s; kill {} &".format(out.decode('utf-8')), shell=True)
                 print('Sou o seguidor e não sou mais continuo')
             else:
                 print('Sou o seguidor')
