@@ -114,7 +114,7 @@ class DirectorEnsembleDaemon(Daemon):
             p = subprocess.Popen(['pgrep', '-f', 'icn-stage.py'], stdout=subprocess.PIPE)
             out, err = p.communicate()
             
-            if (self.role == 'leader') and (out != b''):
+            if (self.role == 'leader'):
                 print('Sou o leader, sacou malandragem')
             else:
                 print('Sou o seguidor')
