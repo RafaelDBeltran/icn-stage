@@ -26,6 +26,8 @@ sys.path.insert(0,'..')
 from modules.extralib.daemon import Daemon
 #from zookeeper_controller import ZookeeperController
 
+currentdir = os.path.dirname(os.path.realpath(__file__))
+
 DEFAULT_SLEEP_SECONDS = 60
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -120,8 +122,9 @@ class DirectorEnsembleDaemon(Daemon):
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
             elif (self.role == 'leader') and (out == b''):
-                try:
-                    subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
+                try:                    
+                    subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
+                    #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
                     print('Sou o lider e iniciei o icn-stage')
                 except:
                     print('Erro ao iniciar o icn-stage')
