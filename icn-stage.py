@@ -189,6 +189,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
         daemon_director.status()
 
     elif command == 'addactors':
+        zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
         max_actors = None
         if options is not None:
