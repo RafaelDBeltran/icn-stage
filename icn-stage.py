@@ -276,6 +276,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
         Ensemble_status = True
         
     elif command == 'reset':
+        zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
         for i in data['workers']:
 
@@ -288,10 +289,14 @@ def run_command(zookeeper_controller = None, command = None, options=None):
         zookeeper_controller.reset_workers()
 
     elif command == 'reset-tasks':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         zookeeper_controller.set_controller_client()
         zookeeper_controller.reset_tasks()
 
     elif command == 'printc':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         zookeeper_controller.set_controller_client()
         try:
             root = "/connected/"
@@ -301,6 +306,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             logging.error("Exception: {}".format(e))
 
     elif command == 'printd':
+        zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
         try:
             root = "/disconnected/"
@@ -310,6 +316,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             logging.error("Exception: {}".format(e))
 
     elif command == 'print':
+        zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
         try:
 
