@@ -10,3 +10,4 @@ logging-reset
 matplotlib
 pycryptodome
 retry
+pandas

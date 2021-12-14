@@ -27,10 +27,16 @@ from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
 from modules.util.tools import Sundry
-'''
+
+Nodes_ip = None
+
 data = json.load(open('config.json'))
-my_adapter_ip = ConfigHelper(data["zookeeper_adapter"])
-'''
+for i in data['Nodes']:
+	if Nodes_ip == None:
+		Nodes_ip = Nodes_ip + i['remote_host'] + ':2181'
+	else:
+		Nodes_ip = Nodes_ip + ',' + i['remote_host'] + ':2181'
+
 LOG_LEVEL = 100 #logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
@@ -489,7 +495,7 @@ class DirectorDaemon(Daemon):
 						# rafael# colocando endereco estatico
 						#channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (
 						#self.zookeeper_controller.get_ip_adapter(), _controllerport, worker.hostname, remote_path))
-						channel.run("echo \"server=192.168.133.105:2181,192.168.133.106:2181,192.168.133.107:2181\nhostname=%s\" > %s/info.cfg" % (worker.hostname, remote_path))
+						channel.run("echo \"server={}\nhostname={}\" > {}/info.cfg".format(Nodes_ip, worker.hostname, remote_path))
 						# TODO#
 						self.controller_client.worker_add(worker)
 						# TODO#
