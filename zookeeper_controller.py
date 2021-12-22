@@ -205,56 +205,56 @@ class ZookeeperController:
 
     # TODO H� varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
-        print(nowStr(), "Reseting workers...\n")
+        logging.info(nowStr() + "Reseting workers...\n")
 
-        print(nowStr(), "\tRemoving tasks... ")
+        logging.info(nowStr() + "\tRemoving tasks... ")
         for t in self.controller_client.zk.get_children('/tasks/'):
-            print(nowStr(), "\t\ttask: ", t)
+            logging.info(nowStr() + "\t\ttask: ", t)
             self.controller_client.zk.delete('/tasks/' + t, recursive=True)
-        print(nowStr(), "\tRemoving tasks done. \n")
+        logging.info(nowStr() + "\tRemoving tasks done. \n")
 
-        print(nowStr(), "\tRemoving experiments from workers... ")
+        logging.info(nowStr() +"\tRemoving experiments from workers... ")
         try:
             for w in self.controller_client.zk.get_children('/registered/workers'):
-                print(nowStr(), "\t\tRemoving experiment from worker: ", w)
+                logging.info(nowStr() + "\t\tRemoving experiment from worker: ", w)
                 for e in self.controller_client.zk.get_children('/registered/workers/' + w + '/torun'):
-                    print(nowStr(), "\t\t\tworker: ", w, " children: ", e)
+                    logging.info(nowStr() +"\t\t\tworker: ", w, " children: ", e)
                     self.controller_client.zk.delete('/registered/workers/' + w + '/torun/' + e, recursive=True)
         except:
             pass
-        print(nowStr(), "\tRemoving experiments from workers done.\n")
+        logging.info(nowStr() + "\tRemoving experiments from workers done.\n")
 
-        print(nowStr(), "\tRemoving registered workers... ")
+        logging.info(nowStr() + "\tRemoving registered workers... ")
         for w in self.controller_client.zk.get_children('/registered/workers'):
-            print(nowStr(), "\t\tregistered worker: ", w)
+            logging.info(nowStr() + "\t\tregistered worker: ", w)
             self.controller_client.zk.delete('/registered/workers/' + w, recursive=True)
-        print(nowStr(), "\tRemoving registered workers done.\n")
+        logging.info(nowStr() + "\tRemoving registered workers done.\n")
 
-        print(nowStr(), "\tRemoving connected busy workers... ")
+        logging.info(nowStr() + "\tRemoving connected busy workers... ")
         for w in self.controller_client.zk.get_children('/connected/busy_workers'):
-            print(nowStr(), "\t\tconnected busy worker: ", w)
+            logging.info(nowStr() + "\t\tconnected busy worker: ", w)
             self.controller_client.zk.delete('/connected/busy_workers/' + w, recursive=True)
-        print(nowStr(), "\tRemoving connected busy workers done.\n")
+        logging.info(nowStr() + "\tRemoving connected busy workers done.\n")
 
-        print(nowStr(), "\tRemoving connected free workers... ")
+        logging.info(nowStr() + "\tRemoving connected free workers... ")
         for w in self.controller_client.zk.get_children('/connected/free_workers/'):
-            print(nowStr(), "\t\tconnected free worker: ", w)
+            logging.info(nowStr() + "\t\tconnected free worker: ", w)
             self.controller_client.zk.delete('/connected/free_workers/' + w, recursive=True)
-        print(nowStr(), "\tRemoving connected free workers done.\n")
+        logging.info(nowStr() + "\tRemoving connected free workers done.\n")
 
-        print(nowStr(), "\tRemoving disconnected workers... ")
+        logging.info(nowStr() + "\tRemoving disconnected workers... ")
         for w in self.controller_client.zk.get_children('/disconnected/workers/'):
-            print(nowStr(), "\t\tdisconnected worker: ", w)
+            logging.info(nowStr() + "\t\tdisconnected worker: ", w)
             self.controller_client.zk.delete('/disconnected/workers/' + w, recursive=True)
-        print(nowStr(), "\tRemoving disconnected workers done.\n")
+        logging.info(nowStr() + "\tRemoving disconnected workers done.\n")
 
-        print(nowStr(), "\tRemoving experiments... ")
+        logging.info(nowStr() + "\tRemoving experiments... ")
         for e in self.controller_client.zk.get_children('/experiments/'):
-            print(nowStr(), "\t\t experiment: ", e)
+            logging.info(nowStr() + "\t\t experiment: ", e)
             self.controller_client.zk.delete('/experiments/' + e, recursive=True)
-        print(nowStr(), "\tRemoving experiments done.\n")
+        logging.info(nowStr() + "\tRemoving experiments done.\n")
 
-        print(nowStr(), "Removing done. \n")
+        logging.info(nowStr() + "Removing done. \n")
 
     # def kill_daemon_all_registered_workers(self):
     #     print(nowStr(), "\tKilling all worker daemon (python) process... ")
@@ -303,17 +303,17 @@ class ZookeeperController:
     def print_zk_tree(self, tree_node, node, n, count_=1):
 
         if node is not None:
-            print("%02d:%02d" % (n, count_), get_tabs(n), node, get_diff_tabs(n, node), " : ", end=' ')
+            logging.info("%02d:%02d" % (n, count_) + get_tabs(n) + node + get_diff_tabs(n, node) + " : ", end=' ')
             try:
                 value = self.controller_client.zk.get(tree_node)
                 #print("\n\n --@@@@-- node '%s' ----" % (node))
                 if value is None:
-                    print("")
+                    logging.info("")
                 elif node == "pkey":
                    # print("\n\n --@@aaa@@-- node '%s' ----" % (node))
                     #print("\n\n --@@@@-- node '%s' ----" % (node, value))
                     #value_str = value.to_str()
-                    print(" RSA PRIVATE KEY ") #.format(value_str[:5],value_str[-5:]))
+                    logging.info(" RSA PRIVATE KEY ") #.format(value_str[:5],value_str[-5:]))
                 else:
 
                     # if node == "worker":
@@ -331,7 +331,7 @@ class ZookeeperController:
                 # elif tree_node == "worker":
                 #     print("asdadsadsa")
                 # else:
-                    print(value[0])
+                    logging.info(value[0])
 
             except Exception as e:
                 logging.error("Exception: {}".format(e))
