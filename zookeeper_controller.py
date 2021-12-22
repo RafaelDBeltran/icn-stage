@@ -303,7 +303,7 @@ class ZookeeperController:
     def print_zk_tree(self, tree_node, node, n, count_=1):
 
         if node is not None:
-            logging.info("%02d:%02d" % (n, count_) + get_tabs(n) + node + get_diff_tabs(n, node) + " : ", end=' ')
+            logging.info("%02d:%02d" % (n, count_) + get_tabs(n) + node + get_diff_tabs(n, node) + " : ")
             try:
                 value = self.controller_client.zk.get(tree_node)
                 #print("\n\n --@@@@-- node '%s' ----" % (node))
