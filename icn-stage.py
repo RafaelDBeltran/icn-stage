@@ -337,7 +337,8 @@ def run_command(zookeeper_controller, command = None, options=None):
 def main():
     set_logging()
     # Initialize the Zookeeper Controller (API)
-    zookeeper_controller = Ensemble_zookeeper_controller
+    zookeeper_controller = ZookeeperController()
+    zookeeper_controller.set_controller_client()
 
     if len(sys.argv) > 1:
         # single command mode
@@ -349,8 +350,7 @@ def main():
         run_command(zookeeper_controller, command, options)
 
     else:
-        zookeeper_controller = ZookeeperController()
-        zookeeper_controller.set_controller_client()
+        
         # interactive mode
         # Initialize view
         view = View()
