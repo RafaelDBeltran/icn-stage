@@ -211,7 +211,7 @@ class WorkerClient(object):
 			if opt == 'server':		
 				for i in cfg[opt].split(","):
 					ip, port = i.split(":")
-					if detect_my_role(ip,int(port)) == "leader":
+					if WorkerClient.detect_my_role(ip,int(port)) == "leader":
 						cfg['server'] = i
 						break
 
