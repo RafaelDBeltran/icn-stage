@@ -3,6 +3,7 @@
 #   @email: nelson.a.antunes at gmail.com
 #   @date: (DD/MM/YYYY) 27/01/2017
 import shlex
+import socket
 
 from modules.worklib.snapshot import Snapshot
 from kazoo.client import *
@@ -183,6 +184,21 @@ class WorkerClient(object):
 			return True
 		self.connection = None
 		return False
+	
+	@staticmethod
+	def detect_my_role(hp,port):
+		sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		role = None
+
+		sk.connect((hp,port))
+		sk.send(b'srvr')
+		role = sk.recv(1024)
+		role = role.decode('utf-8')
+
+		if role.find("leader") != -1: 
+			return "leader"
+		else:
+			return "follower"
 
 	@staticmethod
 	def load_config_file(filepath):
@@ -192,6 +208,13 @@ class WorkerClient(object):
 		for l in f.readlines():
 			opt, arg = l.split("=")
 			cfg[opt] = arg[:-1]
+			if opt == 'server':		
+				for i in cfg[opt].split(","):
+					ip, port = i.split(":")
+					if detect_my_role(ip,int(port)) == "leader":
+						cfg['server'] = i
+						break
+
 		return cfg
 
 	def worker_active_time_update(self, adding_time):
