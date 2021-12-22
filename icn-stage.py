@@ -174,7 +174,7 @@ def help_msg():
 #     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 
-def run_command(zookeeper_controller, command = None, options=None):
+def run_command(zookeeper_controller = None, command = None, options=None):
 
     if command == 'start':
         daemon_director.start()
@@ -189,6 +189,8 @@ def run_command(zookeeper_controller, command = None, options=None):
         daemon_director.status()
 
     elif command == 'addactors':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         max_actors = None
         if options is not None:
             max_actors = int(options[0])
@@ -198,6 +200,7 @@ def run_command(zookeeper_controller, command = None, options=None):
     elif command == 'test':
         logging.info("*** test tcp begin\n")
         test_port = 10002
+        zookeeper_controller.set_controller_client()
         try:
             cmd = ['python3 {}'.format('tcp_client.py'),
                   '--host {}'.format(zookeeper_controller.get_ip_adapter()),
@@ -217,6 +220,7 @@ def run_command(zookeeper_controller, command = None, options=None):
             logging.error(msg)
 
     elif command == 'ndn':
+        zookeeper_controller.set_controller_client()
         try:
             cmd = ['python3', 
             'poke.py',
@@ -233,6 +237,7 @@ def run_command(zookeeper_controller, command = None, options=None):
             logging.error(msg)
 
     elif command == 'traffic':
+        zookeeper_controller.set_controller_client()
         try:
             cmd = ['python3', 
             'traffic_client.py',
@@ -249,6 +254,7 @@ def run_command(zookeeper_controller, command = None, options=None):
             logging.error(msg)
 
     elif command == 'traffic2':
+        zookeeper_controller.set_controller_client()
         try:
             cmd = ['python3', 
             'ndn_client.py',
@@ -266,8 +272,12 @@ def run_command(zookeeper_controller, command = None, options=None):
 
     elif command == 'ensemble-start':
         _ = Ensemble(default_action='Active')
+        Ensemble_zookeeper_controller = ZookeeperController()
+        Ensemble_status = True
         
     elif command == 'reset':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         for i in data['workers']:
 
             worker = Worker(i["remote_hostname"],
@@ -279,9 +289,14 @@ def run_command(zookeeper_controller, command = None, options=None):
         zookeeper_controller.reset_workers()
 
     elif command == 'reset-tasks':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
+        zookeeper_controller.set_controller_client()
         zookeeper_controller.reset_tasks()
 
     elif command == 'printc':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         zookeeper_controller.set_controller_client()
         try:
             root = "/connected/"
@@ -291,6 +306,8 @@ def run_command(zookeeper_controller, command = None, options=None):
             logging.error("Exception: {}".format(e))
 
     elif command == 'printd':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         try:
             root = "/disconnected/"
             zookeeper_controller.print_zk_tree(root, root, 0)
@@ -299,6 +316,8 @@ def run_command(zookeeper_controller, command = None, options=None):
             logging.error("Exception: {}".format(e))
 
     elif command == 'print':
+        zookeeper_controller = ZookeeperController()
+        zookeeper_controller.set_controller_client()
         try:
 
             if options is not None:
@@ -337,8 +356,7 @@ def run_command(zookeeper_controller, command = None, options=None):
 def main():
     set_logging()
     # Initialize the Zookeeper Controller (API)
-    zookeeper_controller = ZookeeperController()
-    zookeeper_controller.set_controller_client()
+    zookeeper_controller = Ensemble_zookeeper_controller
 
     if len(sys.argv) > 1:
         # single command mode
@@ -350,7 +368,6 @@ def main():
         run_command(zookeeper_controller, command, options)
 
     else:
-        
         # interactive mode
         # Initialize view
         view = View()
