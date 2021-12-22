@@ -339,7 +339,7 @@ class ZookeeperController:
             try:
                 count = 1
                 for t in self.controller_client.zk.get_children(tree_node, include_data=False):
-                    self.print_zk_tree(tree_node + "/" + t, t, n + 1, count)
+                    logging.info(tree_node + "/" + t + t + str(n + 1) + count)
                     count += 1
                     # print t
 
