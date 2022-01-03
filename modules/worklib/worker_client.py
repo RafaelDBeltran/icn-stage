@@ -190,10 +190,13 @@ class WorkerClient(object):
 		sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		role = None
 
-		sk.connect((hp,port))
-		sk.send(b'srvr')
-		role = sk.recv(1024)
-		role = role.decode('utf-8')
+		try:
+			sk.connect((hp,port))
+			sk.send(b'srvr')
+			role = sk.recv(1024)
+			role = role.decode('utf-8')
+		except:
+			pass
 
 		if role.find("leader") != -1: 
 			return "leader"
