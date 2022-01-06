@@ -207,16 +207,18 @@ class WorkerClient(object):
 	def load_config_file(filepath):
 		logging.debug('\t\t\t #Checkpoint-WK-3 filepath: {}'.format(filepath))
 		cfg = {}
-		f = open(filepath, "r")
+		ensemble_address = ''
+		f = open('info.cfg', "r")
 		for l in f.readlines():
-			opt, arg = l.split("=")
-			cfg[opt] = arg[:-1]
-			if opt == 'server':		
-				for i in cfg[opt].split(","):
-					ip, port = i.split(":")
-					if WorkerClient.detect_my_role(ip,int(port)) == "leader":
-						cfg['server'] = i
-						break
+				opt, arg = l.split("=")
+				cfg[opt] = arg[:-1]
+				if opt == 'server':
+						for i in cfg[opt].split(","):
+								ip, port = i.split(":")
+								#print(ip + ' '+ str(port))
+								ensemble_address = ensemble_address + ip+':'+str(port)+','
+
+		cfg['server'] = ensemble_address[:-1]
 
 		return cfg
 
