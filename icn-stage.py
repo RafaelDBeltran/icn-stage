@@ -206,14 +206,12 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             cmd = ['python3 {}'.format('tcp_client.py'),
                   '--host {}'.format(zookeeper_controller.get_ip_adapter()),
                   '--port {}'.format(test_port)]
-            
-            call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
 
             experiment_skeleton('test_tcp', cmd,
                                 zookeeper_controller.controller_client,
                                 "experiments/test_tcp/",
                                 "test_tcp.tar.gz")
-
+            call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
             logging.info("\n")
             logging.info("*** test tcp end!")
 
