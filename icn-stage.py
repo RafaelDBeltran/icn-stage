@@ -200,6 +200,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
     elif command == 'test':
         logging.info("*** test tcp begin\n")
         test_port = 10002
+        zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
         try:
             cmd = ['python3 {}'.format('tcp_client.py'),
