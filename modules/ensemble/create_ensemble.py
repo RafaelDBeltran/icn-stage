@@ -47,10 +47,10 @@ class Ensemble:
             if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
 
                 subprocess.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
-                subprocess.run("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
-                subprocess.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
-                subprocess.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
-                subprocess.run("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("wget https://dlcdn.apache.org/zookeeper/zookeeper-3.7.0/apache-zookeeper-3.7.0-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.7.0-bin.tar.gz ".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.7.0-bin zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
+                subprocess.run("cd && cd {}/opt/ && rm apache-zookeeper-3.7.0-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
                 subprocess.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "{}/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH), shell=True)
                 subprocess.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH), shell=True)
                 subprocess.run("mkdir -p {}/data/zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
@@ -66,11 +66,11 @@ class Ensemble:
                         password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
 
                 channel.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH))
-                channel.run("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH))
+                channel.run("wget https://dlcdn.apache.org/zookeeper/zookeeper-3.7.0/apache-zookeeper-3.7.0-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH))
                 #channel.run("cd && cd /opt/")
-                channel.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
-                channel.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH))
-                channel.run("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH))
+                channel.run("cd && cd {}/opt/ && tar xf apache-zookeeper-3.7.0-bin.tar.gz".format(self.DEFAULT_USER_PATH))
+                channel.run("cd && cd {}/opt/ && ln -s apache-zookeeper-3.7.0-bin zookeeper".format(self.DEFAULT_USER_PATH))
+                channel.run("cd && cd {}/opt/ && rm apache-zookeeper-3.7.0-bin.tar.gz".format(self.DEFAULT_USER_PATH))
                 channel.run("echo " + "'{}'".format(self.ANSEMBLE_CONFIG_DATA) + " > " + "{}/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH))
             
                 channel.run("rm -rf {}/data/zookeeper/ ".format(self.DEFAULT_USER_PATH))
