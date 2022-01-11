@@ -56,11 +56,14 @@ def main():
 	# setup the logging facility
 
 	if args.log == logging.DEBUG:
-		logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
+		logging.basicConfig(filename = "/home/minion/logs/logfile.log",
+                    		filemode = "w",format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
 							datefmt=TIME_FORMAT, level=args.log)
 
 	else:
-		logging.basicConfig(format='%(asctime)s %(message)s',
+		logging.basicConfig(filename = "/home/minion/logs/logfile.log",
+                    		filemode = "w",
+							format='%(asctime)s %(message)s',
 							datefmt=TIME_FORMAT, level=args.log)
 
 	# shows input parameters
