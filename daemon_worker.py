@@ -74,11 +74,11 @@ def main():
 	# setup the logging facility
 	if args.log == logging.DEBUG:
 		logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-							datefmt=TIME_FORMAT, level=args.log)
+							datefmt=TIME_FORMAT, level=10)
 
 	else:
 		logging.basicConfig(format='%(asctime)s %(message)s',
-							datefmt=TIME_FORMAT, level=args.log)
+							datefmt=TIME_FORMAT, level=10)
 
 	# shows input parameters
 	logging.info("")
