@@ -273,7 +273,8 @@ class WorkerClient(object):
 		exp_name, _ = self.zk.get(exp_path.decode('utf-8'))
 
 		exp_cfg = WorkerClient.load_config_file("experiments/%s/info.cfg" % exp_name.decode('utf-8'))
-
+		logging.debug('\t\t\t ##Olha aqui: "experiments/%s/info.cfg" {}'.format(exp_name.decode('utf-8')))
+		logging.debug('\t\t\t ##Olha aqui: {}'.format(exp_cfg))
 		return Experiment(exp_path, exp_name, exp_cfg["parameters"], exp_cfg["actor_id"], eval(exp_cfg["is_snapshot"]))
 
 	def exp_ready(self, exp_obj):
