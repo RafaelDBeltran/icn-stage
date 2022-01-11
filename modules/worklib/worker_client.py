@@ -293,10 +293,15 @@ class WorkerClient(object):
 
 	def exp_ready(self, exp_obj):
 		logging.debug('\t\t\t #Checkpoint-WK-8')
+		logging.debug('\t\t\t #Checkpoint-WK-8')
+		logging.debug('\t\t\t Olha aqui 2: {}'.format(self.zk_addr))
 		wc = WorkerClient(self.zk_addr)
+
+		logging.debug('\t\t\t Olha aqui 2.1: {}/start'.format(exp_obj.path))
 
 		@self.zk.DataWatch('%s/start' % exp_obj.path)
 		def ready(data, stat):
+			logging.debug('\t\t\t Olha aqui 2.3: {} _ {}'.format(data, stat))
 			if stat:
 				exp_obj.run(wc)
 				return False
