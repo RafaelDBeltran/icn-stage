@@ -301,9 +301,11 @@ class WorkerClient(object):
 
 		@self.zk.DataWatch('%s/start' % exp_obj.path)
 		def ready(data, stat):
-			logging.debug('\t\t\t Olha aqui 2.3: {} _ {}'.format(data, stat))
+			logging.debug('\t\t\t Olha aqui 2.2: {} _ {} _ {}'.format(data, stat, exp_obj))
 			if stat:
+				logging.debug('\t\t\t Olha aqui 2.3: Entrou no if')
 				exp_obj.run(wc)
+				logging.debug('\t\t\t Olha aqui 2.4: Passou pelo exp_obj')
 				return False
 
 	def exp_finished(self, exp_obj):
