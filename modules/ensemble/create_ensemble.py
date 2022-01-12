@@ -25,7 +25,7 @@ class Ensemble:
         dataDir={}/data/zookeeper\n\
         clientPort=2181\n\
         4lw.commands.whitelist=*\n\
-        maxClientCnxns=60\n\
+        maxClientCnxns=10000000\n\
         initLimit=120\n\
         syncLimit=120\n\
         standaloneEnabled=true\n\
