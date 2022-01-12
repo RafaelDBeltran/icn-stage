@@ -11,6 +11,14 @@ import kazoo, traceback, threading, imp, os, time, subprocess
 import sys
 import logging
 from .monitor import Monitor
+
+from kazoo.exceptions import (
+    ConnectionClosedError,
+    NoNodeError,
+    KazooException
+)
+from kazoo.retry import KazooRetry
+
 # STATIC PATHS
 class PATHS(object):
 	CONNECTED_FREE = "/connected/free_workers"
@@ -165,7 +173,7 @@ class WorkerClient(object):
 	def __init__(self, zk_addr, worker_hostname=''):
 		logging.debug('\t\t\t #Checkpoint-WK-1')
 		self.current_experiments = []  # Experiment objects
-		self.zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=2500))
+		self.zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=2500), timeout=60)
 		self.zk_addr = zk_addr
 		self.hostname = worker_hostname
 		self.worker_path = PATHS.REGISTERED_WORKERS + worker_hostname
