@@ -60,7 +60,7 @@ from experiments_resources import call_ndn_traffic_server
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_LOG_LEVEL = logging.DEBUG
+DEFAULT_LOG_LEVEL = logging.INFO
 
 DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
 DEFAULT_IPERF_INTERVAL_SECS = 5

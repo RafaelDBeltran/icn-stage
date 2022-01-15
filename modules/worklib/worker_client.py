@@ -308,6 +308,7 @@ class WorkerClient(object):
 		logging.debug('\t\t\t Olha aqui 2.1: {}/start'.format(exp_obj.path))
 		exp_obj.run(wc)
 		logging.debug('\t\t\t Olha aqui 2.2: {}/Finalizou'.format(exp_obj.path))
+		#RDB-12/01/2022: Comentei o bloco abaixo, pois o experimento não estava sendo finalizado corretamente.
 		# @self.zk.DataWatch('%s/start' % exp_obj.path)
 		# def ready(data, stat):
 		# 	logging.debug('\t\t\t Olha aqui 2.2: {} _ {} _ {}'.format(data, stat, exp_obj))
