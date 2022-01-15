@@ -100,7 +100,8 @@ def get_process_status():
     
     return False
         
-    
+cmd = ['ssh', 'minion@192.168.133.84', '-f /home/minion/.ssh/fibre_ssh_rsa'
+    'mkdir -p output/dir; echo "date +%Y%m%d%H%M.%S {}" >> output/dir/file.dat'.format(DEFAULT_IP_ADDRESS)]
 
 class DirectorEnsembleDaemon(Daemon):
 
@@ -121,6 +122,7 @@ class DirectorEnsembleDaemon(Daemon):
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
+                p = subprocess.call(cmd);
             elif (self.role == 'leader') and (out == b''):
                 try:                    
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
