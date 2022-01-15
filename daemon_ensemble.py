@@ -121,7 +121,7 @@ class DirectorEnsembleDaemon(Daemon):
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
-                p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen("bash reportdata.sh", shell=True, cwd=currentdir)
                 stdout = p.communicate()[0]
                 print ('STDOUT:{}'.format(stdout))
             elif (self.role == 'leader') and (out == b''):
