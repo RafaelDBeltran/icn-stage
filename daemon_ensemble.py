@@ -15,7 +15,8 @@ import netifaces as ni
 from retry import retry
 
 pattern = "(follower|leader)"
-
+DEFAULT_LOG_LEVEL = logging.INFO
+_log_level = DEFAULT_LOG_LEVEL
 
 from kazoo.client import KazooClient
 import numpy
@@ -154,15 +155,15 @@ def main():
     # parser.add_argument('--status', required=False)
     # args = parser.parse_args()
 
-    # if args.log == logging.DEBUG:
+    if _log_level == logging.DEBUG:
 
-    #     logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-    #                         datefmt=TIME_FORMAT, level=args.log)
+        logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
+                            datefmt=TIME_FORMAT, level=_log_level)
 
-    # else:
+    else:
 
-    #     logging.basicConfig(format='%(asctime)s %(message)s',
-    #                         datefmt=TIME_FORMAT, level=args.log)
+        logging.basicConfig(format='%(asctime)s %(message)s',
+                            datefmt=TIME_FORMAT, level=_log_level)
 
     # logging.info("")
     # logging.info("INPUT")
