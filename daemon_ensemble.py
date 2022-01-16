@@ -16,8 +16,6 @@ from retry import retry
 from datetime import datetime
 
 pattern = "(follower|leader)"
-DEFAULT_LOG_LEVEL = logging.INFO
-_log_level = DEFAULT_LOG_LEVEL
 
 from kazoo.client import KazooClient
 import numpy
@@ -31,7 +29,7 @@ from modules.extralib.daemon import Daemon
 currentdir = os.path.dirname(os.path.realpath(__file__))
 
 DEFAULT_SLEEP_SECONDS = 60
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_CHECKING = 10
 
@@ -124,10 +122,10 @@ class DirectorEnsembleDaemon(Daemon):
             if (self.role == 'leader') and (out != b''):
                 logging.info('Sou o leader, sacou malandragem')
                 #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
-                now = datetime.now()       
-                f = open("/home/minion/logs/file.dat", "wa")         
-                f.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
-                f.close()
+                # now = datetime.now()       
+                # f = open("/home/minion/logs/file.dat", "wa")         
+                # f.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
+                # f.close()
 
             elif (self.role == 'leader') and (out == b''):
                 try:                    
@@ -158,15 +156,15 @@ def main():
     # parser.add_argument('--status', required=False)
     # args = parser.parse_args()
 
-    if _log_level == logging.DEBUG:
+    if LOG_LEVEL == logging.DEBUG:
 
         logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-                            datefmt=TIME_FORMAT, level=_log_level)
+                            datefmt=TIME_FORMAT, level=LOG_LEVEL)
 
     else:
 
         logging.basicConfig(format='%(asctime)s %(message)s',
-                            datefmt=TIME_FORMAT, level=_log_level)
+                            datefmt=TIME_FORMAT, level=LOG_LEVEL)
 
     # logging.info("")
     # logging.info("INPUT")

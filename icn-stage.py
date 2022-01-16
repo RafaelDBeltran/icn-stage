@@ -16,7 +16,6 @@ import logging
 import subprocess
 from time import sleep
 import shlex
-
 import daemon_director
 
 try:
