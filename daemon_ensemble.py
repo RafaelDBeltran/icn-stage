@@ -29,7 +29,7 @@ from modules.extralib.daemon import Daemon
 currentdir = os.path.dirname(os.path.realpath(__file__))
 
 DEFAULT_SLEEP_SECONDS = 60
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_CHECKING = 10
 
