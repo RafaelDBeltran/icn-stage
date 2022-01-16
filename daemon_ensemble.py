@@ -125,7 +125,7 @@ class DirectorEnsembleDaemon(Daemon):
                 logging.info('Sou o leader, sacou malandragem')
                 #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
                 now = datetime.now()       
-                f = open("file.dat", "wa")         
+                f = open("/home/minion/logs/file.dat", "wa")         
                 f.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
                 f.close()
                 logging.info( 'exit status: ' +  p.returncode )
