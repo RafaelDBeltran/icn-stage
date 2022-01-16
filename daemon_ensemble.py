@@ -128,9 +128,7 @@ class DirectorEnsembleDaemon(Daemon):
                 f = open("/home/minion/logs/file.dat", "wa")         
                 f.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
                 f.close()
-                logging.info( 'exit status: ' +  p.returncode )
-                logging.info( 'stdout: ' + p.stdout.decode() )
-                logging.info( 'stderr: ' + p.stderr.decode() )
+
             elif (self.role == 'leader') and (out == b''):
                 try:                    
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
