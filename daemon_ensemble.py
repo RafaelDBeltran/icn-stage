@@ -13,6 +13,7 @@ import re
 import random
 import netifaces as ni
 from retry import retry
+from datetime import datetime
 
 pattern = "(follower|leader)"
 DEFAULT_LOG_LEVEL = logging.INFO
@@ -122,7 +123,11 @@ class DirectorEnsembleDaemon(Daemon):
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 logging.info('Sou o leader, sacou malandragem')
-                p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
+                #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
+                now = datetime.now()       
+                f = open("file.dat", "wa")         
+                f.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
+                f.close()
                 logging.info( 'exit status: ' +  p.returncode )
                 logging.info( 'stdout: ' + p.stdout.decode() )
                 logging.info( 'stderr: ' + p.stderr.decode() )
