@@ -121,7 +121,7 @@ class DirectorEnsembleDaemon(Daemon):
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 logging.info('Sou o leader, sacou malandragem')
-                p = subprocess.run(cmd, shell=True, capture_output=True)
+                p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
                 logging.info( 'exit status: ' +  p.returncode )
                 logging.info( 'stdout: ' + p.stdout.decode() )
                 logging.info( 'stderr: ' + p.stderr.decode() )
