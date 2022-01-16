@@ -100,7 +100,7 @@ def get_process_status():
     
     return False
         
-cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS)  + "\""
+# cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS)  + "\""
 
 class DirectorEnsembleDaemon(Daemon):
 
@@ -122,10 +122,14 @@ class DirectorEnsembleDaemon(Daemon):
             if (self.role == 'leader') and (out != b''):
                 logging.info('Sou o leader, sacou malandragem')
                 #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
-                # now = datetime.now()       
-                # f = open("/home/minion/logs/file.dat", "wa")         
-                # f.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
-                # f.close()
+                now = datetime.now()       
+
+                try:
+                    with open("file.dat", "w") as outfile:
+                        outfile.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
+                except IOError:
+                    logging.error('Erro ao escrever no arquivo')
+
 
             elif (self.role == 'leader') and (out == b''):
                 try:                    
