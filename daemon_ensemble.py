@@ -110,7 +110,7 @@ class DirectorEnsembleDaemon(Daemon):
 
         super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
     
-    @retry()   
+    #@retry()   
     def run(self):
         
         while True:
