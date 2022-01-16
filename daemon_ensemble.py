@@ -125,8 +125,9 @@ class DirectorEnsembleDaemon(Daemon):
                 now = datetime.now()       
 
                 try:
-                    with open("file.dat", "w") as outfile:
-                        outfile.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
+                    with open("/home/minion/file.txt", "w") as outfile:
+                        #outfile.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
+                        outfile.write("Texto de teste escrita")
                 except IOError:
                     logging.error('Erro ao escrever no arquivo')
 
