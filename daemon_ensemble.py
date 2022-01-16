@@ -105,7 +105,7 @@ cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> f
 
 class DirectorEnsembleDaemon(Daemon):
 
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, pidfile, stdin='/dev/null', stdout='/tmp/ensemble_1.stdout', stderr='/tmp/ensemble_1.stderr'):
 
         super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
     
@@ -130,14 +130,14 @@ class DirectorEnsembleDaemon(Daemon):
                 try:                    
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
                     #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
-                    print('Sou o lider e iniciei o icn-stage')
+                    logging.info('Sou o lider e iniciei o icn-stage')
                 except:
-                    print('Erro ao iniciar o icn-stage')
+                    logging.info('Erro ao iniciar o icn-stage')
             elif (self.role != 'leader') and (out != b''):
                 subprocess.call("sleep 30s; kill {} ".format(out.decode('utf-8')), shell=True)
-                print('Sou o seguidor e não sou mais continuo')
+                logging.info('Sou o seguidor e não sou mais continuo')
             else:
-                print('Sou o seguidor')
+                logging.info('Sou o seguidor')
 
 
 def main():
