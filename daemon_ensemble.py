@@ -121,9 +121,10 @@ class DirectorEnsembleDaemon(Daemon):
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 print('Sou o leader, sacou malandragem')
-                p = subprocess.Popen("bash reportdata.sh", shell=True, cwd=currentdir)
-                stdout = p.communicate()[0]
-                print ('STDOUT:{}'.format(stdout))
+                p = subprocess.run("bash reportdata.sh", shell=True, cwd=currentdir, capture_output=True)
+                print( 'exit status:', p.returncode )
+                print( 'stdout:', p.stdout.decode() )
+                print( 'stderr:', p.stderr.decode() )
             elif (self.role == 'leader') and (out == b''):
                 try:                    
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
