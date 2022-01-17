@@ -107,11 +107,13 @@ class DirectorEnsembleDaemon(Daemon):
     def run(self):
         
         while True:
+            logging.debug('Entrou no loop')
             self.role = detect_my_role(DEFAULT_IP_ADDRESS,2181)
+            logging.debug('Entrou no loop: 2')
             p = subprocess.Popen(['pgrep', '-f', 'icn-stage.py'], stdout=subprocess.PIPE)
+            logging.debug('Entrou no loop: 3')
             out, err = p.communicate()
-            print(out)
-            print(self.role)
+            logging.debug('Entrou no loop: 4')
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
@@ -125,8 +127,6 @@ class DirectorEnsembleDaemon(Daemon):
                 #         outfile.write("Texto de teste escrita")
                 # except IOError:
                 #     logging.error('Erro ao escrever no arquivo')
-
-
             elif (self.role == 'leader') and (out == b''):
                 try:                    
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
@@ -139,6 +139,8 @@ class DirectorEnsembleDaemon(Daemon):
                 logging.info('Sou o seguidor e não sou mais continuo')
             else:
                 logging.info('Sou o seguidor')
+        
+        logging.debug('Entrou no loop: Puts')
 
 
 def main():
