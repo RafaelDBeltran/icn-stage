@@ -107,32 +107,27 @@ class DirectorEnsembleDaemon(Daemon):
     def run(self):
         
         while True:
-            logging.debug('Entrou no loop')
+
             self.role = detect_my_role(DEFAULT_IP_ADDRESS,2181)
-            logging.debug('Entrou no loop: 2')
+
             p = subprocess.Popen(['pgrep', '-f', 'icn-stage.py'], stdout=subprocess.PIPE)
-            logging.debug('Entrou no loop: 3')
+
             out, err = p.communicate()
-            logging.debug('Entrou no loop: 4')
+
+            now = datetime.now() 
+            cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS)  + "\""
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 logging.debug('Sou o leader, sacou malandragem')
-                #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
+  
                 subprocess.run(cmd, shell=True)
-                # now = datetime.now()       
 
-                # try:
-                #     with open("/home/minion/file.txt", "w") as outfile:
-                #         #outfile.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
-                #         outfile.write("Texto de teste escrita")
-                # except IOError:
-                #     logging.error('Erro ao escrever no arquivo')
             elif (self.role == 'leader') and (out == b''):
                 try: 
-                    logging.debug('Entrei aqui')               
+            
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
-                    logging.debug('Sai daqui')
+
                     #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
                     logging.info('Sou o lider e iniciei o icn-stage')
                 except:
