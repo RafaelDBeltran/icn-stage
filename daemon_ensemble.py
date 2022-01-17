@@ -13,7 +13,7 @@ import re
 import random
 import netifaces as ni
 from retry import retry
-from datetime import datetime
+import datetime
 
 pattern = "(follower|leader)"
 
