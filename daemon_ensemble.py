@@ -115,7 +115,7 @@ class DirectorEnsembleDaemon(Daemon):
             out, err = p.communicate()
 
             now = datetime.now() 
-            cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS)  + "\""
+            cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(datetime.datetime.now().time(), DEFAULT_IP_ADDRESS)  + "\""
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
