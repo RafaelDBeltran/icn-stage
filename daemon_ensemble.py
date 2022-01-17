@@ -29,7 +29,7 @@ from modules.extralib.daemon import Daemon
 currentdir = os.path.dirname(os.path.realpath(__file__))
 
 DEFAULT_SLEEP_SECONDS = 60
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_CHECKING = 10
 
@@ -119,7 +119,7 @@ class DirectorEnsembleDaemon(Daemon):
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
-                logging.debug('Sou o leader, sacou malandragem')
+                logging.debug('Status: Director level 1')
   
                 subprocess.run(cmd, shell=True)
 
@@ -129,16 +129,15 @@ class DirectorEnsembleDaemon(Daemon):
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
 
                     #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
-                    logging.info('Sou o lider e iniciei o icn-stage')
+                    logging.debug('Status: Director level 1and start the icn-stage')
                 except:
-                    logging.info('Erro ao iniciar o icn-stage')
+                    logging.debug('Error on start icn-stage')
             elif (self.role != 'leader') and (out != b''):
                 subprocess.call("sleep 30s; kill {} ".format(out.decode('utf-8')), shell=True)
-                logging.info('Sou o seguidor e não sou mais continuo')
+                logging.debug('Status: Director level 2 with icn-stage running')
             else:
-                logging.info('Sou o seguidor')
-        
-        logging.debug('Entrou no loop: Puts')
+                logging.debug('Status: Director level 2')
+
 
 
 def main():
