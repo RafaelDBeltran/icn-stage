@@ -114,7 +114,7 @@ class DirectorEnsembleDaemon(Daemon):
 
             out, err = p.communicate()
 
-            now = datetime.now() 
+            #now = datetime.now() 
             cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(datetime.datetime.now().time(), DEFAULT_IP_ADDRESS)  + "\""
 
             #lógica funcionando
