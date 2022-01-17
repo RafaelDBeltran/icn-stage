@@ -58,11 +58,6 @@ def detect_my_role(hp,port):
     else:
         return "follower"
 
-
-    # role = re.search(pattern, role)
-
-    # return role.group()
-
 DEFAULT_IP_ADDRESS = get_ip_adapter('enp0s8')
 
 def ping(ip):
@@ -120,16 +115,16 @@ class DirectorEnsembleDaemon(Daemon):
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
-                logging.info('Sou o leader, sacou malandragem')
+                logging.debug('Sou o leader, sacou malandragem')
                 #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
-                now = datetime.now()       
+                # now = datetime.now()       
 
-                try:
-                    with open("/home/minion/file.txt", "w") as outfile:
-                        #outfile.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
-                        outfile.write("Texto de teste escrita")
-                except IOError:
-                    logging.error('Erro ao escrever no arquivo')
+                # try:
+                #     with open("/home/minion/file.txt", "w") as outfile:
+                #         #outfile.write("{} {}".format(now.strftime("%d/%m/%Y %H:%M:%S"), DEFAULT_IP_ADDRESS))
+                #         outfile.write("Texto de teste escrita")
+                # except IOError:
+                #     logging.error('Erro ao escrever no arquivo')
 
 
             elif (self.role == 'leader') and (out == b''):
