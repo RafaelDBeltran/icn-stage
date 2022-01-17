@@ -95,7 +95,7 @@ def get_process_status():
     
     return False
         
-# cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS)  + "\""
+cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS)  + "\""
 
 class DirectorEnsembleDaemon(Daemon):
 
@@ -119,6 +119,7 @@ class DirectorEnsembleDaemon(Daemon):
             if (self.role == 'leader') and (out != b''):
                 logging.debug('Sou o leader, sacou malandragem')
                 #p = subprocess.run(" echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS), shell=True, capture_output=True)
+                subprocess.run(cmd, shell=True)
                 # now = datetime.now()       
 
                 # try:
