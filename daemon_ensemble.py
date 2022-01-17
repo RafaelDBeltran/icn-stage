@@ -128,8 +128,10 @@ class DirectorEnsembleDaemon(Daemon):
                 # except IOError:
                 #     logging.error('Erro ao escrever no arquivo')
             elif (self.role == 'leader') and (out == b''):
-                try:                    
+                try: 
+                    logging.debug('Entrei aqui')               
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
+                    logging.debug('Sai daqui')
                     #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
                     logging.info('Sou o lider e iniciei o icn-stage')
                 except:
