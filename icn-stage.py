@@ -241,13 +241,13 @@ def run_command(zookeeper_controller = None, command = None, options=None):
         try:
             cmd = ['python3', 
             'traffic_client.py',
-            '{}'.format(zookeeper_controller.get_ip_adapter())]
+            '192.168.56.87']
 
             experiment_skeleton('ndn_traffic_generator', cmd,
                                 zookeeper_controller.controller_client,
                                 "experiments/test_traffic/",
                                 "test_traffic.tar.gz")
-            call_ndn_traffic()
+            #call_ndn_traffic()
         except Exception as e:
             logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"

@@ -58,17 +58,17 @@ def call_ndn_exp():
 class NDN_traffic:
     def traffic_start(self):
         #print("Starting NFD")
-        subprocess.run(["sudo cp ./experiments/test_traffic/low.conf /usr/local/etc/ndn/"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        subprocess.run(["sudo cp ./experiments/test_traffic/low.conf /usr/local/etc/mini-ndn/"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         subprocess.run(["sudo nfd -c /usr/local/etc/ndn/low.conf &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         #subprocess.run(["sudo nfd-start &> /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
         
         time.sleep(2)
         #TODO O tempo do experimento esta estatico em 10m
-        subprocess.run("sleep 13m && sudo nfd-stop &", shell=True)
-        print("Starting NDN Traffic Server")
+        #subprocess.run("sleep 13m && sudo nfd-stop &", shell=True)
+        print("Starting NDN Traffic Client")
         try:
             subprocess.run(["sudo rm ndn_requests_output.txt"], shell=True)
-            subprocess.run(["ndn-traffic-server ndn_conf/ndn-traffic-server.conf >> ndn_requests_output.txt "], shell=True,  stderr = subprocess.DEVNULL)
+            subprocess.run(["ndn-traffic-client ndn_conf/ndn-traffic-server.conf >> ndn_requests_output.txt "], shell=True,  stderr = subprocess.DEVNULL)
             logging.info("Waiting... ")
 
         except:

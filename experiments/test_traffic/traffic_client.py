@@ -3,9 +3,9 @@ import time
 import sys
 
 time.sleep(10)
-subprocess.run(["sudo cp low.conf /usr/local/etc/ndn/"],shell = True)
+subprocess.run(["sudo cp low.conf /usr/local/etc/mini-ndn/"],shell = True)
 time.sleep(2)
-subprocess.run(["sudo nfd -c /usr/local/etc/ndn/low.conf > /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+subprocess.run(["sudo nfd -c /usr/local/etc/mini-ndn/low.conf > /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 subprocess.run(["nfdc", "face", "create", "udp://"+sys.argv[1]])
 subprocess.run(["nfdc", "route", "add", "/example/", "udp://"+sys.argv[1]])
 
