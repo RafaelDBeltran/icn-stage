@@ -237,6 +237,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             logging.error(msg)
 
     elif command == 'traffic':
+        zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
         try:
             cmd = ['python3', 
