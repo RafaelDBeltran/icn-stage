@@ -3,6 +3,7 @@ import time
 import sys
 
 time.sleep(10)
+subprocess.run(["sudo nfd-stop"],shell = True)
 subprocess.run(["sudo cp low.conf /usr/local/etc/mini-ndn/"],shell = True)
 time.sleep(2)
 subprocess.run(["sudo nfd -c /usr/local/etc/mini-ndn/low.conf > /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
