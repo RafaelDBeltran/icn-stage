@@ -10,7 +10,7 @@ from modules.extralib.daemon import Daemon
 from zookeeper_controller import ZookeeperController
 
 DEFAULT_SLEEP_SECONDS = 60
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 
 if LOG_LEVEL == logging.DEBUG:
