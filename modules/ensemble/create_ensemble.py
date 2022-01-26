@@ -15,10 +15,12 @@ pid_file = "/tmp/daemon_director_ensemble_%s.pid" % '1'
 stdout = "/tmp/daemon_director_ensemble_%s.stdout" % '1'
 stderr = "/tmp/daemon_director_ensemble_%s.stderr" % '1'
 
+ICN_STAGE_FOLDER = '/root'
+
 sundry = Sundry()
 _timeout = 2
 class Ensemble:
-    DEFAULT_USER_PATH = "/home/minion"
+    DEFAULT_USER_PATH = ICN_STAGE_FOLDER
     def __init__(self, default_action = None):                
         self.ANSEMBLE_CONFIG_DATA = '''
         tickTime=2000\n\
@@ -95,7 +97,7 @@ class Ensemble:
                 # daemon_ensemble_instacnce.start()
                 # # subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
                 #python3 /home/minion/icn-stage/daemon_ensemble.py --start
-                subprocess.call("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log", shell=True)
+                subprocess.call("bash {}/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log".format(ICN_STAGE_FOLDER), shell=True)
 
 
             else:
@@ -104,7 +106,7 @@ class Ensemble:
                         password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
                 if(default_action != None):
 
-                    channel.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
+                    channel.run("bash {}/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log".format(ICN_STAGE_FOLDER))
                 #channel.run("python3 daemon_ensemble.py --start ")
                 #channel.run("echo `pwd` > path.out ")
 
