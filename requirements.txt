@@ -10,4 +10,4 @@ logging-reset
 matplotlib
 retry
 pandas
-pycryptodome==3.4.3
+pycryptodome
