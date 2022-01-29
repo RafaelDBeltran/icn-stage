@@ -12,7 +12,7 @@ import socket
 import re
 import random
 import netifaces as ni
-from retry import retry
+#from retry import retry
 import datetime
 
 pattern = "(follower|leader)"
