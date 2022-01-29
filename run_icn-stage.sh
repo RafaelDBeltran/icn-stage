@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 icn-stage.py &
+sudo python3 icn-stage.py &
