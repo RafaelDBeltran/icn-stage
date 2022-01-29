@@ -8,7 +8,6 @@ psutil
 progressbar2
 logging-reset
 matplotlib
-pycryptodome
 retry
 pandas
 pycryptodome==3.4.3
