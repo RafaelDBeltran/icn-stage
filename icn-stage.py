@@ -240,16 +240,31 @@ def run_command(zookeeper_controller = None, command = None, options=None):
     elif command == 'traffic':
         zookeeper_controller = ZookeeperController()
         zookeeper_controller.set_controller_client()
+        _timeout = 2
         try:
-            cmd = ['python3', 
-            'traffic_client.py',
-            '192.168.56.87']
+
+            auxiliar_ip = None
+
+            for auxiliar in data['auxiliars']:
+
+                auxiliar_ip = auxiliar['remote_host']
+
+                channel = Channel(hostname=auxiliar['remote_host'], username=auxiliar['remote_username'],
+                        password=auxiliar['remote_password'], pkey=sundry.get_pkey(auxiliar["remote_pkey_path"]), timeout=_timeout)
+                
+                channel.put('./experiments/test_traffic/low.conf','{}'.format(auxiliar['default_home']))
+                channel.put('./experiments/test_traffic/traffic_server.py','{}'.format(auxiliar['default_home']))
+                channel.put('./experiments/test_traffic/ndn-traffic-server.conf','{}'.format(auxiliar['default_home']))
+                channel.run('sudo python3 /home/vagrant/traffic_server.py &')
+
+
+            cmd = ['python3', 'traffic_client.py', '{}'.format(auxiliar_ip)]
 
             experiment_skeleton('ndn_traffic_generator', cmd,
                                 zookeeper_controller.controller_client,
                                 "experiments/test_traffic/",
                                 "test_traffic.tar.gz")
-            #call_ndn_traffic()
+
         except Exception as e:
             logging.error("Exception: {}".format(e))
             msg = "Hint: don't forget to add actors!"
