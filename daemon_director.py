@@ -37,7 +37,7 @@ for i in data['Nodes']:
 	else:
 		Nodes_ip = Nodes_ip + ',' + i['remote_host'] + ':2181'
 
-LOG_LEVEL = 100 #logging.DEBUG
+LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
 
