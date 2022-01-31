@@ -111,6 +111,8 @@ class Channel(object):
 
 	def put(self, local_path, remote_path):
 		#logging.debug('putt start')
+		local_path = local_path.replace('//','/')
+		remote_path = remote_path.replace('//','/')
 		if self.connected and os.path.isfile(local_path):
 			#logging.debug('putt 1')
 			if self.chkfile(self._actual_path(remote_path)):
