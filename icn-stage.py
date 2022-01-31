@@ -252,9 +252,9 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 channel = Channel(hostname=auxiliar['remote_host'], username=auxiliar['remote_username'],
                         password=auxiliar['remote_password'], pkey=sundry.get_pkey(auxiliar["remote_pkey_path"]), timeout=_timeout)
                 
-                channel.put('./experiments/test_traffic/low.conf','{}'.format(auxiliar['default_home']+'low.conf'))
-                channel.put('./experiments/test_traffic/traffic_server.py','{}'.format(auxiliar['default_home'])+'traffic_server.py')
-                channel.put('./experiments/test_traffic/ndn-traffic-server.conf','{}'.format(auxiliar['default_home'])+'ndn-traffic-server.conf')
+                channel.put('./experiments/test_traffic/low.conf', 'low.conf')
+                channel.put('./experiments/test_traffic/traffic_server.py','traffic_server.py')
+                channel.put('./experiments/test_traffic/ndn-traffic-server.conf','ndn-traffic-server.conf')
                 channel.run('sudo python3 /home/vagrant/traffic_server.py &')
 
 
