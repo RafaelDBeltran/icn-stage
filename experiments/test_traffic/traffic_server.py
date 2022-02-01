@@ -6,17 +6,17 @@ import time
 class NDN_traffic:
 
 
-    def traffic_start(self, Log_out = '/home/vagrant/ndn_out.log', Log_error = '/home/vagrant/ndn_error.log'):
+    def traffic_start(self):
 
-        subprocess.run(["sudo nfd-stop"], shell=True, stderr=subprocess.DEVNULL)
-        subprocess.run(["sudo cp /home/vagrant/low.conf /usr/local/etc/mini-ndn/"],shell = True  ,stdout = Log_out, stderr = Log_error)
-        subprocess.run(["sudo nfd -c /usr/local/etc/ndn/low.conf &> /dev/null &"],shell = True  ,stdout = Log_out, stderr = Log_error)
+        subprocess.run(["sudo nfd-stop"], shell=True)
+        subprocess.run(["sudo cp /home/vagrant/low.conf /usr/local/etc/mini-ndn/"],shell = True )
+        subprocess.run(["sudo nfd -c /usr/local/etc/ndn/low.conf &> /dev/null &"],shell = True)
 
         time.sleep(2)
 
-        print("Starting NDN Traffic Client")
+        print("Starting NDN Traffic Server")
         try:
-            subprocess.run(["sudo ndn-traffic-server /home/vagrant/ndn-traffic-server.conf"], shell=True,  stderr = Log_error)
+            subprocess.run(["sudo ndn-traffic-server /home/vagrant/ndn-traffic-server.conf"], shell=True)
             logging.info("Waiting... ")
 
         except:
@@ -26,3 +26,5 @@ class NDN_traffic:
 def call_ndn_traffic():
     instance_ndn_traffic = NDN_traffic()
     instance_ndn_traffic.traffic_start()
+
+call_ndn_traffic()
