@@ -255,7 +255,8 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 channel.put('./experiments/test_traffic/low.conf', 'low.conf')
                 channel.put('./experiments/test_traffic/traffic_server.py','traffic_server.py')
                 channel.put('./experiments/test_traffic/ndn-traffic-server.conf','ndn-traffic-server.conf')
-                channel.run('sudo python3 traffic_server.py &')
+                channel.run('pwd >> /home/vagrant/teste_path.txt')
+                channel.run('sudo python3 /home/vagrant/traffic_server.py &')
 
 
             sleep(10)
