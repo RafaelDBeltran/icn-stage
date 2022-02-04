@@ -412,6 +412,7 @@ def main():
                 print(data.decode('utf-8'))
                 logging.debug("command: {} options: {}".format(data.decode('utf-8'), options))
                 run_command(zookeeper_controller, data.decode('utf-8'), options)
+                conn.send(b'next')
                 if not data:
                     break
         print('here')
