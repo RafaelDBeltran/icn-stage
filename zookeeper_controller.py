@@ -250,7 +250,7 @@ class ZookeeperController:
 
         logging.info(nowStr() + "\tRemoving experiments... ")
         for e in self.controller_client.zk.get_children('/experiments/'):
-            logging.info(nowStr() + "\t\t experiment: ", e)
+            logging.info(nowStr() + "\t\t experiment: " + e)
             self.controller_client.zk.delete('/experiments/' + e, recursive=True)
         logging.info(nowStr() + "\tRemoving experiments done.\n")
 
