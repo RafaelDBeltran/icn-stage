@@ -19,6 +19,6 @@ time.sleep(10)
 interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds 
 '''
 try:
-    subprocess.run(["ndn-traffic-client -c 6200 -i 100 ndn-traffic-client.conf >> ndn_traffic_client_output.txt"],shell = True)
+    subprocess.run(["ndn-traffic-client -c 6200 -i 100 ndn-traffic-client.conf >> /home/vagrant/ndn_traffic_client_output.txt"],shell = True)
 finally:
     subprocess.run(["sudo nfd-stop"], shell = True)
