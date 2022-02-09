@@ -41,12 +41,12 @@ class Ensemble:
 
         data = json.load(f)
         for count, i in enumerate(data['Nodes']): 
-            self.ANSEMBLE_CONFIG_DATA = self.ANSEMBLE_CONFIG_DATA.replace('your_zookeeper_node_{}'.format(count + 1), i['remote_host'])
+            self.ANSEMBLE_CONFIG_DATA = self.ANSEMBLE_CONFIG_DATA.replace('your_zookeeper_node_{}'.format(count + 1), i['remote_hostname'])
 
 
         for count,i in enumerate(data['Nodes']): 
 
-            if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
+            if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_hostname']:
 
                 subprocess.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
                 subprocess.run("wget https://dlcdn.apache.org/zookeeper/zookeeper-3.7.0/apache-zookeeper-3.7.0-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
@@ -64,7 +64,7 @@ class Ensemble:
                     subprocess.run("sudo bash {}/opt/zookeeper/bin/zkServer.sh start".format(self.DEFAULT_USER_PATH), shell=True)
             
             else:
-                channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
+                channel = Channel(hostname=i['remote_hostname'], username=i['remote_username'],
                         password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
 
                 channel.run("mkdir {}/opt/".format(self.DEFAULT_USER_PATH))
@@ -91,7 +91,7 @@ class Ensemble:
 
         for count,i in enumerate(data['Nodes']): 
 
-            if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_host']:
+            if sundry.get_ip_adapter(data['zookeeper_adapter']) == i['remote_hostname']:
 
                 # daemon_ensemble_instacnce = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
                 # daemon_ensemble_instacnce.start()
@@ -102,7 +102,7 @@ class Ensemble:
 
             else:
 
-                channel = Channel(hostname=i['remote_host'], username=i['remote_username'],
+                channel = Channel(hostname=i['remote_hostname'], username=i['remote_username'],
                         password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
                 if(default_action != None):
 

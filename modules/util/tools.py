@@ -90,7 +90,7 @@ class Sundry:
             JSON_PORT = i['ClientPort']
 
         for i in data['Nodes']: 
-            JSON_ADRESS += (i['remote_host']+':'+str(JSON_PORT)+',')
+            JSON_ADRESS += (i['remote_hostname']+':'+str(JSON_PORT)+',')
 
         return JSON_ADRESS[:-1]
 
