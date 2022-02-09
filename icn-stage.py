@@ -247,9 +247,9 @@ def run_command(zookeeper_controller = None, command = None, options=None):
 
             for auxiliar in data['auxiliars']:
 
-                auxiliar_ip = auxiliar['remote_host']
+                auxiliar_ip = auxiliar['remote_hostname']
 
-                channel = Channel(hostname=auxiliar['remote_host'], username=auxiliar['remote_username'],
+                channel = Channel(hostname=auxiliar['remote_hostname'], username=auxiliar['remote_username'],
                         password=auxiliar['remote_password'], pkey=sundry.get_pkey(auxiliar["remote_pkey_path"]), timeout=_timeout)
                 
                 channel.put('./experiments/test_traffic/low.conf', 'low.conf')

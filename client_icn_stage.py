@@ -10,7 +10,7 @@ JSON_FILE = json.load(open(CONFIG_FILE))
 diretors_list = []
 
 for count, i in enumerate(JSON_FILE['Nodes']):
-    diretors_list.append(i['remote_host'])
+    diretors_list.append(i['remote_hostname'])
 
 
 def detect_zookeeper_role(hp,port=2181):

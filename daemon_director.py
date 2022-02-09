@@ -33,9 +33,9 @@ Nodes_ip = None
 data = json.load(open('config.json'))
 for i in data['Nodes']:
 	if Nodes_ip == None:
-		Nodes_ip = i['remote_host'] + ':2181'
+		Nodes_ip = i['remote_hostname'] + ':2181'
 	else:
-		Nodes_ip = Nodes_ip + ',' + i['remote_host'] + ':2181'
+		Nodes_ip = Nodes_ip + ',' + i['remote_hostname'] + ':2181'
 
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
