@@ -13,7 +13,7 @@ import re
 import random
 import netifaces as ni
 #from retry import retry
-import datetime
+from datetime import datetime
 
 pattern = "(follower|leader)"
 
@@ -115,7 +115,10 @@ class DirectorEnsembleDaemon(Daemon):
             out, err = p.communicate()
 
             #now = datetime.now() 
-            cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(datetime.datetime.now().time(), DEFAULT_IP_ADDRESS)  + "\""
+            # cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(datetime.datetime.now().time(), DEFAULT_IP_ADDRESS)  + "\""
+            f = open('Roles_{}.dat'.format(DEFAULT_IP_ADDRESS),"w+")
+            f.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}' + ' ' + self.role + ' ' + DEFAULT_IP_ADDRESS)
+            f.close()
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
