@@ -95,7 +95,7 @@ def get_process_status():
     
     return False
         
-cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS)  + "\""
+# cmd = "ssh minion@192.168.133.84 \"" + " echo \"$(date +%Y%m%d%H%M.%S) {}\" >> file.dat".format(DEFAULT_IP_ADDRESS)  + "\""
 
 class DirectorEnsembleDaemon(Daemon):
 
@@ -122,9 +122,9 @@ class DirectorEnsembleDaemon(Daemon):
 
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
-                logging.debug('Status: Director level 1')
+                logging.debug('Status: Director runnning ')
   
-                subprocess.run(cmd, shell=True)
+                # subprocess.run(cmd, shell=True)
 
             elif (self.role == 'leader') and (out == b''):
                 try: 
@@ -132,7 +132,7 @@ class DirectorEnsembleDaemon(Daemon):
                     subprocess.call("bash run_icn-stage.sh", shell=True, cwd=currentdir)
 
                     #subprocess.call("python3 /home/minion/icn-stage/icn-stage.py", shell=True)
-                    logging.debug('Status: Director level 1and start the icn-stage')
+                    logging.debug('Status: Director and start the icn-stage')
                 except:
                     logging.debug('Error on start icn-stage')
             elif (self.role != 'leader') and (out != b''):
