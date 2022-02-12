@@ -116,8 +116,8 @@ class DirectorEnsembleDaemon(Daemon):
 
             #now = datetime.now() 
             # cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(datetime.datetime.now().time(), DEFAULT_IP_ADDRESS)  + "\""
-            f = open('Roles_{}.dat'.format(DEFAULT_IP_ADDRESS),"w+")
-            f.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}' + ' ' + self.role + ' ' + DEFAULT_IP_ADDRESS)
+            f = open('Roles_{}.dat'.format(DEFAULT_IP_ADDRESS),"a+")
+            f.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}' + ' ' + self.role + ' ' + DEFAULT_IP_ADDRESS +'\n')
             f.close()
 
             #lógica funcionando
