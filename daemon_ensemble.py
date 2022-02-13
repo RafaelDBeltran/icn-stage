@@ -105,7 +105,7 @@ class DirectorEnsembleDaemon(Daemon):
     
     #@retry()   
     def run(self):
-        
+        Contador = 0
         while True:
 
             self.role = detect_my_role(DEFAULT_IP_ADDRESS,2181)
@@ -117,9 +117,9 @@ class DirectorEnsembleDaemon(Daemon):
             #now = datetime.now() 
             # cmd = "ssh minion@192.168.133.84 \"" + " echo \"{} {}\" >> file.dat".format(datetime.datetime.now().time(), DEFAULT_IP_ADDRESS)  + "\""
             f = open('/vagrant_boxes/Roles_{}.dat'.format(DEFAULT_IP_ADDRESS),"a+")
-            f.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}' + ' ' + self.role + ' ' + DEFAULT_IP_ADDRESS +'\n')
+            f.write(f'{datetime.now():%Y-%m-%d_%H:%M:%S%z}' + ' ' +str(time.time()) + ' ' + self.role + ' ' + DEFAULT_IP_ADDRESS + ' ' + str(Contador) + '\n')
             f.close()
-
+            Contador =+ 1
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 logging.debug('Status: Director runnning ')
