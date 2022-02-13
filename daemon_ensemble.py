@@ -119,7 +119,7 @@ class DirectorEnsembleDaemon(Daemon):
             f = open('/vagrant_boxes/Roles_{}.dat'.format(DEFAULT_IP_ADDRESS),"a+")
             f.write(f'{datetime.now():%Y-%m-%d_%H:%M:%S%z}' + ' ' +str(time.time()) + ' ' + self.role + ' ' + DEFAULT_IP_ADDRESS + ' ' + str(Contador) + '\n')
             f.close()
-            Contador =+ 1
+            Contador = Contador + 1
             #lógica funcionando
             if (self.role == 'leader') and (out != b''):
                 logging.debug('Status: Director runnning ')
