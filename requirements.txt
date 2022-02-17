@@ -11,3 +11,4 @@ matplotlib
 retry
 pandas
 pycryptodome
+ntplib
