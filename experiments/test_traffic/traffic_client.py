@@ -9,11 +9,11 @@ import subprocess
 import time
 import sys
 
-Start_time = datetime.strptime(sys.argv[2],'%d-%m-%y %H:%M:%S')
-Finish_time = datetime.strptime(sys.argv[3],'%d-%m-%y %H:%M:%S')
+# Start_time = datetime.strptime(sys.argv[2],'%d-%m-%y %H:%M:%S')
+# Finish_time = datetime.strptime(sys.argv[3],'%d-%m-%y %H:%M:%S')
 
-# Start_time = datetime.strptime('16-02-22 20:42:00','%d-%m-%y %H:%M:%S')
-# Finish_time = datetime.strptime('16-02-22 20:45:00','%d-%m-%y %H:%M:%S')
+Start_time = datetime.strptime('16-02-22 20:42:00','%d-%m-%y %H:%M:%S')
+Finish_time = datetime.strptime('16-02-22 20:45:00','%d-%m-%y %H:%M:%S')
 
 c = ntplib.NTPClient()
 # Provide the respective ntp server ip in below function

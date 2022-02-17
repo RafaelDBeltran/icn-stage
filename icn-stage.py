@@ -260,9 +260,10 @@ def run_command(zookeeper_controller = None, command = None, options=None):
 
 
             sleep(10)
-            logging.info(sys.argv[2:][0])
-            logging.info(sys.argv[3:][0])
-            cmd = ['python3', 'traffic_client.py', auxiliar_ip, '\''+ sys.argv[2:][0] + '\'','\''+  sys.argv[3:][0]+ '\'']
+            logging.info(sys.argv[2:])
+            logging.info(sys.argv[3:])
+            # cmd = ['python3', 'traffic_client.py', auxiliar_ip, '\''+ sys.argv[2:] + '\'','\''+  sys.argv[3:]+ '\'']
+            cmd = ['python3', 'traffic_client.py', auxiliar_ip]
 
             experiment_skeleton('ndn_traffic_generator', cmd,
                                 zookeeper_controller.controller_client,
