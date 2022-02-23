@@ -1,7 +1,7 @@
 #imports do controle baseado em NTP
 from asyncio import sleep
 import ntplib
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from time import sleep
 import threading
 #imports da peca
@@ -12,19 +12,45 @@ import sys
 # Start_time = datetime.strptime(sys.argv[2],'%d-%m-%y %H:%M:%S')
 # Finish_time = datetime.strptime(sys.argv[3],'%d-%m-%y %H:%M:%S')
 
-Start_time = datetime.strptime('16-02-22 20:42:00','%d-%m-%y %H:%M:%S')
-Finish_time = datetime.strptime('16-02-22 20:45:00','%d-%m-%y %H:%M:%S')
+now = datetime.now()
+
+print("now =", now)
+
+DATETIME_FORMAT = '%d-%m-%y %H:%M:%S'
+dt_string = now.strftime(DATETIME_FORMAT)
+
+Start_time = datetime.strptime('23-02-22 09:35:00',DATETIME_FORMAT)
+#Finish_time = datetime.strptime('23-02-22 08:42:00','%d-%m-%y %H:%M:%S')
+Finish_time = Start_time + timedelta(minutes=15)
+
+
+# Start_time = datetime.strptime('16-02-22 20:42:00','%d-%m-%y %H:%M:%S')
+# Finish_time = datetime.strptime('16-02-22 20:45:00','%d-%m-%y %H:%M:%S')
 
 c = ntplib.NTPClient()
 # Provide the respective ntp server ip in below function
 
 def get_current_time():
 
-    response = c.request('0.br.pool.ntp.org', version=3)
-    response.offset
-    
-    time_from_ntp = datetime.fromtimestamp(response.tx_time).strftime('%d-%m-%y %H:%M:%S')
-    return datetime.strptime(time_from_ntp,'%d-%m-%y %H:%M:%S')
+    NTPcontrol = False
+    var_time = None
+    while True:
+        try:
+            c = ntplib.NTPClient()
+
+            response = c.request('0.br.pool.ntp.org', version=3)
+            response.offset
+
+            time_from_ntp = datetime.fromtimestamp(response.tx_time).strftime(DATETIME_FORMAT)
+            var_time = datetime.strptime(time_from_ntp,DATETIME_FORMAT)
+            NTPcontrol = True
+        except ntplib.NTPException as e:
+            print('NTP client request error: {}'.format(str(e)))
+
+        if NTPcontrol == True:
+            break
+
+    return var_time
 
 def peca():
 
