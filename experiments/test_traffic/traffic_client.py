@@ -19,10 +19,12 @@ print("now =", now)
 DATETIME_FORMAT = '%d-%m-%y %H:%M:%S'
 dt_string = now.strftime(DATETIME_FORMAT)
 
-Start_time = datetime.strptime('23-02-22 09:35:00',DATETIME_FORMAT)
+#Start_time = datetime.strptime('23-02-22 09:35:00',DATETIME_FORMAT)
+Start_time = now
+Start_time = Start_time + timedelta(minutes=5)
+#print(Start_time)
 #Finish_time = datetime.strptime('23-02-22 08:42:00','%d-%m-%y %H:%M:%S')
 Finish_time = Start_time + timedelta(minutes=15)
-
 
 # Start_time = datetime.strptime('16-02-22 20:42:00','%d-%m-%y %H:%M:%S')
 # Finish_time = datetime.strptime('16-02-22 20:45:00','%d-%m-%y %H:%M:%S')
