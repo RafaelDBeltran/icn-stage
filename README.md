@@ -15,17 +15,35 @@ Esse branch é focado num ambiente contido gerado pelo vagrant.
     local-host:~/icn-stage$ vagrant plugin install vagrant-scp
     local-host:~/icn-stage$ ./send_icn-stage.sh
     ```
-3. Executar icn-stage
+# Execução
+1. Executar icn-stage
     ```sh
     local-host:~/icn-stage$ vagrant ssh Director1
     ```
+
     ```python
     vagrant@Director1:~/$ python3 icn-stage/icn-stage.py
     ```
-4. Enviar comandos a partir do Host
+
+2. Enviar comandos a partir do Host
     ```python
-    local-host::~/icn-stage$ python3 client_icn_stage
+    local-host:~/icn-stage$ python3 client_icn_stage.py
     ```
+## Instruções de Uso
+1. Iniciar Ensemble
+    ```sh
+    Command[192.168.56.111]> ensemble-start
+    ```
+
+2. Iniciar Daemon Director
+    ```sh
+    Command[192.168.56.112]> start
+    ```
+3. Adicionar atores
+    ```sh
+    Command[192.168.56.112]> addactors
+    ```
+
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
