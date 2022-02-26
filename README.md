@@ -3,23 +3,29 @@
 ICN-Stage is an open plataform for orchestrating fault-tolerant ICN experimental evaluations.
 
 # Install
-You can install ICN-stage in your machine:
-    ```sh
-    ./install.sh -s
-    ```   
+Esse branch é focado num ambiente contido gerado pelo vagrant. 
 
-However, we strongly suggest you use a Vagrant + VirtualBox based VM, which contains a Mininet testbed for developing purposes.
-
-1. Configure you VM (this step may take ~2 hours)
+1. Configurar VM's (esse procedimento pode levar ~1 hora)
     ```sh
-    local-host$ vagrant up 
+    local-host:~/icn-stage$ vagrant up 
     ```
 
-2. login in the VM    
+2. Enviar icn-stage e instalar dependencias    
     ```sh
-    local-host$ vagrant ssh 
+    local-host:~/icn-stage$ vagrant plugin install vagrant-scp
+    local-host:~/icn-stage$ ./send_icn-stage.sh
     ```
-
+3. Executar icn-stage
+    ```sh
+    local-host:~/icn-stage$ vagrant ssh Director1
+    ```
+    ```python
+    vagrant@Director1:~/$ python3 icn-stage/icn-stage.py
+    ```
+4. Enviar comandos a partir do Host
+    ```python
+    local-host::~/icn-stage$ python3 client_icn_stage
+    ```
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
