@@ -10,7 +10,7 @@ Esse branch é focado num ambiente contido gerado pelo vagrant.
     local-host:~/icn-stage$ vagrant up 
     ```
 
-2. Enviar icn-stage e instalar dependencias    
+2. Enviar icn-stage e instalar dependências    
     ```sh
     local-host:~/icn-stage$ vagrant plugin install vagrant-scp
     local-host:~/icn-stage$ ./send_icn-stage.sh
@@ -39,11 +39,32 @@ Esse branch é focado num ambiente contido gerado pelo vagrant.
     ```sh
     Command[192.168.56.112]> start
     ```
+
 3. Adicionar atores
     ```sh
     Command[192.168.56.112]> addactors
     ```
 
+3. Executar cena
+    ```sh
+    #Aqui será realizado um cena NDN. Será o consumo de conteúdo NDN.
+    Command[192.168.56.112]> traffic
+    ```
+
+## Cenas
+### Cena no NDN traffic
+1. Cena para NDN traffic Generator (Dentro está incluído os cenários: sem falha, com falha, com falha e recuperação)
+    ```python
+    local-host:~/icn-stage$ python3 play.py
+    ```
+2. Cena para falha do Diretor
+    ```python
+    local-host:~/icn-stage$ python3 playDirector.py
+    ```
+3. Cena para falha do Diretor enquanto executa a cena do NDN traffic generator sem falha
+    ```python
+    local-host:~/icn-stage$ python3 play_experiment_with_Directors_fall.py
+    ```
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
