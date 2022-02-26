@@ -25,7 +25,7 @@ auxiliar = {
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.synced_folder ".vagrant/machines", "/vagrant_boxes"
-  config.vm.synced_folder "resultsDirector/", "/resultsDirector"
+  config.vm.synced_folder "results/", "/results"
   config.vm.provision "shell", path: "config_ssh.sh"
   config.vm.provision "shell", path: "config_requirements.sh"
   config.disksize.size = "40GB"
