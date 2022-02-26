@@ -1,6 +1,6 @@
 # ICN-Stage
 
-ICN-Stage is an open plataform for orchestrating fault-tolerant ICN experimental evaluations.
+ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas para avaliação experimental de cenas ICN.
 
 # Install
 Esse branch é focado num ambiente contido gerado pelo vagrant. 
