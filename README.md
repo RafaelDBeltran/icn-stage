@@ -2,7 +2,14 @@
 
 ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas para avaliação experimental de cenas ICN.
 
-# Install
+# Download do Projeto
+    ```sh
+    local-host:~/$ git clone git@github.com:RafaelDBeltran/icn-stage.git
+    local-host:~/$ cd icn-stage/
+    local-host:~/icn-stage$ git checkout vagrant
+    ```
+
+# Instalação
 Esse branch é focado num ambiente contido gerado pelo vagrant. 
 
 1. Configurar VM's (esse procedimento pode levar ~1 hora)
