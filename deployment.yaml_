@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: director1
+    labels:
+        app: ubuntu
+spec:
+    volumes:
+      - name: ssh-key
+        secret:
+            secretName: sshkeys
+            defaultMode: 0600
+    containers:
+      - name: director
+        image: rdbeltran/icn-stage:v10
+        command: ["/bin/sleep", "3650d"]
+        imagePullPolicy: IfNotPresent
+        ports:
+            - containerPort: 22
+              name: ssh
+            - containerPort: 2181
+              name: zookeeper
+            - containerPort: 2888
+              name: ensemble1
+            - containerPort: 3888
+              name: ensemble2
+    restartPolicy: Always
