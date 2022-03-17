@@ -1,0 +1,14 @@
+kazoo==2.7
+paramiko
+scp
+netifaces
+pyfiglet
+tqdm
+psutil
+progressbar2
+logging-reset
+matplotlib
+retry
+pandas
+pycryptodome
+ntplib
