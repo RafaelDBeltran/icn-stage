@@ -86,7 +86,7 @@ class RemoteControllICN_stage:
             stdin, stdout, stderr = ssh.exec_command('cd icn-stage && sudo python3 icn-stage.py {}'.format(command))
 
             sleep(5)
-            print(stdout.readlines())
+            #print(stdout.readlines())
             # print(stderr.readlines())
 
 
@@ -112,7 +112,7 @@ class RemoteControllICN_stage:
             stdin, stdout, stderr = ssh.exec_command('cd icn-stage && sudo python3 icn-stage.py {}'.format(command))
 
             sleep(5)
-            print(stdout.readlines())
+            #print(stdout.readlines())
             # print(stderr.readlines())
             if command == 'ensemble-start':
                 sleep(30)
