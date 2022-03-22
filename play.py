@@ -84,7 +84,7 @@ for peca in Pecas:
 
     if peca == 'Peça_com_falha' or peca == 'Peça_com_falha/recuperacao':
         try:
-            x = threading.Thread(target= instancia.send_command_to_busy_actor, args=('sleep 5m && sudo shutdown now',Resultado,))
+            x = threading.Thread(target= instancia.send_command_to_busy_actor, args=('sleep 5m && sudo shutdown now',Resultado,1,))
             x.start()
         except:
             logging.info('Error: unable to start thread')
