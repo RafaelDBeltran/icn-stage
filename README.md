@@ -14,18 +14,50 @@ ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas pa
 
 1. Para fazer o deploy dos pods, deve executar o comando abaixo.
    Para criar varios pods, tem que ediar a chave name mudando o director1 para director2 por exemplo.
-   Obs: O nome dos pods deve ser sempre em lera minuscula.
+   Obs: O nome dos pods deve ser sempre em letra minuscula.
+   Obs2: Crie um chamado de controlador
     ```sh
     local-host:~/icn-stage$ kubectl apply -f deployment.yaml_
     ```
 2. Execute o python_kube. Ele irá criar o arquivo de configurações e enviar para os pods.
 
    ```sh
-   local-host:~/icn-stage$python3 python_kube.py
+   local-host:~/icn-stage$ python3 python_kube.py
+   ```
+3. Acesse o Director1 com o comando abaixo e execute o icn-stage
+
+   ```sh
+   local-host:~/icn-stage$ kubectl exec --stdin --tty director1 -- /bin/bash
+
+   root@director1:/icn/icn-stage# python3 icn-stage.py
+   ```
+4. Acesse o controlador onde vamos interagir com o icn-stage e execute o terminal do icn-stage.
+
+   ```sh
+   local-host:~/icn-stage$ kubectl exec --stdin --tty controlador -- /bin/bash
+
+   root@controlador:/icn/playground# python3 client_icn_stage.py
    ```
 
+## Comandos no ICN-stage
+Para iniciar o ensemble
+```sh
+Command[172.17.0.4]> ensemble-start
+```
+Iniciar conexão com zookeeper
+```sh
+Command[172.17.0.3]> start
+```
+Adicionar atores
+```sh
+Command[172.17.0.3]> addactors
+```
+Realizar teste com cliente-servidor TCP
+```sh
+Command[172.17.0.3]> test
+```
 
-
+Os logs podem ser observados no arquivo /tmp/daemon_director_ensemble_1.stderr do diretor principal.
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 

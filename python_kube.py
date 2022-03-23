@@ -58,5 +58,10 @@ text_file.close()
 
 for key, _ in Diretores.items():
     subprocess.run('kubectl cp config.json {}:/icn/icn-stage'.format(key),shell=True)
+    subprocess.run('kubectl exec -it {} -- /bin/bash -c "sudo /etc/init.d/ssh start"'.format(key),shell=True)
 
+for key, _ in Atores.items():
+    subprocess.run('kubectl exec -it {} -- /bin/bash -c "sudo /etc/init.d/ssh start"'.format(key),shell=True)
+
+subprocess.run('kubectl cp config.json controlador:/icn/playground',shell=True)
 subprocess.run('cp config.json playground',shell=True)
