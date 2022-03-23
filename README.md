@@ -2,13 +2,21 @@
 
 ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas para avaliação experimental de cenas ICN.
 
-# Instalação
+# Download do Projeto
+    ```sh
+    local-host:~/$ git clone git@github.com:RafaelDBeltran/icn-stage.git
+    local-host:~/$ cd icn-stage/
+    local-host:~/icn-stage$ git checkout kubernetes
+    ```
 
-```diff
-- Em construção
-- O ssh ainda precisa ser ativado manualmente
+# Deploy
 
-```
+1. Para fazer o deploy dos pods, deve executar o comando abaixo.
+   Para criar varios pods, tem que ediar a chave name mudando o director1 para director2 por exemplo.
+   Obs: O nome dos pods deve ser sempre em lera minuscula.
+    ```sh
+    local-host:~/icn-stage$ kubectl apply -f deployment.yaml_
+    ```
 
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
