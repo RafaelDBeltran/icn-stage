@@ -3,6 +3,7 @@
 ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas para avaliação experimental de cenas ICN.
 
 # Download do Projeto
+
     ```sh
     local-host:~/$ git clone git@github.com:RafaelDBeltran/icn-stage.git
     local-host:~/$ cd icn-stage/
@@ -17,6 +18,13 @@ ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas pa
     ```sh
     local-host:~/icn-stage$ kubectl apply -f deployment.yaml_
     ```
+2. Execute o python_kube. Ele irá criar o arquivo de configurações e enviar para os pods.
+
+   ```sh
+   local-host:~/icn-stage$python3 python_kube.py
+   ```
+
+
 
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
