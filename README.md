@@ -11,6 +11,8 @@ ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas pa
     ```
 
 # Deploy
+0. Executar o minikube
+    minikube start
 
 1. Para fazer o deploy dos pods, deve executar o comando abaixo.
    Para criar varios pods, tem que ediar a chave name mudando o director1 para director2 por exemplo.
