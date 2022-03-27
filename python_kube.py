@@ -37,7 +37,7 @@ config = '''{\"zookeeper_adapter\": \"eth0\",\n
 for key, value in Diretores.items():
     if Diretores_count > 1:
         config += ','
-    config +=  '{\"remote_id\": \"'+str(Diretores_count)+'\", \"remote_hostname\": \"'+value+'\",\"remote_username\": \"icn_user\",\"remote_password\": \"icn_user\",\"remote_pkey_path\": \"/id_rsa\",\"Function": \"'+key+'\"} \n'
+    config +=  '{\"remote_id\": \"'+str(Diretores_count)+'\", \"remote_hostname\": \"'+value+'\",\"remote_username\": \"icn_user\",\"remote_password\": \"icn_user\",\"remote_pkey_path\": \"/icn/keys/id_rsa\",\"Function": \"'+key+'\"} \n'
     Diretores_count += 1
 config += '''\n],
 \"workers\":[
@@ -46,7 +46,7 @@ config += '''\n],
 for key, value in Atores.items():
     if Atores_count > 1:
         config += ','
-    config +=  '{\"actor_id\": \"'+str(Atores_count)+'\", \"remote_hostname\": \"'+value+'\",\"remote_username\": \"icn_user\",\"remote_password\": \"icn_user\",\"remote_pkey_path\": \"/id_rsa\",\"Function": \"'+key+'\"} \n'
+    config +=  '{\"actor_id\": \"'+str(Atores_count)+'\", \"remote_hostname\": \"'+value+'\",\"remote_username\": \"icn_user\",\"remote_password\": \"icn_user\",\"remote_pkey_path\": \"/icn/keys/id_rsa\",\"Function": \"'+key+'\"} \n'
     Atores_count += 1
 config += '''\n]'''
 

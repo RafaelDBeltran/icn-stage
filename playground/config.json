@@ -1,14 +1,14 @@
 {"zookeeper_adapter": "eth0",
 
-"Nodes": [
+    "Nodes": [
 
-{"remote_id": "1", "remote_hostname": "172.17.0.4","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "director1"} 
-,{"remote_id": "2", "remote_hostname": "172.17.0.3","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "director2"} 
-,{"remote_id": "3", "remote_hostname": "172.17.0.2","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "director3"} 
+    {"remote_id": "1", "remote_hostname": "172.17.0.3","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "director1"}
+    ,{"remote_id": "2", "remote_hostname": "172.17.0.4","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "director2"}
+    ,{"remote_id": "3", "remote_hostname": "172.17.0.5","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "director3"}
 
-],
-"workers":[
-{"actor_id": "1", "remote_hostname": "172.17.0.5","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "actor1"} 
+    ],
+    "workers":[
+    {"actor_id": "1", "remote_hostname": "172.17.0.6","remote_username": "icn_user","remote_password": "icn_user","remote_pkey_path": "/id_rsa","Function": "actor1"}
 
-]
-}
+    ]
+    }

@@ -17,8 +17,8 @@ RUN adduser icn_user sudo
 
 RUN sh -c "echo 'icn_user ALL=NOPASSWD: ALL' >> /etc/sudoers"
 
-RUN openssl genrsa -out /id_rsa
-RUN openssl rsa -in /id_rsa -pubout > /id_rsa.pub
+RUN openssl genrsa -out /icn/keys/id_rsa
+RUN openssl rsa -in /icn/keys/id_rsa -pubout > /icn/keys/id_rsa.pub
 
 RUN chmod 777 /icn
 
