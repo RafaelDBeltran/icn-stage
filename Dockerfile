@@ -22,6 +22,8 @@ RUN openssl rsa -in /icn/keys/id_rsa -pubout > /icn/keys/id_rsa.pub
 
 RUN chmod 777 /icn
 
+RUN chmod -R 777 /icn/keys/
+
 ENTRYPOINT service ssh start && bash
 
 RUN apt-get -y install --no-install-recommends ca-certificates curl git mawk

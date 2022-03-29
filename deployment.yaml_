@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-    name: controlador
+    name: director1
     labels:
         app: ubuntu
 spec:
 
     containers:
       - name: director
-        image: rdbeltran/icn-stage:v10
+        image: rafabeltran/icn-stage:v1-teste
         command: ["/bin/sleep", "3650d"]
         imagePullPolicy: IfNotPresent
         ports:
@@ -21,5 +21,3 @@ spec:
             - containerPort: 3888
               name: ensemble2
     restartPolicy: Always
-    imagePullSecrets:
-      - name: dockersecret

@@ -492,6 +492,8 @@ class DirectorDaemon(Daemon):
 
 						remote_path = worker.get_remote_path()
 						channel.run("mkdir -p %s" % remote_path)
+						logging.debug(stdout.readlines())
+						logging.debug(stderr.readlines())
 						# rafael# colocando endereco estatico
 						#channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (
 						#self.zookeeper_controller.get_ip_adapter(), _controllerport, worker.hostname, remote_path))
