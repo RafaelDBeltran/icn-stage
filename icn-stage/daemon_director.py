@@ -491,7 +491,7 @@ class DirectorDaemon(Daemon):
 						print(datetime.datetime.now(), worker.hostname, "is online")
 
 						remote_path = worker.get_remote_path()
-						channel.run("mkdir -p %s" % remote_path)
+						stdout,stderr = channel.run("mkdir -p %s" % remote_path)
 						logging.debug(stdout.readlines())
 						logging.debug(stderr.readlines())
 						# rafael# colocando endereco estatico
