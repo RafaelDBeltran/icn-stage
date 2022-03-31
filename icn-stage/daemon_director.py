@@ -492,6 +492,7 @@ class DirectorDaemon(Daemon):
 
 						remote_path = worker.get_remote_path()
 						stdout,stderr = channel.run("mkdir -p %s" % remote_path)
+						logging.debug(remote_path)
 						logging.debug(stdout.readlines())
 						logging.debug(stderr.readlines())
 						# rafael# colocando endereco estatico
