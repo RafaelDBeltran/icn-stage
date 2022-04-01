@@ -492,7 +492,7 @@ class DirectorDaemon(Daemon):
 
 						remote_path = worker.get_remote_path()
 						stdout,stderr = channel.run("mkdir -p %s" % remote_path)
-						logging.debug(remote_path)
+						logging.info('Current_remote_path: ' + remote_path)
 						logging.debug(stdout.readlines())
 						logging.debug(stderr.readlines())
 						# rafael# colocando endereco estatico
@@ -555,7 +555,7 @@ class DirectorDaemon(Daemon):
 
 					channel.run("mkdir -p %s/experiments" % remote_path)
 					channel.chdir(remote_path)
-
+					logging.info('Current_remote_path: ' + remote_path)
 					logging.debug('INSTALL_WORKER [6] creating _worklibtarfile: {}'.format(_worklibtarfile))
 					create_worklib(_worklibtarfile)
 
@@ -595,7 +595,7 @@ class DirectorDaemon(Daemon):
 					channel.chdir(remote_dir)
 					stdout, stderr = channel.run(worker.get_command_stop())
 					# print datetime.datetime.now(), worker.hostname, "cmd: python %s stop" %(_worker_daemon), "stdout: ", stdout, "stderr: ", stderr
-
+					logging.info('Current_remote_path: ' + remote_path)
 					logging.debug('START_WORKER task_start_work: TRY p2')
 					#stdout, stderr = channel.run("python3 %s --id %s start" % (_worker_daemon, worker.actor_id))
 					stdout, stderr = channel.run(worker.get_command_start())
