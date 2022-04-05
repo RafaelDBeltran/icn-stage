@@ -282,25 +282,34 @@ class DirectorDaemon(Daemon):
 
 								remote_path = worker.get_remote_experiment_path()
 								logging.debug("SEND_EXPERIMENT 7.1 changing dir to {} ".format(remote_path))
-								channel.chdir(remote_path)
+								stdout,stderr = channel.chdir(remote_path)
+								logging.debug(stdout.readlines())
+								logging.debug(stderr.readlines())
 								if type(exp.name) is bytes:
 									exp.name = exp.name.decode('utf-8')
 
 								logging.info("SEND_EXPERIMENT 7.2 making dir {}".format(exp.name))
 								channel.mkdir(exp.name)
+								logging.debug(stdout.readlines())
+								logging.debug(stderr.readlines())
 
 								logging.info("SEND_EXPERIMENT 7.3 changing to dir {}".format(exp.name))
 								channel.chdir(exp.name)
+								logging.debug(stdout.readlines())
+								logging.debug(stderr.readlines())
 
 								if exp.filename is not None and exp.filename != "":
 									logging.debug("SEND_EXPERIMENT 8 file: {} to: {}".format(
 										_local_experiments_dir + exp.filename, remote_path))
 									channel.put(_local_experiments_dir + exp.filename, exp.filename)
+									logging.debug(stdout.readlines())
+									logging.debug(stderr.readlines())
 
 									logging.debug("SEND_EXPERIMENT 9 unzipping file {}".format(exp.filename))
 									channel.run("tar -xzf %s" % exp.filename)
 									logging.debug("SEND_EXPERIMENT 10 unzipping done.")
-
+									logging.debug(stdout.readlines())
+									logging.debug(stderr.readlines())
 								actor_id = self.controller_client.exp_create_actor(exp.id, worker.path, role.id)
 								channel.run(
 									"echo \"parameters=%s\nexp_id=%s\nrole_id=%s\nactor_id=%s\nis_snapshot=%s\" > info.cfg" % (
