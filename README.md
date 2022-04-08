@@ -11,15 +11,19 @@ ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas pa
     ```
 
 # Deploy
-0. Executar o minikube
-    minikube start
+0. Executar o minikube 
+```sh
+minikube start
+```
 
-1. Para fazer o deploy dos pods, deve executar o comando abaixo.
-   Para criar varios pods, tem que ediar a chave name mudando o director1 para director2 por exemplo.
-   Obs: O nome dos pods deve ser sempre em letra minuscula.
-   Obs2: Crie um chamado de controlador
+1. Para fazer o deploy dos pods, deve-se executar o comando abaixo para cada pod.
+   Para criar um novo pod, sugere-se copiar o arquivo de exemplo e editar a chave "name".
+   Obs1: o nome dos pods deve ser sempre em letra minúscula.
+   Obs2: crie um chamado de controlador.
+   
+   Para deploy do director1, execute:
     ```sh
-    local-host:~/icn-stage$ kubectl apply -f deployment.yaml_
+    local-host:~/icn-stage$ kubectl apply -f deployment_director1.yaml_
     ```
 2. Execute o python_kube. Ele irá criar o arquivo de configurações e enviar para os pods.
 
