@@ -26,6 +26,11 @@ minikube start
     local-host:~/icn-stage$ kubectl apply -f deployment_director1.yaml_
     ```
     
+    Para deploy dos três diretores, execute:
+    ```sh
+      for i in 1 2 3; do echo V kubectl apply -f deployment_director$i.yaml_; done
+    ```
+    
     Para deploy dos três atores, execute:
     ```sh
       for i in 1 2 3; do echo V kubectl apply -f deployment_actor$i.yaml_; done
