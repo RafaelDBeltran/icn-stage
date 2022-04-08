@@ -60,6 +60,30 @@ minikube start
    root@controlador:/icn/playground# python3 client_icn_stage.py
    ```
 
+# Stop
+
+
+1.  
+   Para parar director1, execute:
+    ```sh
+    kubectl delete pod director
+    ```
+    
+    Para parar três diretores, execute:
+    ```sh
+      for i in 1 2 3; do kubectl delete pod director$i; done
+    ```
+    
+    Para parar três atores, execute:
+    ```sh
+      for i in 1 2 3; do kubectl delete pod actor$i; done
+    ```
+    
+2. Parar o minikube 
+```sh
+minikube stop
+```
+    
 ## Comandos no ICN-stage
 Para iniciar o ensemble
 ```sh
