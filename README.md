@@ -25,6 +25,12 @@ minikube start
     ```sh
     local-host:~/icn-stage$ kubectl apply -f deployment_director1.yaml_
     ```
+    
+    Para deploy dos três atores, execute:
+    ```sh
+      for i in 1 2 3; do echo V kubectl apply -f deployment_actor$i.yaml_; done
+    ```
+    
 2. Execute o python_kube. Ele irá criar o arquivo de configurações e enviar para os pods.
 
    ```sh
