@@ -97,16 +97,27 @@ class Ensemble:
                 # daemon_ensemble_instacnce.start()
                 # # subprocess.run("bash /home/minion/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log")
                 #python3 /home/minion/icn-stage/daemon_ensemble.py --start
-                subprocess.call("bash {}/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log".format(ICN_STAGE_FOLDER), shell=True)
 
+                if (default_action == 'Active-old'):
+                    subprocess.call(
+                        "bash {}/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log".format(ICN_STAGE_FOLDER),
+                        shell=True)
+
+                elif (default_action == 'Active-new'):
+                    subprocess.call(
+                        "bash {}/icn-stage/python3 daemon_director_ensemble.py --start".format(ICN_STAGE_FOLDER),
+                        shell=True)
 
             else:
 
                 channel = Channel(hostname=i['remote_hostname'], username=i['remote_username'],
                         password=i['remote_password'], pkey=sundry.get_pkey(i["remote_pkey_path"]), timeout=_timeout)
-                if(default_action != None):
-
+                if(default_action == 'Active-old'):
                     channel.run("bash {}/icn-stage/modules/ensemble/ensemble.sh 2>err.log 1>out.log".format(ICN_STAGE_FOLDER))
+
+                elif (default_action == 'Active-new'):
+                    channel.run(
+                        "bash {}/icn-stage/python3 daemon_director_ensemble.py --start".format(ICN_STAGE_FOLDER))
                 #channel.run("python3 daemon_ensemble.py --start ")
                 #channel.run("echo `pwd` > path.out ")
 

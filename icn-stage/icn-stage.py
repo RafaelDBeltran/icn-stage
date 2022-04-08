@@ -4,7 +4,7 @@
 __author__ = 'Rafael  '
 __email__ = ' @unipampa.edu.br'
 __version__ = '{0}.{0}.{5}'
-__credits__ = ['PPGA', 'LEA', 'Unipampa@alegrete']
+__credits__ = ['PPGES', 'LEA', 'Unipampa@alegrete']
 
 #general bibs
 import sys
@@ -294,7 +294,14 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             logging.error(msg)
 
     elif command == 'ensemble-start':
-        _ = Ensemble(default_action='Active')
+        #_ = Ensemble(default_action='Active-new')
+        
+        Ensemble_zookeeper_controller = ZookeeperController()
+        Ensemble_status = True
+
+
+    elif command == 'ensemble-start-old':
+        _ = Ensemble(default_action='Active-old')
         Ensemble_zookeeper_controller = ZookeeperController()
         Ensemble_status = True
         
