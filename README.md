@@ -5,9 +5,9 @@ ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas pa
 # Download do Projeto
 
     ```sh
-    local-host:~/$ git clone git@github.com:RafaelDBeltran/icn-stage.git
-    local-host:~/$ cd icn-stage/
-    local-host:~/icn-stage$ git checkout kubernetes
+  git clone git@github.com:RafaelDBeltran/icn-stage.git
+    cd icn-stage/
+    git checkout kubernetes
     ```
 
 # Deploy
@@ -23,7 +23,7 @@ minikube start
    
    Para deploy do director1, execute:
     ```sh
-    local-host:~/icn-stage$ kubectl apply -f deployment_director1.yaml_
+    kubectl apply -f deployment_director1.yaml_
     ```
     
     Para deploy dos três diretores, execute:
@@ -36,18 +36,23 @@ minikube start
       for i in 1 2 3; do kubectl apply -f deployment_actor$i.yaml_; done
     ```
     
-2. Execute o python_kube. Ele irá criar o arquivo de configurações e enviar para os pods.
+2. Execute o python_kube.py para criar os arquivos de configurações e enviar para os respectivos pods.
 
    ```sh
-   local-host:~/icn-stage$ python3 python_kube.py
+   python3 python_kube.py
    ```
-3. Acesse o Director1 com o comando abaixo e execute o icn-stage
+3. Acesse o Director1 
 
    ```sh
-   local-host:~/icn-stage$ kubectl exec --stdin --tty director1 -- /bin/bash
-
-   root@director1:/icn/icn-stage# python3 icn-stage.py
+   kubectl exec --stdin --tty director1 -- /bin/bash
    ```
+   No diretor, execute o icn-stage
+    ```sh
+    cd icn-stage
+
+  python3 icn-stage.py
+   ```
+   
 4. Acesse o controlador onde vamos interagir com o icn-stage e execute o terminal do icn-stage.
 
    ```sh
