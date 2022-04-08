@@ -48,10 +48,9 @@ minikube start
    ```
    No diretor, execute o icn-stage
     ```sh
-    cd icn-stage
-
-  python3 icn-stage.py
+    cd icn-stage; python3 icn-stage.py
    ```
+
    
 4. Acesse o controlador onde vamos interagir com o icn-stage e execute o terminal do icn-stage.
 
