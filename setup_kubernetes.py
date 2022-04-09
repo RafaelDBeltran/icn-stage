@@ -272,7 +272,7 @@ spec:
 #     # subprocess.run('cp config.json playground',shell=True)
 
 
-def run_setup(local_pods):
+def run_setup(local_pods, args):
     Diretores = {}
     Atores = {}
     Auxiliares = {}
@@ -295,29 +295,32 @@ def run_setup(local_pods):
                 if k not in config_itens.keys():
                     config_itens[k] = []
                 
-                config_itens[k] += [i.metadata.name]
+                config_itens[k] += [[i.metadata.name, i.status.pod_ip]]
 
     logging.debug(config_itens)
     logging.info("Creating config.json file...")
-    config_text = '''{\n"zookeeper_adapter\": \"eth0\",\n'''
+    config_text = '''{\n"zookeeper_adapter\": \"eth0\"'''
 
     for key in config_itens.keys():
-        config_text +='''"{}": ['''.format(key)
+        config_text +=''',\n"{}": ['''.format(key)
 
         for count, value in enumerate(config_itens[key]):
+            name = value[0]
+            ip = value[1]
             if count > 0:
                 config_text += ''','''
                 
             config_text += '''\n\t{\n'''
-            config_text += '''\t"remote_id"       : "{}" ,\n'''.format(count+1)
-            config_text += '''\t"remote_hostname" : "{}" ,\n'''.format(value)
-            config_text += '''\t"Function"        : "{}" ,\n'''.format(key)
+            config_text += '''\t"remote_id"       : "{}",\n'''.format(count+1)
+            config_text += '''\t"remote_hostname" : "{}",\n'''.format(ip)
+            config_text += '''\t"Function"        : "{}",\n'''.format(key)
             config_text += '''\t"remote_username" : "icn_user",\n'''
             config_text += '''\t"remote_password" : "icn_user",\n'''
-            config_text += '''\t"remote_pkey_path": "/icn/keys/id_rsa",\n'''
+            config_text += '''\t"remote_pkey_path": "/icn/keys/id_rsa"\n'''
             config_text += '''\t}'''
 
-        config_text += "]\n"
+        config_text += "]"
+    config_text += "\n}\n"
         
     config_file = open("config.json", "w")
     config_file.write(config_text)
@@ -333,7 +336,9 @@ def run_setup(local_pods):
         ensemble_mode = True
         zk_config_data = ZK_ENSEMBLE_CONFIG_DATA
         for count, value in enumerate(config_itens['director']):
-            zk_config_data += "server.{}={}:2888:3888\n".format(count+1, value)
+            name = value[0]
+            ip = value[1]
+            zk_config_data += "server.{}={}:2888:3888\n".format(count+1, ip)
 
     zk_config_file = open("zookeeper/conf/zoo.cfg", 'w')
     zk_config_file.write(zk_config_data)
@@ -342,7 +347,9 @@ def run_setup(local_pods):
 
     logging.info("Configuring pods... DONE!")
     for group in config_itens.keys():
-        for count, pod in enumerate(config_itens[group]):
+        for count, value in enumerate(config_itens[group]):
+            pod = value[0]
+            ip = value[1]
             logging.debug("\tgroup: {} \t pod: {} count: {}".format(group, pod, count))
             run_cmd('kubectl cp icn-stage/ {}:/icn/'.format(pod))
             run_cmd_kubernete(pod, "sudo /etc/init.d/ssh start")
@@ -358,7 +365,7 @@ def run_setup(local_pods):
                     cmd_director = "python3 /icn/icn-stage/daemon_director_ensemble.py"
                 else:
                     cmd_director = "python3 /icn/icn-stage/daemon_director.py"
-
+                cmd_director += " --log {}".format(args.log)
                 run_cmd_kubernete(pod, cmd_director + " stop")
                 run_cmd_kubernete(pod, cmd_director + " start")
              
@@ -441,7 +448,7 @@ def main():
 
 
         logging.info("Setup pods...")
-        run_setup(local_pods)
+        run_setup(local_pods, args)
         logging.info("Setup pods... DONE!\n\n")
 
     elif args.mode == mode_choices[1]: #fibre

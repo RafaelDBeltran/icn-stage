@@ -9,16 +9,8 @@ import sys
 from modules.extralib.daemon import Daemon
 from zookeeper_controller import ZookeeperController
 
-DEFAULT_SLEEP_SECONDS = 60
-LOG_LEVEL = logging.INFO
+DEFAULT_SLEEP_SECONDS = 0.1
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-
-if LOG_LEVEL == logging.DEBUG:
-    logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-                datefmt=TIME_FORMAT, level=LOG_LEVEL, filemode='w')
-else:
-    logging.basicConfig(format='%(asctime)s %(message)s',
-                datefmt=TIME_FORMAT, level=LOG_LEVEL, filemode='w')
 
 
 def zookeeper_is_running():
@@ -42,43 +34,59 @@ def daemon_controller_is_running():
 def run_daemon_controller(arg_):
     # cmd = [sys.executable, "daemon_director.py", "arg_"]
     # subprocess.call(cmd)
-    subprocess.call("%s daemon_director.py %s " % (sys.executable, arg_), shell=True)
+    cmd = "%s daemon_director.py %s  " % (sys.executable, arg_)
+    logging.info(cmd)
+    subprocess.call(cmd, shell=True)
 
 
 class DirectorEnsembleDaemon(Daemon):
 
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null', logging=None, log=logging.INFO):
         super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
         self.zookeeper_controller = ZookeeperController()
         self.sleep_secs = DEFAULT_SLEEP_SECONDS
+        self.log = log
+
+    def stop(self):
+        run_daemon_controller("--log {} stop".format(self.log))
+        super().stop()
 
     def set_sleep_secs(self, sleep_secs):
         self.sleep_secs = sleep_secs
 
     def run(self):
+        last_status = None
+        status = last_status
 
         while True:
-                
             if self.zookeeper_controller.am_i_the_leader():
-                logging.info('\n(My Status) LEADER\n')
+                status = "LEADER"
    
                 if not daemon_controller_is_running():
-                    logging.info("\nDaemonController isn't running\n")
-                    run_daemon_controller("start")
+                    logging.debug("\ndaemon_director isn't running\n")
+                    run_daemon_controller("--log {} start".format(self.log))
 
                 else:
-                    logging.debug("\nDaemonController is already running!\n")
+                    logging.debug("\ndaemon_director is already running!\n")
 
             else:
-                logging.info('\n(MY Status) FOLLOWER\n')
+                status = "FOLLOWER"
                 
                 if daemon_controller_is_running():
-                    logging.info("DaemonController is running")
-                    logging.debug("We must start DaemonController")
-                    run_daemon_controller("stop")
+                    logging.debug("daemon_director is running")
+                    logging.debug("We must start daemon_director")
+                    run_daemon_controller("--log {} stop".format(self.log))
 
                 else:
                     logging.debug("\nDaemonController isn't running.\n")
+
+            msg = '(My Status) {}\n'.format(status)
+            if last_status == status:
+                logging.debug(msg)
+
+            else:
+                logging.info(msg)
+                last_status = status
 
             time.sleep(self.sleep_secs)
 
@@ -93,8 +101,8 @@ def main():
     help_msg = "unique id (str), required for running multiple daemons on the host"
     parser.add_argument("--id", "-i", help=help_msg, default="default", type=str)
 
-    help_msg = "loop sleep seconds (int)"
-    parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=int)
+    help_msg = "loop sleep seconds (float)"
+    parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=float)
 
     cmd_choices = ['start', 'stop', 'restart', 'status']
     parser.add_argument('cmd', choices=cmd_choices)
@@ -110,7 +118,6 @@ def main():
     else:
         logging.basicConfig(format='%(asctime)s %(message)s',
                             datefmt=TIME_FORMAT, level=args.log)
-
     # shows input parameters
     logging.info("")
     logging.info("INPUT")
@@ -132,7 +139,7 @@ def main():
     logging.info("\t stderr        : %s" % stderr)
     logging.info("")
 
-    director_ensemble = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
+    director_ensemble = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr, logging=logging, log=args.log)
     director_ensemble.set_sleep_secs(args.sleep)
 
     # process input parameters

@@ -13,6 +13,7 @@ from modules.util.tools import Sundry
 from time import sleep
 from kazoo.client import *
 import kazoo
+import shlex
 
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 MAX_ATTEMPTS = 60*3
@@ -60,6 +61,14 @@ def get_diff_tabs(n, word):
     #	s += "\t"
     return s
 
+def run_cmd_get_output(cmd_str, shell=True):
+    logging.debug("Cmd_str: {}".format(cmd_str))
+    # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
+    cmd_array = shlex.split(cmd_str)
+    result = subprocess.run(cmd_array, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    #logging.debug("result std_err: {}".format(result.stderr))
+    logging.debug("result std_out: {}".format(result.stdout))
+    return str(result.stdout)
 
 class ZookeeperController:
     DEFAULT_USER_PATH = "/icn"
@@ -157,8 +166,10 @@ class ZookeeperController:
     @staticmethod
     def am_i_the_leader():
         cmd = '{}/bin/zkServer.sh status'.format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
-        status = os.popen(cmd).read()
+        #status = os.popen(cmd).read()
+        
         try:
+            status = run_cmd_get_output(cmd)
             if status.index('leader'):
                 return True
 

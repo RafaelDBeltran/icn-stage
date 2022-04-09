@@ -13,9 +13,10 @@ import sys, os, time, atexit
 import logging
 from signal import SIGTERM
 from signal import SIGHUP
+import psutil
 
 log = logging.getLogger(__name__)
-
+#log = logging
 
 class Daemon(object):
     """A generic daemon class.
@@ -39,7 +40,7 @@ class Daemon(object):
         Programming in the UNIX Environment" for details (ISBN 0201563177)
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
-        log.debug("Attempting to daemonize.")
+        logging.debug("Attempting to daemonize.")
         try:
             pid = os.fork()
             if pid > 0:
@@ -98,6 +99,11 @@ class Daemon(object):
             pid = int(pf.read().strip())
             pf.close()
             log.debug("Found pid in open.  pid: %s" % pid)
+            proc = psutil.Process(pid)
+            if proc.status() == psutil.STATUS_ZOMBIE:
+                log.debug("pid: {} group: {} sig: {} STATUS_ZOMBIE".format(pid, os.getpgid(pid), SIGTERM))
+                pid = None
+                
         except IOError:
             pid = None
             log.debug("No pid found.")
@@ -119,17 +125,28 @@ class Daemon(object):
     def stop(self):
         log.debug("Attempting to stop daemon")
         pid = self.getpid()
+
         if not pid:
             message = "pidfile %s does not exist. Daemon not running?"
-            log.debug(message % self.pidfile)
-            sys.stderr.write((message+'\n') % self.pidfile)
+            log.info(message % self.pidfile)
+            #sys.stderr.write((message+'\n') % self.pidfile)
             return # not an error in a restart
 
         # Try killing the daemon process
         try:
+            proc = psutil.Process(pid)
             while 1:
+                log.debug("pid: {} group: {} sig: {}".format(pid, os.getpgid(pid), SIGTERM))
+                os.killpg(os.getpgid(pid), SIGTERM)
                 os.kill(pid, SIGTERM)
+
                 time.sleep(0.1)
+                if proc.status() == psutil.STATUS_ZOMBIE:
+                    log.debug("pid: {} group: {} sig: {} STATUS_ZOMBIE".format(pid, os.getpgid(pid), SIGTERM))
+                    if os.path.exists(self.pidfile):
+                        os.remove(self.pidfile)
+                    break
+
             log.debug("Daemon killed successfully")
         except OSError as err:
             err = str(err)

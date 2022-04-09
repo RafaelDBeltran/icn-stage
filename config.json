@@ -2,51 +2,52 @@
 "zookeeper_adapter": "eth0",
 "actor": [
 	{
-	"remote_id"       : "1" ,
-	"remote_hostname" : "actor1" ,
-	"Function"        : "actor" ,
+	"remote_id"       : "1",
+	"remote_hostname" : "172.17.0.6",
+	"Function"        : "actor",
 	"remote_username" : "icn_user",
 	"remote_password" : "icn_user",
-	"remote_pkey_path": "/icn/keys/id_rsa",
+	"remote_pkey_path": "/icn/keys/id_rsa"
 	},
 	{
-	"remote_id"       : "2" ,
-	"remote_hostname" : "actor2" ,
-	"Function"        : "actor" ,
+	"remote_id"       : "2",
+	"remote_hostname" : "172.17.0.9",
+	"Function"        : "actor",
 	"remote_username" : "icn_user",
 	"remote_password" : "icn_user",
-	"remote_pkey_path": "/icn/keys/id_rsa",
+	"remote_pkey_path": "/icn/keys/id_rsa"
 	},
 	{
-	"remote_id"       : "3" ,
-	"remote_hostname" : "actor3" ,
-	"Function"        : "actor" ,
+	"remote_id"       : "3",
+	"remote_hostname" : "172.17.0.10",
+	"Function"        : "actor",
 	"remote_username" : "icn_user",
 	"remote_password" : "icn_user",
-	"remote_pkey_path": "/icn/keys/id_rsa",
-	}]
+	"remote_pkey_path": "/icn/keys/id_rsa"
+	}],
 "director": [
 	{
-	"remote_id"       : "1" ,
-	"remote_hostname" : "director1" ,
-	"Function"        : "director" ,
+	"remote_id"       : "1",
+	"remote_hostname" : "172.17.0.2",
+	"Function"        : "director",
 	"remote_username" : "icn_user",
 	"remote_password" : "icn_user",
-	"remote_pkey_path": "/icn/keys/id_rsa",
+	"remote_pkey_path": "/icn/keys/id_rsa"
 	},
 	{
-	"remote_id"       : "2" ,
-	"remote_hostname" : "director2" ,
-	"Function"        : "director" ,
+	"remote_id"       : "2",
+	"remote_hostname" : "172.17.0.7",
+	"Function"        : "director",
 	"remote_username" : "icn_user",
 	"remote_password" : "icn_user",
-	"remote_pkey_path": "/icn/keys/id_rsa",
+	"remote_pkey_path": "/icn/keys/id_rsa"
 	},
 	{
-	"remote_id"       : "3" ,
-	"remote_hostname" : "director3" ,
-	"Function"        : "director" ,
+	"remote_id"       : "3",
+	"remote_hostname" : "172.17.0.8",
+	"Function"        : "director",
 	"remote_username" : "icn_user",
 	"remote_password" : "icn_user",
-	"remote_pkey_path": "/icn/keys/id_rsa",
+	"remote_pkey_path": "/icn/keys/id_rsa"
 	}]
+}

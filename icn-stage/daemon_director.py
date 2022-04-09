@@ -30,12 +30,12 @@ from modules.util.tools import Sundry
 
 Nodes_ip = None
 
-data = json.load(open('config.json'))
-for i in data['Nodes']:
-	if Nodes_ip == None:
-		Nodes_ip = i['remote_hostname'] + ':2181'
-	else:
-		Nodes_ip = Nodes_ip + ',' + i['remote_hostname'] + ':2181'
+# data = json.load(open('config.json'))
+# for i in data['Nodes']:
+# 	if Nodes_ip == None:
+# 		Nodes_ip = i['remote_hostname'] + ':2181'
+# 	else:
+# 		Nodes_ip = Nodes_ip + ',' + i['remote_hostname'] + ':2181'
 
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -223,6 +223,10 @@ class DirectorDaemon(Daemon):
 		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 		sundry_instance = Sundry()
 		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
+
+	def stop(self):
+		self.zookeeper_controller.stop_zookeeper_service()
+		super().stop()
 
 	def set_sleep_seconds(self, sleep_seconds):
 		self.sleep_seconds = sleep_seconds

@@ -90,7 +90,7 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
 def add_worker(controller_client, max_actors=None):
     logging.info("Adding Actors...")
     count = 0
-    for i in data['workers']:
+    for i in data['actor']:
         count += 1
 
         new_worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], actor_id=i["actor_id"], pkey=sundry.get_pkey(i["remote_pkey_path"]))
@@ -105,7 +105,7 @@ def add_worker(controller_client, max_actors=None):
 
     for i in trange(100):
         sleep(1)
-    logging.info("Adding Actors...DONE")
+    logging.info("Adding Actors...DONE!")
 
 
 # TODO Add loading time while adding workers
