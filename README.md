@@ -2,19 +2,44 @@
 
 ICN-stage é uma plataforma aberta para orquestração e tolerância a falhas para avaliação experimental de cenas ICN.
 
-# Download do Projeto
+# Download
+```sh
+git clone git@github.com:RafaelDBeltran/icn-stage.git
+```
 
-    ```sh
-  git clone git@github.com:RafaelDBeltran/icn-stage.git
-    cd icn-stage/
-    git checkout kubernetes
-    ```
+```sh
+cd icn-stage; git checkout kubernetes
+```
+    
+# Install 
+Kubernetes
+Python
+(Zookeeper não é necessário pois é instalado e configurado automaticamente)
 
 # Deploy
 0. Executar o minikube 
 ```sh
 minikube start
+``
+
+1. Configurar o ambiente kubernets
+```sh
+python3 setup_kubernets.py local
 ```
+
+# Run
+
+2. Acessar algum diretor
+```sh
+kubectl exec --stdin --tty director1 -- /bin/bash
+```
+
+3. Executar o icn-stage
+```sh
+cd icn-stage; python3 cli.py
+```
+
+----
 
 1. Para fazer o deploy dos pods, deve-se executar o comando abaixo para cada pod.
    Para criar um novo pod, sugere-se copiar o arquivo de exemplo e editar a chave "name".
