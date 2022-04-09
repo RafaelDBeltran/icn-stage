@@ -1,46 +1,52 @@
-{"zookeeper_adapter": "eth0",
-
-    "Nodes": [
-
-    {"remote_id": "1",
-"remote_hostname": "172.17.0.2",
-"remote_username": "icn_user",
-"remote_password": "icn_user",
-"remote_pkey_path": "/icn/keys/id_rsa",
-"Function": "director1"} 
-,{"remote_id": "2",
-"remote_hostname": "172.17.0.7",
-"remote_username": "icn_user",
-"remote_password": "icn_user",
-"remote_pkey_path": "/icn/keys/id_rsa",
-"Function": "director2"} 
-,{"remote_id": "3",
-"remote_hostname": "172.17.0.8",
-"remote_username": "icn_user",
-"remote_password": "icn_user",
-"remote_pkey_path": "/icn/keys/id_rsa",
-"Function": "director3"} 
-
-],
-    "workers":[
-    {"actor_id": "1",
-"remote_hostname": "172.17.0.6",
-"remote_username": "icn_user",
-"remote_password": "icn_user",
-"remote_pkey_path": "/icn/keys/id_rsa",
-"Function": "actor1"}
-,{"actor_id": "2",
-"remote_hostname": "172.17.0.9",
-"remote_username": "icn_user",
-"remote_password": "icn_user",
-"remote_pkey_path": "/icn/keys/id_rsa",
-"Function": "actor2"}
-,{"actor_id": "3",
-"remote_hostname": "172.17.0.10",
-"remote_username": "icn_user",
-"remote_password": "icn_user",
-"remote_pkey_path": "/icn/keys/id_rsa",
-"Function": "actor3"}
-
-]
-}
+{
+"zookeeper_adapter": "eth0",
+"actor": [
+	{
+	"remote_id"       : "1" ,
+	"remote_hostname" : "actor1" ,
+	"Function"        : "actor" ,
+	"remote_username" : "icn_user",
+	"remote_password" : "icn_user",
+	"remote_pkey_path": "/icn/keys/id_rsa",
+	},
+	{
+	"remote_id"       : "2" ,
+	"remote_hostname" : "actor2" ,
+	"Function"        : "actor" ,
+	"remote_username" : "icn_user",
+	"remote_password" : "icn_user",
+	"remote_pkey_path": "/icn/keys/id_rsa",
+	},
+	{
+	"remote_id"       : "3" ,
+	"remote_hostname" : "actor3" ,
+	"Function"        : "actor" ,
+	"remote_username" : "icn_user",
+	"remote_password" : "icn_user",
+	"remote_pkey_path": "/icn/keys/id_rsa",
+	}]
+"director": [
+	{
+	"remote_id"       : "1" ,
+	"remote_hostname" : "director1" ,
+	"Function"        : "director" ,
+	"remote_username" : "icn_user",
+	"remote_password" : "icn_user",
+	"remote_pkey_path": "/icn/keys/id_rsa",
+	},
+	{
+	"remote_id"       : "2" ,
+	"remote_hostname" : "director2" ,
+	"Function"        : "director" ,
+	"remote_username" : "icn_user",
+	"remote_password" : "icn_user",
+	"remote_pkey_path": "/icn/keys/id_rsa",
+	},
+	{
+	"remote_id"       : "3" ,
+	"remote_hostname" : "director3" ,
+	"Function"        : "director" ,
+	"remote_username" : "icn_user",
+	"remote_password" : "icn_user",
+	"remote_pkey_path": "/icn/keys/id_rsa",
+	}]
