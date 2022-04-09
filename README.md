@@ -20,7 +20,7 @@ Python
 0. Executar o minikube 
 ```sh
 minikube start
-``
+```
 
 1. Configurar o ambiente kubernets
 ```sh
