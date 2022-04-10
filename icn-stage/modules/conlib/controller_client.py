@@ -83,7 +83,7 @@ class ControllerClient:
 	#### SERVER CONFIGURATION METHODS
 	# rafael
 	# def __init__(self, zk_addr="127.0.0.1:2181"):
-	def __init__(self, zk_addr):
+	def __init__(self, zk_addr="127.0.0.1:2181"):
 		self.zk_addr = zk_addr
 		logging.debug("Instantiating kazoo using address: {}".format(self.zk_addr))
 		self.zk = kazoo.client.KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=180))

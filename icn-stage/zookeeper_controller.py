@@ -15,6 +15,9 @@ from kazoo.client import *
 import kazoo
 import shlex
 
+DEFAULT_USER_PATH = "/icn"
+DEFAULT_ZOOKEEPER_PATH = DEFAULT_USER_PATH + "/zookeeper"
+ZK_CMD = '{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH.replace("''", "'"))
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 MAX_ATTEMPTS = 60*3
 
@@ -48,11 +51,11 @@ def nowStr():
 def get_tabs(n):
     s = ""
     for i in range(n):
-        s += "\t"
+        s += "   "
     return s
 
 
-def get_diff_tabs(n, word):
+def get_diff_tabs(word):
     s = ""
     for i in range(50 - len(word)):
         s += " "
@@ -70,62 +73,34 @@ def run_cmd_get_output(cmd_str, shell=True):
     logging.debug("result std_out: {}".format(result.stdout))
     return str(result.stdout)
 
+def run_cmd(cmd_str, shell=False):
+    logging.debug("Cmd_str: {}".format(cmd_str))
+    # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
+    cmd_array = shlex.split(cmd_str)
+    #logging.debug("Cmd_array: {}".format(cmd_array))
+
+    # executa comando em subprocesso
+    subprocess.run(cmd_array, check=True, shell=shell)
+
 class ZookeeperController:
-    DEFAULT_USER_PATH = "/icn"
-    DEFAULT_ZOOKEEPER_PATH = DEFAULT_USER_PATH + "/zookeeper"
-    DEFAULT_CONFIG_FILE = "config.json"
-    DEFAULT_CONFIG_DATA = '''tickTime=5000\n\
-    minSessionTimeout=30000\n\
-    maxSessionTimeout=60000\n\
-    initLimit=10\n\
-    syncLimit=5\n\
-    dataDir=~/.zk/datadir\n\
-    clientPort=2181\n\
-    clientPortAddress=NEW_IP\n\
-    maxClientCnxns=200\n\
-    '''
-    ZK_CMD = '{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH.replace("''", "'"))
 
-    def __init__(self, config_file_=DEFAULT_CONFIG_FILE):
-        logging.info("looking for zookeeper config file: {}".format(config_file_))
-        if os.path.isfile(config_file_):
-            logging.info("Config file found! {}".format(config_file_))
-            self.config_data = json.load(open(config_file_))
-            self.adapter = self.config_data["zookeeper_adapter"]
 
-        else:
-            logging.info("Config file not found! Config file name: '%s'" % config_file_)
-            logging.info("You may want to create a config file from the available example: cp %s.example %s" % (
-                ZookeeperController.DEFAULT_CONFIG_FILE, config_file_))
-            sys.exit(-1)
-            # self.create_zookeeper_config_file()
-
-        self.zookeeper_ip_port = self.get_ip_adapter() + ':2181'
-        sundry_instance = Sundry()
-        #self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
-        logging.info("zookeeper_ip_port: {}".format(self.zookeeper_ip_port))
-        #self.create_zookeeper_config_file()
+    def __init__(self):
 
         if not self.is_running():
             logging.info("Zookeeper Service is not running.")
             self.start_zookeeper_service()
-            #logging.info("CONNECTING ZK")
-            #self.controller_client = None # ControllerClient(zookeeper_ip_port)
-
-            #logging.info("CREATING BASIC ZNODES ZK")
-            #self.controller_client.config_create_missing_paths()
-
+ 
             if not os.path.isdir("./experiments"):
                 logging.info("CREATING EXPERIMENTS FOLDER")
                 os.mkdir("./experiments")
-        #else:
-        #    self.controller_client = ControllerClient(zookeeper_ip_port)
+
         # instantiating it is costly and might not be need at all, so leave the decision for the caller
         self.controller_client = None
 
     def set_controller_client(self, controller_client=None):
         if controller_client is None and self.controller_client is None:
-            self.controller_client = ControllerClient(self.zookeeper_ip_port)
+            self.controller_client = ControllerClient()
         elif controller_client is not None:
             self.controller_client = controller_client
 
@@ -134,28 +109,14 @@ class ZookeeperController:
         # netifaces.ifaddresses(self.adapter)
         return netifaces.ifaddresses(self.adapter)[netifaces.AF_INET][0]['addr']
 
-    def create_zookeeper_config_file(self):
-
-        subprocess.call("mkdir {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
-
-        subprocess.call("wget https://downloads.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz -P {}/opt/".format(self.DEFAULT_USER_PATH), shell=True)
-        subprocess.call("cd && cd {}/opt/ && tar xf apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
-        subprocess.call("cd && cd {}/opt/ && ln -s apache-zookeeper-3.6.3-bin zookeeper".format(self.DEFAULT_USER_PATH), shell=True)
-        subprocess.call("cd && cd {}/opt/ && rm apache-zookeeper-3.6.3-bin.tar.gz".format(self.DEFAULT_USER_PATH), shell=True)
-
-        new_my_config_file = ZookeeperController.DEFAULT_CONFIG_DATA.replace('NEW_IP', self.get_ip_adapter())
-        subprocess.call("echo " + "'{}'".format(new_my_config_file) + " > " + "/opt/zookeeper/conf/zoo.cfg".format(self.DEFAULT_USER_PATH), shell=True)
-
     @staticmethod
     def get_status():
-        cmd = '{}/bin/zkServer.sh status'.format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
+        cmd = "{} status".format(ZK_CMD)
         return os.popen(cmd).read()
 
     @staticmethod
     def is_running():
-        cmd = ZookeeperController.ZK_CMD.replace('//','/')
-        cmd = cmd + ' status'
-
+        cmd = "{} status".format(ZK_CMD)
         return_code = subprocess.run(cmd, shell = True).returncode
         
         if return_code == 0:
@@ -165,14 +126,11 @@ class ZookeeperController:
 
     @staticmethod
     def am_i_the_leader():
-        cmd = '{}/bin/zkServer.sh status'.format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
-        #status = os.popen(cmd).read()
-        
+        cmd = "{} status".format(ZK_CMD)
         try:
             status = run_cmd_get_output(cmd)
             if status.index('leader'):
                 return True
-
             else:
                 return False
 
@@ -182,20 +140,23 @@ class ZookeeperController:
     @staticmethod
     def start_zookeeper_service():
         logging.info("STARTING ZK")
-        cmd = "{}/bin/zkServer.sh start".format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
-        subprocess.call(cmd, shell=True)
+        cmd = "{} start".format(ZK_CMD)
+        run_cmd(cmd)
 
     @staticmethod
     def stop_zookeeper_service():
         logging.info("STOPPING ZK")
-        cmd = "{}/bin/zkServer.sh stop".format(ZookeeperController.DEFAULT_ZOOKEEPER_PATH)
-        subprocess.call(cmd, shell=True)
+        cmd = "{} stop".format(ZK_CMD)
+        run_cmd(cmd)
 
         #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
-
+    def create_data_structure(self):
+        self.set_controller_client()
+        self.controller_client.config_create_missing_paths()
+        
     # TODO HÃ¡ varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_tasks(self):
-
+        self.set_controller_client()
         logging.info("\tRemoving tasks... ")
         for t in self.controller_client.zk.get_children('/tasks/'):
             logging.info("\t\ttask: {}".format(t))
@@ -216,56 +177,58 @@ class ZookeeperController:
 
     # TODO Hï¿½ varias etapas redundantes, da pra reduzir pela metade esse metodo.
     def reset_workers(self):
-        logging.info(nowStr() + "Reseting workers...\n")
+        self.set_controller_client()
 
-        logging.info(nowStr() + "\tRemoving tasks... ")
+        logging.info("Reseting workers...\n")
+
+        logging.info("\tRemoving tasks... ")
         for t in self.controller_client.zk.get_children('/tasks/'):
-            logging.info(nowStr() + "\t\ttask: ", t)
+            logging.info("\t\ttask: ", t)
             self.controller_client.zk.delete('/tasks/' + t, recursive=True)
-        logging.info(nowStr() + "\tRemoving tasks done. \n")
+        logging.info("\tRemoving tasks done. \n")
 
-        logging.info(nowStr() +"\tRemoving experiments from workers... ")
+        logging.info("\tRemoving experiments from workers... ")
         try:
             for w in self.controller_client.zk.get_children('/registered/workers'):
-                logging.info(nowStr() + "\t\tRemoving experiment from worker: ", w)
+                logging.info("\t\tRemoving experiment from worker: ", w)
                 for e in self.controller_client.zk.get_children('/registered/workers/' + w + '/torun'):
-                    logging.info(nowStr() +"\t\t\tworker: ", w, " children: ", e)
+                    logging.info("\t\t\tworker: ", w, " children: ", e)
                     self.controller_client.zk.delete('/registered/workers/' + w + '/torun/' + e, recursive=True)
         except:
             pass
-        logging.info(nowStr() + "\tRemoving experiments from workers done.\n")
+        logging.info("\tRemoving experiments from workers done.\n")
 
-        logging.info(nowStr() + "\tRemoving registered workers... ")
+        logging.info( "\tRemoving registered workers... ")
         for w in self.controller_client.zk.get_children('/registered/workers'):
-            logging.info(nowStr() + "\t\tregistered worker: ", w)
+            logging.info("\t\tregistered worker: ", w)
             self.controller_client.zk.delete('/registered/workers/' + w, recursive=True)
-        logging.info(nowStr() + "\tRemoving registered workers done.\n")
+        logging.info("\tRemoving registered workers done.\n")
 
-        logging.info(nowStr() + "\tRemoving connected busy workers... ")
+        logging.info("\tRemoving connected busy workers... ")
         for w in self.controller_client.zk.get_children('/connected/busy_workers'):
-            logging.info(nowStr() + "\t\tconnected busy worker: ", w)
+            logging.info("\t\tconnected busy worker: ", w)
             self.controller_client.zk.delete('/connected/busy_workers/' + w, recursive=True)
-        logging.info(nowStr() + "\tRemoving connected busy workers done.\n")
+        logging.info("\tRemoving connected busy workers done.\n")
 
-        logging.info(nowStr() + "\tRemoving connected free workers... ")
+        logging.info("\tRemoving connected free workers... ")
         for w in self.controller_client.zk.get_children('/connected/free_workers/'):
-            logging.info(nowStr() + "\t\tconnected free worker: ", w)
+            logging.info("\t\tconnected free worker: ", w)
             self.controller_client.zk.delete('/connected/free_workers/' + w, recursive=True)
-        logging.info(nowStr() + "\tRemoving connected free workers done.\n")
+        logging.info("\tRemoving connected free workers done.\n")
 
-        logging.info(nowStr() + "\tRemoving disconnected workers... ")
+        logging.info("\tRemoving disconnected workers... ")
         for w in self.controller_client.zk.get_children('/disconnected/workers/'):
-            logging.info(nowStr() + "\t\tdisconnected worker: ", w)
+            logging.info("\t\tdisconnected worker: ", w)
             self.controller_client.zk.delete('/disconnected/workers/' + w, recursive=True)
-        logging.info(nowStr() + "\tRemoving disconnected workers done.\n")
+        logging.info("\tRemoving disconnected workers done.\n")
 
-        logging.info(nowStr() + "\tRemoving experiments... ")
+        logging.info("\tRemoving experiments... ")
         for e in self.controller_client.zk.get_children('/experiments/'):
-            logging.info(nowStr() + "\t\t experiment: " + e)
+            logging.info("\t\t experiment: " + e)
             self.controller_client.zk.delete('/experiments/' + e, recursive=True)
-        logging.info(nowStr() + "\tRemoving experiments done.\n")
+        logging.info("\tRemoving experiments done.\n")
 
-        logging.info(nowStr() + "Removing done. \n")
+        logging.info("Removing done. \n")
 
     # def kill_daemon_all_registered_workers(self):
     #     print(nowStr(), "\tKilling all worker daemon (python) process... ")
@@ -287,7 +250,8 @@ class ZookeeperController:
     #     print(nowStr(), "\tKilling done. \n")
 
     def kill_actor_daemon(self, actor):
-        print(nowStr(), "\tKilling an actor daemon process... ")
+
+        logging.info("\tKilling an actor daemon process... ")
         #for w in self.controller_client.zk.get_children('/registered/workers'):
         try:
             logging.info("\t\tCreating channel with hostname: {} ".format(actor.hostname))
@@ -311,20 +275,31 @@ class ZookeeperController:
             logging.error("\t\tException while stopping actor daemon: {} Exception: {}".format(actor.hostname, e))
 
 
-    def print_zk_tree(self, tree_node, node, n, count_=1):
-
+    def print_zk_tree(self, tree_node, node, n, count_=1, count_int=1):
+        self.set_controller_client()
+        
         if node is not None:
-            logging.info("%02d:%02d" % (n, count_) + get_tabs(n) + node + get_diff_tabs(n, node) + " : ")
+            if n == 1:
+                prefix = "%02d:%02d" % (count_int, 00)
+            else:
+                prefix = "%02d:%02d" % (count_, count_int)
+                
+            prefix += get_tabs(n) + node
+            msg = prefix + get_diff_tabs(prefix) + " : "
+            #logging.info(msg)
+            print(msg)
             try:
-                value = self.controller_client.zk.get(tree_node)
+                value = self.controller_client.zk.get(tree_node)[0].decode("utf-8")
                 #print("\n\n --@@@@-- node '%s' ----" % (node))
-                if value is None:
-                    logging.info("")
+                if value is None or len(value)==0:
+                    #logging.info("")
+                    print("")
                 elif node == "pkey":
                    # print("\n\n --@@aaa@@-- node '%s' ----" % (node))
                     #print("\n\n --@@@@-- node '%s' ----" % (node, value))
                     #value_str = value.to_str()
-                    logging.info(" RSA PRIVATE KEY ") #.format(value_str[:5],value_str[-5:]))
+                    #logging.info(" RSA PRIVATE KEY ") #.format(value_str[:5],value_str[-5:]))
+                   print(" RSA PRIVATE KEY ")
                 else:
 
                     # if node == "worker":
@@ -342,16 +317,16 @@ class ZookeeperController:
                 # elif tree_node == "worker":
                 #     print("asdadsadsa")
                 # else:
-                    logging.info(value[0])
-
+                    #logging.info(str(value[0]))
+                    print(value)
             except Exception as e:
                 logging.error("Exception: {}".format(e))
 
             try:
-                count = 1
+                count_int = 1
                 for t in self.controller_client.zk.get_children(tree_node, include_data=False):
-                    self.print_zk_tree(tree_node + "/" + t, t, n + 1, count)
-                    count += 1
+                    self.print_zk_tree(tree_node + "/" + t, t, n + 1, count_, count_int)
+                    count_int += 1
                     # print t
 
             except Exception as e:

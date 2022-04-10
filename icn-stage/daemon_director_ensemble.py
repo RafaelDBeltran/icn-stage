@@ -34,7 +34,7 @@ def daemon_controller_is_running():
 def run_daemon_controller(arg_):
     # cmd = [sys.executable, "daemon_director.py", "arg_"]
     # subprocess.call(cmd)
-    cmd = "python3 daemon_director.py {}".format(arg_)
+    cmd = "python3 icn-stage/daemon_director.py {}".format(arg_)
     logging.info(cmd)
     subprocess.call(cmd, shell=True)
 
@@ -46,6 +46,7 @@ class DirectorEnsembleDaemon(Daemon):
         self.zookeeper_controller = ZookeeperController()
         self.sleep_secs = DEFAULT_SLEEP_SECONDS
         self.log = log
+        
 
     def stop(self):
         run_daemon_controller("--log {} stop".format(self.log))
@@ -138,7 +139,7 @@ def main():
     logging.info("\t stdout        : %s" % stdout)
     logging.info("\t stderr        : %s" % stderr)
     logging.info("")
-
+ 
     director_ensemble = DirectorEnsembleDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr, logging=logging, log=args.log)
     director_ensemble.set_sleep_secs(args.sleep)
 

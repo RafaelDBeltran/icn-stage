@@ -218,9 +218,11 @@ class DirectorDaemon(Daemon):
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
 		self.zookeeper_controller = ZookeeperController()
+		self.zookeeper_controller.create_data_structure()
+		
 		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
 		self.controller_client = None
-		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
+		#self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
 		sundry_instance = Sundry()
 		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
 

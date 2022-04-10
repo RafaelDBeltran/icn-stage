@@ -72,7 +72,7 @@ def run_cmd(cmd_str, shell=False):
     logging.debug("Cmd_str: {}".format(cmd_str))
     # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
     cmd_array = shlex.split(cmd_str)
-    logging.debug("Cmd_array: {}".format(cmd_array))
+    #logging.debug("Cmd_array: {}".format(cmd_array))
     if '*' in cmd_str:
         cmd_array_glob = []
         files = []
@@ -147,6 +147,9 @@ spec:
         image: rafabeltran/icn-stage:v2-teste
         command: ["/bin/sleep", "3650d"]
         imagePullPolicy: IfNotPresent
+        env:
+            - name: TZ
+              value: America/Sao_Paulo
         ports:
             - containerPort: 22
               name: ssh
@@ -352,6 +355,7 @@ def run_setup(local_pods, args):
             ip = value[1]
             logging.debug("\tgroup: {} \t pod: {} count: {}".format(group, pod, count))
             run_cmd('kubectl cp icn-stage/ {}:/icn/'.format(pod))
+            run_cmd('kubectl cp experiments/ {}:/icn/'.format(pod))
             run_cmd_kubernete(pod, "sudo /etc/init.d/ssh start")
 
             if group == 'director':
@@ -362,9 +366,9 @@ def run_setup(local_pods, args):
                 run_cmd_kubernete(pod, ZK_DIR+"/bin/zkServer.sh start")
 
                 if ensemble_mode:
-                    cmd_director = "python3 /icn/icn-stage/daemon_director_ensemble.py"
+                    cmd_director = "python3 icn-stage/daemon_director_ensemble.py"
                 else:
-                    cmd_director = "python3 /icn/icn-stage/daemon_director.py"
+                    cmd_director = "python3 icn-stage/daemon_director.py"
                 cmd_director += " --log {}".format(args.log)
                 run_cmd_kubernete(pod, cmd_director + " stop")
                 run_cmd_kubernete(pod, cmd_director + " start")

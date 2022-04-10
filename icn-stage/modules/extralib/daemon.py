@@ -148,6 +148,8 @@ class Daemon(object):
                     break
 
             log.debug("Daemon killed successfully")
+            sys.exit(0)
+
         except OSError as err:
             err = str(err)
             if err.find("No such process") > 0:
