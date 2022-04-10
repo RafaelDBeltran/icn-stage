@@ -301,6 +301,7 @@ def run_setup(local_pods, args):
                 config_itens[k] += [[i.metadata.name, i.status.pod_ip]]
 
     logging.debug(config_itens)
+    logging.info("\n\n\n")
     logging.info("Creating config.json file...")
     config_text = '''{\n"zookeeper_adapter\": \"eth0\"'''
 
@@ -330,6 +331,7 @@ def run_setup(local_pods, args):
     config_file.close()
     logging.info("Creating ICN-Stage config.json file... DONE!")
 
+    logging.info("\n\n\n")
 
     logging.info("Creating ZK zoo.cfg file...")
     ensemble_mode = False
@@ -348,12 +350,20 @@ def run_setup(local_pods, args):
     zk_config_file.close()
     logging.info("Creating ZK zoo.cfg file... DONE!")
 
-    logging.info("Configuring pods... DONE!")
+    size = 100
+    logging.info("Configuring pods...")
     for group in config_itens.keys():
         for count, value in enumerate(config_itens[group]):
+            logging.info("\n\n\n")
             pod = value[0]
             ip = value[1]
-            logging.debug("\tgroup: {} \t pod: {} count: {}".format(group, pod, count))
+            logging.info("+" + "-"*size + "+")
+            logging.info("|"+ " "*size + "|")
+            msg = " group: {}    pod: {}    IP: {}    count: {}".format(group, pod, ip, count)
+            logging.info("|"+ msg + " "*(size-len(msg)) + "|")
+            logging.info("|" + " " * size + "|")
+            logging.info("+" + "-" * size + "+")
+            
             run_cmd('kubectl cp icn-stage/ {}:/icn/'.format(pod))
             run_cmd('kubectl cp experiments/ {}:/icn/'.format(pod))
             run_cmd_kubernete(pod, "sudo /etc/init.d/ssh start")
@@ -362,15 +372,13 @@ def run_setup(local_pods, args):
                 run_cmd('kubectl cp config.json {}:/icn/icn-stage/'.format(pod))  # {}:/icn/icn-stage
                 run_cmd('kubectl cp zookeeper/ {}:/icn/'.format(pod))
                 run_cmd_kubernete(pod, "echo {} > zookeeper/data/myid".format(count+1))
-                run_cmd_kubernete(pod, ZK_DIR+"/bin/zkServer.sh stop")
-                run_cmd_kubernete(pod, ZK_DIR+"/bin/zkServer.sh start")
 
                 if ensemble_mode:
                     cmd_director = "python3 icn-stage/daemon_director_ensemble.py"
                 else:
                     cmd_director = "python3 icn-stage/daemon_director.py"
                 cmd_director += " --log {}".format(args.log)
-                run_cmd_kubernete(pod, cmd_director + " stop")
+                #run_cmd_kubernete(pod, cmd_director + " stop")
                 run_cmd_kubernete(pod, cmd_director + " start")
              
     logging.info("Configuring pods... DONE!")

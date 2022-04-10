@@ -21,7 +21,7 @@ ZK_CMD = '{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH.replace("''", "'"))
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 MAX_ATTEMPTS = 60*3
 
-def get_source(zk_addr='10.0.2.15:2181'):
+def get_source(zk_addr='127.0.0.0:2181'):
 
     logging.info("get_source zk_addr: {}".format(zk_addr))
     zk = KazooClient(zk_addr, connection_retry=kazoo.retry.KazooRetry(max_tries=-1, max_delay=250))
@@ -64,23 +64,23 @@ def get_diff_tabs(word):
     #	s += "\t"
     return s
 
-def run_cmd_get_output(cmd_str, shell=True):
+def run_cmd_get_output(cmd_str, shell=True, check=True):
     logging.debug("Cmd_str: {}".format(cmd_str))
     # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
     cmd_array = shlex.split(cmd_str)
-    result = subprocess.run(cmd_array, check=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    result = subprocess.run(cmd_array, check=check, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     #logging.debug("result std_err: {}".format(result.stderr))
     logging.debug("result std_out: {}".format(result.stdout))
     return str(result.stdout)
 
-def run_cmd(cmd_str, shell=False):
+def run_cmd(cmd_str, shell=False, check=True):
     logging.debug("Cmd_str: {}".format(cmd_str))
     # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
     cmd_array = shlex.split(cmd_str)
     #logging.debug("Cmd_array: {}".format(cmd_array))
 
     # executa comando em subprocesso
-    subprocess.run(cmd_array, check=True, shell=shell)
+    subprocess.run(cmd_array, check=check, shell=shell)
 
 class ZookeeperController:
 
@@ -117,7 +117,7 @@ class ZookeeperController:
     @staticmethod
     def is_running():
         cmd = "{} status".format(ZK_CMD)
-        return_code = subprocess.run(cmd, shell = True).returncode
+        return_code = subprocess.run(cmd, shell=True).returncode
         
         if return_code == 0:
             return True
@@ -141,7 +141,7 @@ class ZookeeperController:
     def start_zookeeper_service():
         logging.info("STARTING ZK")
         cmd = "{} start".format(ZK_CMD)
-        run_cmd(cmd)
+        run_cmd(cmd, check=False)
 
     @staticmethod
     def stop_zookeeper_service():
@@ -166,9 +166,9 @@ class ZookeeperController:
         logging.info("\tRemoving experiments from workers... ")
         try:
             for w in self.controller_client.zk.get_children('/registered/workers'):
-                print(nowStr(), "\t\tRemoving experiment from worker: ", w)
+                logging.info("\t\tRemoving experiment from worker: ", w)
                 for e in self.controller_client.zk.get_children('/registered/workers/' + w + '/torun'):
-                    print(nowStr(), "\t\t\tworker: ", w, " children: ", e)
+                    logging.info("\t\t\tworker: ", w, " children: ", e)
                     self.controller_client.zk.delete('/registered/workers/' + w + '/torun/' + e, recursive=True)
         except Exception as e:
             logging.error("Excepetion: {}".format(e))
@@ -323,12 +323,12 @@ class ZookeeperController:
                 logging.error("Exception: {}".format(e))
 
             try:
-                count_int = 1
+                my_count_int = 1
                 for t in self.controller_client.zk.get_children(tree_node, include_data=False):
-                    self.print_zk_tree(tree_node + "/" + t, t, n + 1, count_, count_int)
-                    count_int += 1
+                    self.print_zk_tree(tree_node + "/" + t, t, n + 1, count_int, my_count_int)
+                    my_count_int += 1
                     # print t
-
+                
             except Exception as e:
                 logging.error("Exception: {}".format(e))
 

@@ -41,6 +41,7 @@ LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
 
+DEFAULT_ZK_IP_PORT = "127.0.0.1:2181"
 _controllerport = "2181"
 _pyvers = "3.6.9"
 _timeout = 2
@@ -215,16 +216,16 @@ class RPM(multiprocessing.Process):
 
 class DirectorDaemon(Daemon):
 
-	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null', 
+				 sleep_seconds=DEFAULT_SLEEP_SECONDS, zookeeper_ip_port=DEFAULT_ZK_IP_PORT):
 		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
 		self.zookeeper_controller = ZookeeperController()
 		self.zookeeper_controller.create_data_structure()
 		
-		self.sleep_seconds = DEFAULT_SLEEP_SECONDS
+		self.sleep_seconds = sleep_seconds
 		self.controller_client = None
-		#self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
-		sundry_instance = Sundry()
-		#self.zookeeper_ip_port = sundry_instance.get_ensemble_ips('settings.json')
+		self.zookeeper_ip_port = zookeeper_ip_port
+	 
 
 	def stop(self):
 		self.zookeeper_controller.stop_zookeeper_service()
@@ -678,34 +679,37 @@ class DirectorDaemon(Daemon):
 		self.controller_client.config_stop()
 
 
-class Director(DirectorDaemon):
 
-	def __init__(self):
+class Director(DirectorDaemon):
+	'''
+	For foreground purposes
+	'''
+	def __init__(self, sleep_seconds=DEFAULT_SLEEP_SECONDS, zookeeper_ip_port=DEFAULT_ZK_IP_PORT):
 		self.zookeeper_controller = ZookeeperController()
 		self.controller_client = None  # self.zookeeper_controller.controller_client
-		self.sleep_seconds = None
-		self.zookeeper_ip_port = self.zookeeper_controller.zookeeper_ip_port
+		self.sleep_seconds = sleep_seconds
+		self.zookeeper_ip_port = zookeeper_ip_port
 
 
-def cmd(option):
-	cmd_array = ['python3', __file__, option]
-	subprocess.call(cmd_array)
-
-
-def stop():
-	cmd('stop')
-
-
-def status():
-	cmd('status')
-
-
-def start():
-	cmd('start')
-
-
-def restart():
-	cmd('restart')
+# def cmd(option):
+# 	cmd_array = ['python3', __file__, option]
+# 	subprocess.call(cmd_array)
+#
+#
+# def stop():
+# 	cmd('stop')
+#
+#
+# def status():
+# 	cmd('status')
+#
+#
+# def start():
+# 	cmd('start')
+#
+#
+# def restart():
+# 	cmd('restart')
 
 
 def main():
@@ -717,6 +721,9 @@ def main():
 
 	help_msg = "unique id (str), required for running multiple daemons on the host"
 	parser.add_argument("--id", "-i", help=help_msg, default="default", type=str)
+
+	help_msg = "zookeeper's ip:port (str)"
+	parser.add_argument("--ipport", "-p", help=help_msg, default=DEFAULT_ZK_IP_PORT, type=str)
 
 	help_msg = "loop sleep seconds (int)"
 	parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=int)
@@ -743,6 +750,7 @@ def main():
 	logging.info("\t logging level : %s" % args.log)
 	logging.info("\t unique id     : %s" % args.id)
 	logging.info("\t sleep secs    : %s" % args.sleep)
+	logging.info("\t zk ip port    : %s" % args.ipport)
 	logging.info("\t command option: %s" % args.cmd)
 	logging.info("")
 
@@ -754,8 +762,7 @@ def main():
 		logging.info("\t stdout        : None (foreground process)")
 		logging.info("\t stderr        : None (foreground process)")
 		logging.info("")
-		director = Director()
-		director.set_sleep_seconds(args.sleep)
+		director = Director(sleep_seconds=args.sleep, zookeeper_ip_port=args.ipport)
 		director.run()
 
 	else:
@@ -769,28 +776,28 @@ def main():
 		logging.info("")
 
 		zookeeper_controller = ZookeeperController()
-		director_daemon = DirectorDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr)
+		director_daemon = DirectorDaemon(pidfile=pid_file, stdout=stdout, stderr=stderr,
+										 sleep_seconds=args.sleep, zookeeper_ip_port=args.ipport)
 		logging.debug("Instatianting zookeeper controller")
-		director_daemon.set_sleep_seconds(args.sleep)
+
 
 		# process input parameters
 		if args.cmd == 'start':
-			logging.info("Starting director daemon (ensemble)")
+			logging.info("Starting director daemon")
 			director_daemon.start()
-
 			director_daemon_pid = director_daemon.getpid()
 
 			if not director_daemon_pid:
-				logging.info("Unable to run director daemon (ensemble)")
+				logging.info("Unable to run director daemon")
 			else:
 				logging.info("Director daemon is running [PID=%d]" % director_daemon_pid)
 
 		elif args.cmd == 'stop':
-			logging.info("Stopping director daemon (ensemble)")
+			logging.info("Stopping director daemon")
 			director_daemon.stop()
 
 		elif args.cmd == 'restart':
-			logging.info("Restarting director daemon (ensemble)")
+			logging.info("Restarting director daemon")
 			director_daemon.restart()
 
 		elif args.cmd == 'status':
