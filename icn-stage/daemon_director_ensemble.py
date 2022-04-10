@@ -34,7 +34,7 @@ def daemon_controller_is_running():
 def run_daemon_controller(arg_):
     # cmd = [sys.executable, "daemon_director.py", "arg_"]
     # subprocess.call(cmd)
-    cmd = "%s daemon_director.py %s  " % (sys.executable, arg_)
+    cmd = "python3 daemon_director.py {}".format(arg_)
     logging.info(cmd)
     subprocess.call(cmd, shell=True)
 
@@ -63,11 +63,11 @@ class DirectorEnsembleDaemon(Daemon):
                 status = "LEADER"
    
                 if not daemon_controller_is_running():
-                    logging.debug("\ndaemon_director isn't running\n")
+                    logging.debug("daemon_director isn't running\n")
                     run_daemon_controller("--log {} start".format(self.log))
 
                 else:
-                    logging.debug("\ndaemon_director is already running!\n")
+                    logging.debug("daemon_director is already running!\n")
 
             else:
                 status = "FOLLOWER"
@@ -78,7 +78,7 @@ class DirectorEnsembleDaemon(Daemon):
                     run_daemon_controller("--log {} stop".format(self.log))
 
                 else:
-                    logging.debug("\nDaemonController isn't running.\n")
+                    logging.debug("daemon_director isn't running.\n")
 
             msg = '(My Status) {}\n'.format(status)
             if last_status == status:

@@ -38,7 +38,7 @@ ZK_VERSION="zookeeper-3.8.0"
 DEFAULT_QTY_DIRECTORS = 3
 DEFAULT_QTY_ACTORS = 3
 
-SLEEP_SECS_PER_POD = 10
+SLEEP_SECS_PER_POD = 2
 
 config.load_kube_config()
 ZK_DIR = "/icn/zookeeper/"

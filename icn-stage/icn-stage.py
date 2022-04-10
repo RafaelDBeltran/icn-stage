@@ -59,7 +59,7 @@ from experiments_resources import call_ndn_traffic_server
 #Variables Define
 _local_experiments_dir = "./"
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_LOG_LEVEL = logging.DEBUG
+DEFAULT_LOG_LEVEL = logging.INFO 
 
 DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
 DEFAULT_IPERF_INTERVAL_SECS = 5
@@ -398,37 +398,54 @@ def main():
         run_command(zookeeper_controller, command, options)
 
     else:
+
         # interactive mode
         # Initialize view
         view = View()
         view.print_view()
-        import socket
-        serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        serv.bind((sundry.get_ip_adapter('eth0'), 8081))
-        serv.listen(5)
         while True:
-            conn, addr = serv.accept()
+            commands = input('ICN-Stage >> ')
+            commands = commands.split(" ")
+            command = commands[0]
 
-            while True:
-                data = conn.recv(4096)
-                #commands = input('ICN-Stage >> ')
-                #commands = commands.split(" ")
-                #command = commands[0]
+            options = None
+            if len(commands) > 1:
+                options = commands[1:]
 
-                options = None
-                #if len(commands) > 1:
-                #    options = commands[1:]
-                print(data.decode('utf-8'))
-                logging.debug("command: {} options: {}".format(data.decode('utf-8'), options))
-                run_command(zookeeper_controller, data.decode('utf-8'), options)
-                if data.decode('utf-8') == 'ensemble-start':
-                    conn.send(b'reconnect')
-                else:
-                    conn.send(b'next')
-                if not data:
-                    break
-        print('here')
-        conn.close()
+            logging.debug("command: {} options: {}".format(command, options))
+            run_command(zookeeper_controller, command, options)
+            
+        # # interactive mode
+        # # Initialize view
+        # view = View()
+        # view.print_view()
+        # import socket
+        # serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # serv.bind((sundry.get_ip_adapter('eth0'), 8081))
+        # serv.listen(5)
+        # while True:
+        #     conn, addr = serv.accept()
+        #
+        #     while True:
+        #         data = conn.recv(4096)
+        #         #commands = input('ICN-Stage >> ')
+        #         #commands = commands.split(" ")
+        #         #command = commands[0]
+        #
+        #         options = None
+        #         #if len(commands) > 1:
+        #         #    options = commands[1:]
+        #         print(data.decode('utf-8'))
+        #         logging.debug("command: {} options: {}".format(data.decode('utf-8'), options))
+        #         run_command(zookeeper_controller, data.decode('utf-8'), options)
+        #         if data.decode('utf-8') == 'ensemble-start':
+        #             conn.send(b'reconnect')
+        #         else:
+        #             conn.send(b'next')
+        #         if not data:
+        #             break
+        # print('here')
+        # conn.close()
 
 
 if __name__ == '__main__':
