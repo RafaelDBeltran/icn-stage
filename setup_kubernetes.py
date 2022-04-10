@@ -35,8 +35,9 @@ TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
 
 ZK_VERSION="zookeeper-3.8.0"
-DEFAULT_QTY_DIRECTORS = 3
-DEFAULT_QTY_ACTORS = 3
+DEFAULT_QTY_DIRECTORS = 1
+DEFAULT_QTY_ACTORS = 1
+NODES_JSON_FILE = "nodes.json"
 
 SLEEP_SECS_PER_POD = 2
 
@@ -302,20 +303,23 @@ def run_setup(local_pods, args):
 
     logging.debug(config_itens)
     logging.info("\n\n\n")
-    logging.info("Creating config.json file...")
-    config_text = '''{\n"zookeeper_adapter\": \"eth0\"'''
+    logging.info("Creating {} file...".format(NODES_JSON_FILE))
+    config_text = '''{'''
 
-    for key in config_itens.keys():
-        config_text +=''',\n"{}": ['''.format(key)
+    for count_key, key in enumerate(config_itens.keys()):  
+        if count_key > 0:
+            config_text += ''','''
 
-        for count, value in enumerate(config_itens[key]):
+        config_text +='''\n"{}": ['''.format(key)
+
+        for count_value, value in enumerate(config_itens[key]):
             name = value[0]
             ip = value[1]
-            if count > 0:
+            if count_value > 0:
                 config_text += ''','''
                 
             config_text += '''\n\t{\n'''
-            config_text += '''\t"remote_id"       : "{}",\n'''.format(count+1)
+            config_text += '''\t"remote_id"       : "{}",\n'''.format(count_value+1)
             config_text += '''\t"remote_hostname" : "{}",\n'''.format(ip)
             config_text += '''\t"Function"        : "{}",\n'''.format(key)
             config_text += '''\t"remote_username" : "icn_user",\n'''
@@ -326,10 +330,10 @@ def run_setup(local_pods, args):
         config_text += "]"
     config_text += "\n}\n"
         
-    config_file = open("config.json", "w")
+    config_file = open(NODES_JSON_FILE, "w")
     config_file.write(config_text)
     config_file.close()
-    logging.info("Creating ICN-Stage config.json file... DONE!")
+    logging.info("Creating ICN-Stage {}.json file... DONE!".format(NODES_JSON_FILE))
 
     logging.info("\n\n\n")
 
@@ -369,7 +373,7 @@ def run_setup(local_pods, args):
             run_cmd_kubernete(pod, "sudo /etc/init.d/ssh start")
 
             if group == 'director':
-                run_cmd('kubectl cp config.json {}:/icn/icn-stage/'.format(pod))  # {}:/icn/icn-stage
+                run_cmd('kubectl cp {} {}:/icn/'.format(NODES_JSON_FILE, pod))  # {}:/icn/icn-stage
                 run_cmd('kubectl cp zookeeper/ {}:/icn/'.format(pod))
                 run_cmd_kubernete(pod, "echo {} > zookeeper/data/myid".format(count+1))
 

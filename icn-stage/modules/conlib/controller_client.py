@@ -353,23 +353,27 @@ class ControllerClient:
 	def worker_add_disconnected(self, worker_hostname, worker_status, is_failure=True):
 
 		connection_path = "%s/%s" % (PATHS.DISCONNECTED_WORKERS, worker_hostname)
-		worker_path = '%s/%s' % (PATHS.REGISTERED_WORKERS, worker_hostname)
+		#self.zk.ensure_path(connection_path)
 
-		logging.debug("connection_path: {} worker_path: {}".format(connection_path, worker_path))
+		worker_path = '%s/%s' % (PATHS.REGISTERED_WORKERS, worker_hostname)
+		#self.zk.ensure_path(worker_path)
+
+		logging.info("[CP0] connection_path: {} worker_path: {}".format(connection_path, worker_path))
 		try:
-			logging.debug('[CP1] creating connection_path: {}'.format(connection_path))
+			logging.info('[CP1] creating {}, value: {}'.format(connection_path, worker_path))
+			#self.zk.create(connection_path, value=worker_path.encode(), makepath=True)
 			self.zk.create(connection_path, value=worker_path.encode())
 
-			logging.debug('[CP2] creating %s/status: {} value: {}'.format(connection_path, worker_status.encode()))
+			logging.info('[CP2] creating {}/status, value: {}'.format(connection_path, worker_status))
 			self.zk.create("%s/status" % connection_path, value=worker_status.encode())
 
-			logging.debug('[CP3] creating  %s/disconnection_time: {} value: {}'.format(worker_path, str(time.time()).encode()))
-			self.zk.set("%s/disconnection_time" % (worker_path), str(time.time()).encode())
+			logging.info('[CP3] creating {}/disconnection_time, value: {}'.format(worker_path, str(time.time()).encode()))
+			self.zk.set("%s/disconnection_time"%(worker_path), str(time.time()).encode())
 
 		except Exception as e:
-			logging.error("Exception : {}".format(e))
-
-			logging.debug('[CP4] creating  %s/status: {} value: {}'.format(connection_path, worker_status.encode()))
+			#como já está registrado, apenas atualiza
+			#logging.info("controller_client.worker_add_disconnected Exception : {}".format(e))
+			logging.info('[CP4] creating {}/status, value: {}'.format(connection_path, worker_status))
 			self.zk.set("%s/status" % connection_path, worker_status.encode())
 
 		if is_failure:

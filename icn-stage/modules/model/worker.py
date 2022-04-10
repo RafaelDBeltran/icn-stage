@@ -60,7 +60,7 @@ class Worker(object):
 		return SCRIPT
 
 	def get_command(self):
-		return "python3 {} --id {} --log {} ".format(SCRIPT, self.actor_id, LOGGING_LEVEL)
+		return "python3 ~/{} --id {} --log {} ".format(SCRIPT, self.actor_id, LOGGING_LEVEL)
 
 	def get_command_stop(self):
 		return "{} stop".format(self.get_command())
@@ -72,7 +72,8 @@ class Worker(object):
 		return "{} start".format(self.get_command())
 
 	def get_remote_path(self):
-		return "actor_{}".format(self.actor_id)
+		return "~/" #~/".format(self.actor_id)"
+		#return "actor_{}".format(self.actor_id)
 
 	def get_remote_experiment_path(self):
 		return "{}/experiments".format(self.get_remote_path())

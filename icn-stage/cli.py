@@ -65,10 +65,12 @@ DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
 DEFAULT_IPERF_INTERVAL_SECS = 5
 DEFAULT_IPERF_FILE_OUT = "iperf.out"
 DEFAFULT_IPERF_TRANSPORT = "tcp"
+
+DEFAULT_NODES_JSON_FILE = "nodes.json"
 _log_level = DEFAULT_LOG_LEVEL
 sundry = Sundry()
 #Load config file
-data = json.load(open('config.json'))
+#data = json.load(open('config.json'))
 
 
 def set_logging(level=DEFAULT_LOG_LEVEL):
@@ -86,14 +88,19 @@ def set_logging(level=DEFAULT_LOG_LEVEL):
     print("current log level: %d (DEBUG=%d, INFO=%d)" % (_log_level, logging.DEBUG, logging.INFO))
 
 
-def add_worker(controller_client, max_actors=None):
+def add_worker(controller_client, nodes_json_file=DEFAULT_NODES_JSON_FILE, max_actors=None):
     logging.info("Adding Actors...")
+    data = json.load(open(nodes_json_file))
+
     count = 0
     for i in data['actor']:
         count += 1
 
-        new_worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], actor_id=i["actor_id"], pkey=sundry.get_pkey(i["remote_pkey_path"]))
+        #new_worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"], actor_id=i["remote_id"], pkey=sundry.get_pkey(i["remote_pkey_path"]))
+        #TODO: uso de chaves nao funcional
 
+        new_worker = Worker(i["remote_hostname"], i["remote_username"], password=i["remote_password"],
+                            actor_id=i["remote_id"])
         controller_client.task_add(COMMANDS.NEW_WORKER, worker=new_worker)
         logging.info("Actor {} added.".format(i["remote_hostname"]))
         logging.debug("max_actors: {} count: {}".format(max_actors, count))
@@ -178,6 +185,7 @@ def get_zookeeper_controller_singleton():
     return zookeeper_controller
 
 def run_command(zookeeper_controller = None, command = None, options=None):
+    nodes_json_file = DEFAULT_NODES_JSON_FILE
     if command == 'exit' or command == 'quit':
         # subprocess.call("fixNoNodeError.sh", shell=True)
         # subprocess.call("clean.sh", shell=True)
@@ -242,7 +250,8 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             zookeeper_controller.set_controller_client()
             _timeout = 2
             try:
-
+                logging.debug("nodes_json_file: {}".format(nodes_json_file))
+                data = json.load(open(nodes_json_file))
                 auxiliar_ip = None
 
                 for auxiliar in data['auxiliars']:
@@ -293,23 +302,29 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 logging.error(msg)
 
         elif command == 'addactors':
+            logging.debug("nodes_json_file: {}".format(nodes_json_file))
+
             zookeeper_controller.set_controller_client()
             max_actors = None
             if options is not None:
                 max_actors = int(options[0])
 
-            add_worker(zookeeper_controller.controller_client, max_actors)
-
+            add_worker(controller_client=zookeeper_controller.controller_client, nodes_json_file=nodes_json_file, max_actors=max_actors)
+          
         elif command == 'reset':
             zookeeper_controller = get_zookeeper_controller_singleton()
-
-            for i in data['workers']:
-
+            data = json.load(open(nodes_json_file))
+            for i in data['actor']:
+                #TODO implementar chave
+                # worker = Worker(i["remote_hostname"],
+                #                 i["remote_username"],
+                #                 password=i["remote_password"],
+                #                 pkey=sundry.get_pkey(i["remote_pkey_path"]),
+                #                 actor_id=i["actor_id"])
                 worker = Worker(i["remote_hostname"],
                                 i["remote_username"],
                                 password=i["remote_password"],
-                                pkey=sundry.get_pkey(i["remote_pkey_path"]),
-                                actor_id=i["actor_id"])
+                                actor_id=i["remote_id"])
                 zookeeper_controller.kill_actor_daemon(worker)
             zookeeper_controller.reset_workers()
 

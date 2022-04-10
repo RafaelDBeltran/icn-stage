@@ -166,9 +166,9 @@ class ZookeeperController:
         logging.info("\tRemoving experiments from workers... ")
         try:
             for w in self.controller_client.zk.get_children('/registered/workers'):
-                logging.info("\t\tRemoving experiment from worker: ", w)
+                logging.info("\t\tRemoving experiment from worker: {}".format(w))
                 for e in self.controller_client.zk.get_children('/registered/workers/' + w + '/torun'):
-                    logging.info("\t\t\tworker: ", w, " children: ", e)
+                    logging.info("\t\t\tworker: {}   children: {} ".format(w,e))
                     self.controller_client.zk.delete('/registered/workers/' + w + '/torun/' + e, recursive=True)
         except Exception as e:
             logging.error("Excepetion: {}".format(e))

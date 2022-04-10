@@ -16,7 +16,7 @@ import os
 import logging
 import json
 #sys.path.append(r'~/myRuns/modules')
-
+from os.path import exists as file_exists
 # icn-stage bibs
 from modules.conlib.controller_client import *
 from modules.conlib.remote_access import Channel
@@ -27,15 +27,7 @@ from modules.model.worker import Worker
 from modules.model.experiment import Experiment
 from modules.model.role import Role
 from modules.util.tools import Sundry
-
-Nodes_ip = None
-
-# data = json.load(open('config.json'))
-# for i in data['Nodes']:
-# 	if Nodes_ip == None:
-# 		Nodes_ip = i['remote_hostname'] + ':2181'
-# 	else:
-# 		Nodes_ip = Nodes_ip + ',' + i['remote_hostname'] + ':2181'
+ 
 
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -57,33 +49,48 @@ _local_experiments_dir = os.path.expanduser("./")
 def create_worklib(output_file_):
 	# setup
 	# modules_source_path = "./modules/"
-	worklib_source_path = "./modules/worklib/"
-	extralib_source_path = "./modules/extralib/"
-
-	# creates tar file
-	tar_file = tarfile.open(output_file_, "w:gz")
-
-	# add main file
-	tar_file.add(worker.SCRIPT)
-
-	# add modules
+	source = "icn-stage/"
 	current_dir = os.getcwd()
-	# os.chdir(modules_source_path)
-	for d in [worklib_source_path, extralib_source_path]:
+	logging.info("[create_worklib][0] current dir: {}".format(current_dir))
+	os.chdir(source)
+	current_dir = os.getcwd()
+	logging.info("[create_worklib][1] current dir: {}".format(current_dir))
 
-		for f in os.listdir(d):
-			file = "%s/%s" % (d, f)
-			logging.debug("File: %s" % file)
-			if file.endswith('.py'):
-				logging.debug("adding %s" % file)
-				tar_file.add("%s" % (file))
-			else:
-				logging.debug("skiping %s" % file)
-			# logging.debug(file)
+	logging.info("[create_worklib][2]  ...")
+	worklib_source_path =  "modules/worklib/"
+	extralib_source_path = "modules/extralib/"
+	
+	if not file_exists(worker.SCRIPT):
+		logging.info("[create_worklib][ERRO]  ...")
+		logging.error("ERROR: file not found! {}".format(worker.SCRIPT))
+		sys.exit(-1)
+		
+	else:
+		logging.info("[create_worklib][3]  ...")
+		# creates tar file
+		tar_file = tarfile.open(output_file_, "w:gz")
+		logging.info("[create_worklib][4]  ...")
+		# add main file
+		tar_file.add(worker.SCRIPT)
+		logging.info("[create_worklib][5]  ...")
+		# add modules
+		current_dir = os.getcwd()
+		# os.chdir(modules_source_path)
+		for d in [worklib_source_path, extralib_source_path]:
 
-	# close file
-	tar_file.close()
-	os.chdir(current_dir)
+			for f in os.listdir(d):
+				file = "%s/%s" % (d, f)
+				logging.debug("File: %s" % file)
+				if file.endswith('.py'):
+					logging.debug("adding %s" % file)
+					tar_file.add("%s" % (file))
+				else:
+					logging.debug("skiping %s" % file)
+				logging.debug(file)
+
+		# close file
+		tar_file.close()
+		os.chdir(current_dir)
 
 # RPM = Resource Pool Manager
 class RPM(multiprocessing.Process):
@@ -491,8 +498,8 @@ class DirectorDaemon(Daemon):
 				self.controller_client.task_del(task_now)
 
 			elif task_cmd == COMMANDS.NEW_WORKER:
-				logging.info("HERE:new_worker")
-				logging.info("NEW_WORKER task_args: %s" % str(task_args))
+
+				logging.debug("NEW_WORKER task_args: %s" % str(task_args))
 				# logging.debug(type(task_args["worker"]))
 				# logging.debug('Literal_Debug: ' + task_args["worker"].decode('utf-8'))
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
@@ -504,17 +511,25 @@ class DirectorDaemon(Daemon):
 						# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 						channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey,
 										  password=worker.password, timeout=_timeout)
-						print(datetime.datetime.now(), worker.hostname, "is online")
+						logging.debug("{} is online ".format(worker.hostname))
 
 						remote_path = worker.get_remote_path()
-						stdout,stderr = channel.run("mkdir -p %s" % remote_path)
-						logging.info('Current_remote_path: ' + remote_path)
-						logging.debug(stdout.readlines())
-						logging.debug(stderr.readlines())
+						# stdout,stderr = channel.run("mkdir -p %s" % remote_path)
+						# logging.info('Current_remote_path: ' + remote_path)
+						# logging.debug(stdout.readlines())
+						# logging.debug(stderr.readlines())
+						
 						# rafael# colocando endereco estatico
 						#channel.run("echo \"server=%s:%s\nhostname=%s\" > %s/info.cfg" % (
 						#self.zookeeper_controller.get_ip_adapter(), _controllerport, worker.hostname, remote_path))
-						channel.run("echo \"server={}\nhostname={}\" > {}/info.cfg".format(Nodes_ip, worker.hostname, remote_path))
+						directors_ip_port = None
+						data = json.load(open("nodes.json"))
+						for i in data['director']:
+							if directors_ip_port == None:
+								directors_ip_port = i['remote_hostname'] + ':2181'
+							else:
+								directors_ip_port += ',' + i['remote_hostname'] + ':2181'
+						channel.run("echo \"server={}\nhostname={}\" > {}/info.cfg".format(directors_ip_port, worker.hostname, remote_path))
 						# TODO#
 						self.controller_client.worker_add(worker)
 						# TODO#
@@ -538,52 +553,55 @@ class DirectorDaemon(Daemon):
 				self.controller_client.task_del(task_now)
 
 			elif task_cmd == COMMANDS.INSTALL_WORKER:
-				logging.info("HERE:install_worker")
-				logging.info("INSTALL_WORKER task_args: %s" % str(task_args))
+
+				logging.debug("INSTALL_WORKER [0] task_args: %s" % str(task_args))
 
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug('INSTALL_WORKER [1] worker: {}'.format(worker))
+				logging.debug('INSTALL_WORKER[1] worker: {}'.format(worker))
 
 				# Install daemon
 				try:
-					logging.info('INSTALL_WORKER [3] creating channel...')
+					logging.info('INSTALL_WORKER[3] creating channel...')
 					# rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 					channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey,
 									  password=worker.password, timeout=_timeout)
 
-					logging.info('INSTALL_WORKER [4] channel created.')
+					logging.info('INSTALL_WORKER[4] channel created.')
 
 					# INSTALL PYTHON (+ MAKE + GCC)
 
 					# TODO HACK: simplifies proccess in mininet, assuming the host is already ok
-					if not "mininet" in worker.actor_id:
-						logging.debug('INSTALL_WORKER [if.1] mininet not in worker.actor_id')
+					# if not "mininet" in worker.actor_id:
+					# 	logging.debug('INSTALL_WORKER [if.1] mininet not in worker.actor_id')
+					#
+					# 	stdout, stderr = channel.run("python3 -V")
+					# 	logging.debug('INSTALL_WORKER [if.2] python3 -V: {}'.format(stdout))
+					#
+					# 	stdout, stderr = channel.run("pip3 install --upgrade pip")
+					# 	logging.debug('INSTALL_WORKER [if.3] pip3 install: {}'.format(stdout))
 
-						stdout, stderr = channel.run("python3 -V")
-						logging.debug('INSTALL_WORKER [if.2] python3 -V: {}'.format(stdout))
+					#remote_path = worker.get_remote_path()
+					#logging.debug('INSTALL_WORKER [5] remote_path: {}'.format(remote_path))
+					logging.info('INSTALL_WORKER[5] remote_path: ~/')
 
-						stdout, stderr = channel.run("pip3 install --upgrade pip")
-						logging.debug('INSTALL_WORKER [if.3] pip3 install: {}'.format(stdout))
+					channel.run("mkdir -p experiments")
+					#channel.chdir(remote_path)
 
-					remote_path = worker.get_remote_path()
-					logging.debug('INSTALL_WORKER [5] remote_path: {}'.format(remote_path))
-
-					channel.run("mkdir -p %s/experiments" % remote_path)
-					channel.chdir(remote_path)
-					logging.info('Current_remote_path: ' + remote_path)
-					logging.debug('INSTALL_WORKER [6] creating _worklibtarfile: {}'.format(_worklibtarfile))
+					#logging.info('Current_remote_path: ' + remote_path)
+					logging.info('INSTALL_WORKER[6] creating _worklibtarfile: {}'.format(_worklibtarfile))
 					create_worklib(_worklibtarfile)
 
-					logging.debug('INSTALL_WORKER [7] transferring _worklibtarfile')
+					logging.info('INSTALL_WORKER[7] transferring _worklibtarfile: {}'.format(_worklibtarfile))
 					channel.put(_worklibtarfile, _worklibtarfile)
 
-					logging.debug('unzipping {}'.format(_worklibtarfile))
+					logging.info('unzipping {}'.format(_worklibtarfile))
 					channel.run("tar -xzf %s" % _worklibtarfile)
 
-					logging.debug('INSTALL_WORKER [8] updating zookeeper')
+					logging.info('INSTALL_WORKER[8] worker_add_disconnected')
 					self.controller_client.worker_add_disconnected(worker.hostname, "INSTALLED", is_failure=False)
-					logging.debug('INSTALL_WORKER [9] adding task COMMANDS.START_WORKER')
+
+					logging.info('INSTALL_WORKER[9] adding task COMMANDS.START_WORKER')
 					self.controller_client.task_add(COMMANDS.START_WORKER, worker=worker)
 
 				except Exception as e:
@@ -598,9 +616,9 @@ class DirectorDaemon(Daemon):
 
 			elif task_cmd == COMMANDS.START_WORKER:
 
-				logging.info("START_WORKER task_args: %s" % str(task_args))
+				logging.info("START_WORKER[0] task_args: %s" % str(task_args))
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug('START_WORKER task_start_work: TRY p1')
+				logging.info('START_WORKER[1] task_start_work')
 				try:
 					# rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
@@ -611,25 +629,25 @@ class DirectorDaemon(Daemon):
 					channel.chdir(remote_dir)
 					stdout, stderr = channel.run(worker.get_command_stop())
 					# print datetime.datetime.now(), worker.hostname, "cmd: python %s stop" %(_worker_daemon), "stdout: ", stdout, "stderr: ", stderr
-					logging.info('Current_remote_path: ' + remote_path)
-					logging.debug('START_WORKER task_start_work: TRY p2')
+					#logging.info('Current_remote_path: ' + remote_path)
+					logging.info('START_WORKER[3] task_start_work:')
 					#stdout, stderr = channel.run("python3 %s --id %s start" % (_worker_daemon, worker.actor_id))
 					stdout, stderr = channel.run(worker.get_command_start())
 
-					logging.debug('START_WORKER task_start_work: TRY p3 {}'.format(stdout))
+					logging.info('START_WORKER[4] task_start_work: {}'.format(stdout))
 					stderr_str = stderr.read().strip()
 					stdout_str = stdout.read().strip()
 					# print(datetime.datetime.now(), "\t", worker.hostname, "cmd: python %s start" %(_worker_daemon), "stdout: ", stdout_str, "stderr: ", stderr_str)
-					logging.debug("START_WORKER {} {} cmd: {} start stdout: {} stderr: {}".format(datetime.datetime.now(),
+					logging.info("START_WORKER[5] {} {} cmd: {} stdout: {} stderr: {}".format(datetime.datetime.now(),
 																							 worker.hostname,
 																							 worker.get_command_start(),
 																							stdout_str,
 																							 stderr_str))
 
-					logging.info("START_WORKER daemon running at worker.hostname: {}".format(worker.hostname))
+					logging.info("START_WORKER[6] daemon running at worker.hostname: {}".format(worker.hostname))
 
 					channel.close()
-					logging.debug('START_WORKER channel closed.')
+					logging.debug('START_WORKER[7] channel closed.')
 
 				except Exception as e:
 					logging.error('START_WORKER Exception: {} '.format(e))
