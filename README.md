@@ -103,7 +103,10 @@ cd icn-stage; python3 cli.py
     ```sh
       for i in 1 2 3; do kubectl delete pod actor$i; done
     ```
-    
+    Para parar todos os pods, execute:
+    ```sh
+    kubectl delete pod --all
+    ```
 2. Parar o minikube 
 ```sh
 minikube stop
