@@ -287,21 +287,21 @@ class ZookeeperController:
             prefix += get_tabs(n) + node
             msg = prefix + get_diff_tabs(prefix) + " : "
             #logging.info(msg)
-            print(msg)
+
             try:
                 value = self.controller_client.zk.get(tree_node)[0].decode("utf-8")
                 #print("\n\n --@@@@-- node '%s' ----" % (node))
                 if value is None or len(value)==0:
                     #logging.info("")
-                    print("")
+                    value = ""
                 elif node == "pkey":
                    # print("\n\n --@@aaa@@-- node '%s' ----" % (node))
                     #print("\n\n --@@@@-- node '%s' ----" % (node, value))
                     #value_str = value.to_str()
                     #logging.info(" RSA PRIVATE KEY ") #.format(value_str[:5],value_str[-5:]))
-                   print(" RSA PRIVATE KEY ")
+                    value =  " RSA PRIVATE KEY "
                 else:
-
+                    pass
                     # if node == "worker":
                     #     print(value[0][:40], " ...")
                     #     # d = value[0]
@@ -318,7 +318,8 @@ class ZookeeperController:
                 #     print("asdadsadsa")
                 # else:
                     #logging.info(str(value[0]))
-                    print(value)
+
+                print("{} {}".format(msg, value))
             except Exception as e:
                 logging.error("Exception: {}".format(e))
 
