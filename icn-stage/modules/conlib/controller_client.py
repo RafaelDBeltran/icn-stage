@@ -381,9 +381,10 @@ class ControllerClient:
 			self.zk.set('%s/failures' % worker_path, value=str(failures + 1).encode())
 
 		logging.debug('node: %s/connection', worker_path)
-		logging.debug('Sleeping 10 secs...')
-		time.sleep(10)
-		logging.debug('Sleeping Done')
+		#RM: 2022-04-11 tentando evitar esta muleta
+		# logging.debug('Sleeping 10 secs...')
+		# time.sleep(10)
+		# logging.debug('Sleeping Done')
 		self.zk.set("%s/connection" % worker_path, connection_path.encode())
 		logging.debug('[CP6] DONE')
 
@@ -426,37 +427,37 @@ class ControllerClient:
 			else:
 				worker_path = worker_path.decode('utf-8')
 
-			logging.debug('[1] worker_path {}'.format(type(worker_path)))
+			logging.debug('WG[1] worker_path {}'.format(type(worker_path)))
 
 			worker_hostname = worker_path.split('/')[-1]
-			logging.debug('[2] worker_hostname: {}'.format(worker_hostname))
+			logging.debug('WG[2] worker_hostname: {}'.format(worker_hostname))
 
 			worker_username, _ = self.zk.get("%s/user" % (worker_path))
-			logging.debug('[3] worker_username {}'.format(worker_username))
+			logging.debug('WG[3] worker_username {}'.format(worker_username))
 
 			worker_password, _ = self.zk.get("%s/password" % (worker_path))
-			logging.debug('[4] worker_password {}'.format(worker_password))
+			logging.debug('WG[4] worker_password {}'.format(worker_password))
 
 			worker_pkey, _ = self.zk.get("%s/pkey" % (worker_path))
-			logging.debug('[5] worker_pkey {}'.format(worker_pkey))
+			logging.debug('WG[5] worker_pkey {}'.format(worker_pkey))
 
 			worker_connection, _ = self.zk.get("%s/connection" % (worker_path))
-			logging.debug('[6] worker_connection {}'.format(worker_connection))
+			logging.debug('WG[6] worker_connection {}'.format(worker_connection))
 
 			worker_status = self.worker_get_status(worker_path)
-			logging.debug('[7] worker_status {}'.format(worker_status))
+			logging.debug('WG[7] worker_status {}'.format(worker_status))
 
 			worker_active_time, _ = self.zk.get("%s/active_time" % (worker_path))
-			logging.debug('[8] worker_active_time {}'.format(worker_active_time))
+			logging.debug('WG[8] worker_active_time {}'.format(worker_active_time))
 
 			worker_disconnection_time, _ = self.zk.get("%s/disconnection_time" % (worker_path))
-			logging.debug('[9] worker_disconnection_time {}'.format(worker_disconnection_time))
+			logging.debug('WG[9] worker_disconnection_time {}'.format(worker_disconnection_time))
 
 			worker_connection_time, _ = self.zk.get("%s/connection_time" % (worker_path))
-			logging.debug('[10] worker_connection_time {}'.format(worker_connection_time))
+			logging.debug('WG[10] worker_connection_time {}'.format(worker_connection_time))
 
 			worker_failures, _ = self.zk.get("%s/failures" % (worker_path))
-			logging.debug('[11] worker_failures {}'.format(worker_failures))
+			logging.debug('WG[11] worker_failures {}'.format(worker_failures))
 
 			actor_id, _ = self.zk.get("%s/actor_id" % (worker_path))
 
@@ -464,13 +465,13 @@ class ControllerClient:
 				pass
 			else:
 				actor_id = actor_id.decode('utf-8')
-			logging.debug('[12] actor_id {}'.format(actor_id))
+			logging.debug('WG[12] actor_id {}'.format(actor_id))
 
 			worker_actors = []
 			for i in self.zk.get_children("%s/torun" % (worker_path)):
-				logging.debug('[12] worker_path %s', worker_path)
-				logging.debug('[13] CL worker_path {}'.format(type(worker_path)))
-				logging.debug('[13.5] CL E {}'.format(type(i)))
+				logging.debug('WG[12] worker_path %s', worker_path)
+				logging.debug('WG[13] CL worker_path {}'.format(type(worker_path)))
+				logging.debug('WG[13.5] CL E {}'.format(type(i)))
 				var_aux = "%s/torun/%s/actor_path" % (worker_path, i)
 				var_aux = var_aux.split('/')[-1]
 				# var_aux = var_aux[0].split('/')[-1]
@@ -480,9 +481,9 @@ class ControllerClient:
 				# logging.debug('[13]ERROR {}'.format(y[0]))
 				# worker_actors += [self.zk.get("%s/torun/%s/actor_path" % (worker_path,i))[0].split('/')[-1]]
 				worker_actors += [worker_aux.split('/')[-1]]
-				logging.debug('[14] CL ')
+				logging.debug('WG[14] CL ')
 
-			logging.debug('[15] CL')
+			logging.debug('WG[15] CL')
 			w = Worker(worker_hostname,
 					   worker_username,
 					   path=worker_path,
@@ -496,7 +497,7 @@ class ControllerClient:
 					   connection_time=float(worker_connection_time or '0'),
 					   actor_id=actor_id)
 
-			logging.debug('[16] CL {}'.format(w))
+			logging.debug('WG[16] CL {}'.format(w))
 			return w
 
 		except Exception as e:
@@ -556,19 +557,19 @@ class ControllerClient:
 			pass
 
 	def worker_get_all(self):
-		logging.debug("CP1 PATHS.REGISTERED_WORKERS: {}".format(PATHS.REGISTERED_WORKERS))
+		#logging.debug("CP1 PATHS.REGISTERED_WORKERS: {}".format(PATHS.REGISTERED_WORKERS))
 		#self.zk.ensure_path(PATHS.REGISTERED_WORKERS)
-		logging.debug("CP2 PATHS.REGISTERED_WORKERS: {}".format(PATHS.REGISTERED_WORKERS))
+		logging.debug("worker_get_all[1] PATHS.REGISTERED_WORKERS: {}".format(PATHS.REGISTERED_WORKERS))
 		workers_hostnames = self.zk.get_children(PATHS.REGISTERED_WORKERS, include_data=False)
 		workers_list = []
-		logging.debug("CP2")
+		logging.debug("worker_get_all[2]")
 		for worker_hostname in workers_hostnames:
-			logging.debug("CP3")
+			logging.debug("worker_get_all[3]\t worker_hostname: {}".format(worker_hostname))
 			worker = self.worker_get_by_hostname(worker_hostname)
-			logging.debug("CP4")
+			logging.debug("worker_get_all[4]\t worker: {}".format(worker))
 			workers_list.append(worker)
 
-		logging.debug("CP5")
+		logging.debug("worker_get_all[5]")
 		return workers_list
 
 	def worker_allocate(self, number_of_workers=1, alloc_list=[]):

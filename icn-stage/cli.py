@@ -109,8 +109,8 @@ def add_worker(controller_client, nodes_json_file=DEFAULT_NODES_JSON_FILE, max_a
             break
 
 
-    for i in trange(100):
-        sleep(1)
+    # for i in trange(100):
+    #     sleep(1)
     logging.info("Adding Actors...DONE!")
 
 
@@ -347,7 +347,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             except Exception as e:
                 logging.error("Exception: {}".format(e))
 
-        elif command == 'print':
+        elif command == 'print' or command == 'p':
             try:
                 if options is not None:
                     root = "/"

@@ -31,7 +31,7 @@ from modules.util.tools import Sundry
 
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
-DEFAULT_SLEEP_SECONDS = 5
+DEFAULT_SLEEP_SECONDS = 60
 
 DEFAULT_ZK_IP_PORT = "127.0.0.1:2181"
 _controllerport = "2181"
@@ -49,48 +49,57 @@ _local_experiments_dir = os.path.expanduser("./")
 def create_worklib(output_file_):
 	# setup
 	# modules_source_path = "./modules/"
-	source = "icn-stage/"
-	current_dir = os.getcwd()
-	logging.info("[create_worklib][0] current dir: {}".format(current_dir))
-	os.chdir(source)
-	current_dir = os.getcwd()
-	logging.info("[create_worklib][1] current dir: {}".format(current_dir))
+	source = "icn-stage"
+	initial_dir = os.getcwd()
+	logging.info("[create_worklib][1] initial_dir: {}".format(initial_dir))
+	if source not in initial_dir:
+		os.chdir(source)
 
-	logging.info("[create_worklib][2]  ...")
+	logging.info("[create_worklib][2] os.getcwd: {}".format(os.getcwd()))
+
 	worklib_source_path =  "modules/worklib/"
 	extralib_source_path = "modules/extralib/"
-	
-	if not file_exists(worker.SCRIPT):
-		logging.info("[create_worklib][ERRO]  ...")
-		logging.error("ERROR: file not found! {}".format(worker.SCRIPT))
-		sys.exit(-1)
+
+	if file_exists(output_file_):
+		logging.info("[create_worklib][3.a] file exists: {}".format(output_file_))
 		
 	else:
-		logging.info("[create_worklib][3]  ...")
-		# creates tar file
-		tar_file = tarfile.open(output_file_, "w:gz")
-		logging.info("[create_worklib][4]  ...")
-		# add main file
-		tar_file.add(worker.SCRIPT)
-		logging.info("[create_worklib][5]  ...")
-		# add modules
-		current_dir = os.getcwd()
-		# os.chdir(modules_source_path)
-		for d in [worklib_source_path, extralib_source_path]:
+		if not file_exists(worker.SCRIPT):
+			logging.info("[create_worklib][ERRO]  ...")
+			logging.error("ERROR: file not found! {}".format(worker.SCRIPT))
+			sys.exit(-1)
 
-			for f in os.listdir(d):
-				file = "%s/%s" % (d, f)
-				logging.debug("File: %s" % file)
-				if file.endswith('.py'):
-					logging.debug("adding %s" % file)
-					tar_file.add("%s" % (file))
-				else:
-					logging.debug("skiping %s" % file)
-				logging.debug(file)
+		else:
+			logging.info("[create_worklib][3]  ...")
+			# creates tar file
+			tar_file = tarfile.open(output_file_, "w:gz")
+			logging.info("[create_worklib][4]  ...")
+			# add main file
+			tar_file.add(worker.SCRIPT)
+			logging.info("[create_worklib][5]  ...")
+			# add modules
+			 
+			# os.chdir(modules_source_path)
+			for d in [worklib_source_path, extralib_source_path]:
 
-		# close file
-		tar_file.close()
-		os.chdir(current_dir)
+				for f in os.listdir(d):
+					file = "%s/%s" % (d, f)
+					logging.debug("File: %s" % file)
+					if file.endswith('.py'):
+						logging.debug("adding %s" % file)
+						tar_file.add("%s" % (file))
+					else:
+						logging.debug("skiping %s" % file)
+					logging.debug(file)
+
+			# close file
+			tar_file.close()
+
+	cmd = "cp {}/{} {}/".format(os.getcwd(), output_file_, initial_dir)
+	logging.debug("[create_worklib][6] current: {} copying file: {}".format(os.getcwd(), cmd))
+	subprocess.run(cmd, check=True, shell=True)
+	logging.debug("[create_worklib][7] file moved: {}".format(cmd))
+	os.chdir(initial_dir)
 
 # RPM = Resource Pool Manager
 class RPM(multiprocessing.Process):
@@ -114,6 +123,12 @@ class RPM(multiprocessing.Process):
 	# 	logging.debug(" self.Controller_client: {}".format(self.controller_client))
 
 	def run(self):
+		with open("rpm_activity.log", "w") as fa:
+			log_data = "%16s, \t%24s, \t%13s, \t%24s, \t%24s\n" % (
+				'ACTIVE_TIME', 'HOSTNAME', 'STATUS', 'LAST_CALL', 'WHEN_DISCONNECT')
+			fa.write(log_data)
+		fa.close()
+
 		logging.info("RPM[CP1]")
 		exit = False
 
@@ -133,9 +148,11 @@ class RPM(multiprocessing.Process):
 			logging.debug("RPM[CP1.1] now: {}".format(now))
 
 			try:
-				with open("rpm_activity.log", "w+") as fa:
-					print("%16s, \t%50s, \t%13s, \t%24s, \t%24s" % (
-					'ACTIVE_TIME', 'HOSTNAME', 'STATUS', 'LAST_CALL', 'WHEN_DISCONNECT'), file=fa)
+				with open("rpm_activity.log", "a") as fa:
+					log_data = "\n%16s, \t%24s, \t%13s, \t%24s, \t%24s\n" % (
+						'ACTIVE_TIME', 'HOSTNAME', 'STATUS', 'LAST_CALL', 'WHEN_DISCONNECT')
+					logging.debug("RPM[LOG] {}".format(log_data))
+					fa.write(log_data)
 
 					for worker in sorted(run_controller_client.worker_get_all(), key=lambda x: x.hostname):
 
@@ -152,18 +169,24 @@ class RPM(multiprocessing.Process):
 								if not worker.actors:
 									break
 								with open('failures_recov.txt', 'a+') as fi:
-									print(time.time(), worker.hostname, worker.actors, file=fi)
+									log_failures = "{} {} {}".format(time.time(), worker.hostname, worker.actors)
+									fi.write(log_failures)
+									fi.close()
 
-								logging.debug("RPM [CP6] worker.status")
+								logging.debug("RPM[CP6] worker.status")
 								run_controller_client.worker_add_disconnected(worker.hostname, 'RECOVERING')
 								run_controller_client.task_add(COMMANDS.RECOVER_ACTOR, worker=worker)
 
-							elif worker.status == 'LOST IDLE' or worker.status == 'NEW LOST IDLE':
+							elif worker.status == 'LOST IDLE' : #or worker.status == 'NEW LOST IDLE'
 								logging.debug("RPM[CP7] RecoverActor")
 								run_controller_client.worker_add_disconnected(worker.hostname, 'RESTARTING')
 
 								logging.debug("RPM[CP8] COMMANDS.START_WORKER")
 								run_controller_client.task_add(COMMANDS.START_WORKER, worker=worker)
+
+							elif worker.status == 'NEW LOST IDLE':
+								#RM 2022/04/11 avoid loop (install, reinstall) RPM vs daemon_worker
+								pass
 
 							else:
 								logging.debug("RPM[CP8] OTHER STATUS: '{}'".format(worker.status))
@@ -202,8 +225,12 @@ class RPM(multiprocessing.Process):
 						if worker.connection_time != 0:
 							last_login = time.ctime(worker.connection_time)
 
-						print("%16f, \t%50s, \t%13s, \t%24s, \t%24s" % (
-							worker.active_time, worker.hostname, worker.status, last_login, dcnx_time), file=fa)
+
+						log_data = "%16f, \t%24s, \t%13s, \t%24s, \t%24s\n" % (
+							worker.active_time, worker.hostname, worker.status, last_login, dcnx_time)
+						logging.debug("RPM[LOG] {}".format(log_data))
+						fa.write(log_data)
+
 						string_var_aux = worker.hostname
 
 			except Exception as e:
@@ -235,7 +262,7 @@ class DirectorDaemon(Daemon):
 	 
 
 	def stop(self):
-		self.zookeeper_controller.stop_zookeeper_service()
+		self.zookeeper_controller.stop_self_zookeeper_service()
 		super().stop()
 
 	def set_sleep_seconds(self, sleep_seconds):
@@ -554,20 +581,20 @@ class DirectorDaemon(Daemon):
 
 			elif task_cmd == COMMANDS.INSTALL_WORKER:
 
-				logging.debug("INSTALL_WORKER [0] task_args: %s" % str(task_args))
+				logging.debug("INSTALL_WORKER[01] task_args: %s" % str(task_args))
 
 				worker = Worker.decode(task_args["worker"].decode('utf-8'))
-				logging.debug('INSTALL_WORKER[1] worker: {}'.format(worker))
+				logging.debug('INSTALL_WORKER[02] worker: {}'.format(worker))
 
 				# Install daemon
 				try:
-					logging.info('INSTALL_WORKER[3] creating channel...')
+					logging.info('INSTALL_WORKER[03] creating channel...')
 					# rmansilha channel = Channel(worker.hostname, username=worker.username, pkey = worker.pkey, password=worker.password, timeout=_timeout)
 					# channel = Channel(worker.hostname, username=my_username, pkey=my_pkey, password=my_password, timeout=_timeout)
 					channel = Channel(worker.hostname, username=worker.username, pkey=worker.pkey,
 									  password=worker.password, timeout=_timeout)
 
-					logging.info('INSTALL_WORKER[4] channel created.')
+					logging.info('INSTALL_WORKER[04] {} channel created.'.format(worker.hostname))
 
 					# INSTALL PYTHON (+ MAKE + GCC)
 
@@ -583,36 +610,36 @@ class DirectorDaemon(Daemon):
 
 					#remote_path = worker.get_remote_path()
 					#logging.debug('INSTALL_WORKER [5] remote_path: {}'.format(remote_path))
-					logging.info('INSTALL_WORKER[5] remote_path: ~/')
+					logging.info('INSTALL_WORKER[05] {} remote_path: ~/'.format(worker.hostname))
 
 					channel.run("mkdir -p experiments")
 					#channel.chdir(remote_path)
 
 					#logging.info('Current_remote_path: ' + remote_path)
-					logging.info('INSTALL_WORKER[6] creating _worklibtarfile: {}'.format(_worklibtarfile))
+					logging.info('INSTALL_WORKER[06] {} creating _worklibtarfile: {}'.format(worker.hostname, _worklibtarfile))
 					create_worklib(_worklibtarfile)
 
-					logging.info('INSTALL_WORKER[7] transferring _worklibtarfile: {}'.format(_worklibtarfile))
+					logging.info('INSTALL_WORKER[07] {} transferring _worklibtarfile: {}'.format(worker.hostname, _worklibtarfile))
 					channel.put(_worklibtarfile, _worklibtarfile)
 
-					logging.info('unzipping {}'.format(_worklibtarfile))
+					logging.info('INSTALL_WORKER[08] {} unzipping {}'.format(worker.hostname, _worklibtarfile))
 					channel.run("tar -xzf %s" % _worklibtarfile)
 
-					logging.info('INSTALL_WORKER[8] worker_add_disconnected')
+					logging.info('INSTALL_WORKER[09] {} worker_add_disconnected'.format(worker.hostname))
 					self.controller_client.worker_add_disconnected(worker.hostname, "INSTALLED", is_failure=False)
 
-					logging.info('INSTALL_WORKER[9] adding task COMMANDS.START_WORKER')
+					logging.info('INSTALL_WORKER[10] {} adding task COMMANDS.START_WORKER')
 					self.controller_client.task_add(COMMANDS.START_WORKER, worker=worker)
 
 				except Exception as e:
-					logging.error("INSTALL_WORKER Exception - hostname: {} e: {}".format(worker.hostname, e))
+					logging.info("INSTALL_WORKER[Exception-1] - hostname: {} e: {}".format(worker.hostname, e))
 					# logging.debug('python_install_excetion: [type:'+str(type(worker.hostname))+' data:'+str(worker.hostname)+' ]')
-					logging.debug('INSTALL_WORKER [Exception] updating zookeeper')
+					logging.info('INSTALL_WORKER[Exception-2] updating zookeeper')
 					self.controller_client.worker_add_disconnected(worker.hostname, "NOT INSTALLED")
 
-				logging.debug('INSTALL_WORKER [10] removing current task')
+				logging.info('INSTALL_WORKER[10] removing current task')
 				self.controller_client.task_del(task_now)
-				logging.debug('INSTALL_WORKER [11] DONE.')
+				logging.info('INSTALL_WORKER[11] DONE.')
 
 			elif task_cmd == COMMANDS.START_WORKER:
 

@@ -149,7 +149,12 @@ class ZookeeperController:
         cmd = "{} stop".format(ZK_CMD)
         run_cmd(cmd)
 
-        #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
+    def stop_self_zookeeper_service(self):
+        if self.controller_client is not None:
+            self.controller_client.zk.stop()
+        self.stop_zookeeper_service()
+
+    #subprocess.call("%s daemon_director.py restart" % sys.executable, shell=True)
     def create_data_structure(self):
         self.set_controller_client()
         self.controller_client.config_create_missing_paths()
@@ -183,16 +188,16 @@ class ZookeeperController:
 
         logging.info("\tRemoving tasks... ")
         for t in self.controller_client.zk.get_children('/tasks/'):
-            logging.info("\t\ttask: ", t)
+            logging.info("\t\ttask: {} ".format(t))
             self.controller_client.zk.delete('/tasks/' + t, recursive=True)
         logging.info("\tRemoving tasks done. \n")
 
         logging.info("\tRemoving experiments from workers... ")
         try:
             for w in self.controller_client.zk.get_children('/registered/workers'):
-                logging.info("\t\tRemoving experiment from worker: ", w)
+                logging.info("\t\tRemoving experiment from worker: {}".format(w))
                 for e in self.controller_client.zk.get_children('/registered/workers/' + w + '/torun'):
-                    logging.info("\t\t\tworker: ", w, " children: ", e)
+                    logging.info("\t\t\tworker: {} children: {}".format(w, e))
                     self.controller_client.zk.delete('/registered/workers/' + w + '/torun/' + e, recursive=True)
         except:
             pass
@@ -200,31 +205,31 @@ class ZookeeperController:
 
         logging.info( "\tRemoving registered workers... ")
         for w in self.controller_client.zk.get_children('/registered/workers'):
-            logging.info("\t\tregistered worker: ", w)
+            logging.info("\t\tregistered worker: {}".format(w))
             self.controller_client.zk.delete('/registered/workers/' + w, recursive=True)
         logging.info("\tRemoving registered workers done.\n")
 
         logging.info("\tRemoving connected busy workers... ")
         for w in self.controller_client.zk.get_children('/connected/busy_workers'):
-            logging.info("\t\tconnected busy worker: ", w)
+            logging.info("\t\tconnected busy worker: {}".format(w))
             self.controller_client.zk.delete('/connected/busy_workers/' + w, recursive=True)
         logging.info("\tRemoving connected busy workers done.\n")
 
         logging.info("\tRemoving connected free workers... ")
         for w in self.controller_client.zk.get_children('/connected/free_workers/'):
-            logging.info("\t\tconnected free worker: ", w)
+            logging.info("\t\tconnected free worker: {}".format(w))
             self.controller_client.zk.delete('/connected/free_workers/' + w, recursive=True)
         logging.info("\tRemoving connected free workers done.\n")
 
         logging.info("\tRemoving disconnected workers... ")
         for w in self.controller_client.zk.get_children('/disconnected/workers/'):
-            logging.info("\t\tdisconnected worker: ", w)
+            logging.info("\t\tdisconnected worker: {}".format(w))
             self.controller_client.zk.delete('/disconnected/workers/' + w, recursive=True)
         logging.info("\tRemoving disconnected workers done.\n")
 
         logging.info("\tRemoving experiments... ")
         for e in self.controller_client.zk.get_children('/experiments/'):
-            logging.info("\t\t experiment: " + e)
+            logging.info("\t\t experiment: {}".format(w))
             self.controller_client.zk.delete('/experiments/' + e, recursive=True)
         logging.info("\tRemoving experiments done.\n")
 

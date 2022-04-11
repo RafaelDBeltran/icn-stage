@@ -5,6 +5,8 @@
 
 import paramiko, paramiko.rsakey, io, scp, hashlib, os
 import logging
+from time import sleep
+
 def MD5(filename):
 	hash_md5 = hashlib.md5()
 	with open(filename, "rb") as f:
@@ -57,7 +59,7 @@ class Channel(object):
 				password=self.password, pkey=self.pkey, timeout=self.timeout)
 			#logging.debug('connect_n')
 		except Exception as e:
-			print('Excepetion: {}'.format(e))
+			print('Exception: {}'.format(e))
 			raise e
 		self.scp = scp.SCPClient(self.ssh.get_transport())
 		self.connected = True
@@ -135,6 +137,58 @@ class Channel(object):
 				return True
 			#logging.debug('putt 7')
 		return False
+
+	# def put(self, local_path, remote_path):
+	# 	#logging.debug('putt start')
+	# 	local_path = local_path.replace('//','/')
+	# 	remote_path = remote_path.replace('//','/')
+	# 	should_put = False
+	#
+	# 	logging.info(
+	# 		"************** connected: {}".format(self.connected))
+	# 	logging.info(
+	# 		"************** os.path.isfile(local_path): {}".format(os.path.isfile(local_path)))
+	#
+	# 	logging.info(
+	# 		"************** self.chkfile(self._actual_path(remote_path)): {}".format(self.chkfile(self._actual_path(remote_path))))
+	#
+	# 	logging.info(
+	# 		"**************self._cmpfiles(local_path, self._actual_path(remote_path)): {}".format(
+	# 			self._cmpfiles(local_path, self._actual_path(remote_path))))
+	# 	if self.connected and os.path.isfile(local_path):
+	# 		#logging.debug('putt 1')
+	# 		if self.chkfile(self._actual_path(remote_path)):
+	# 			#logging.debug('putt 2')
+	# 			if self._cmpfiles(local_path, self._actual_path(remote_path)):
+	# 				#logging.debug('putt 3')
+	# 				should_put = True
+	#
+	# 				#logging.debug('putt 4')
+	#
+	# 		else:
+	# 			should_put = True
+	# 			#logging.debug('putt 5')
+	#
+	# 			#logging.debug('putt 6')
+	# 			#return True
+	# 		#logging.debug('putt 7')
+	# 	logging.info("************** should_put: {} local_path: {} remote_path: {}".format(should_put, local_path, remote_path))
+	# 	if should_put:
+	# 		self.scp.put(local_path, self._actual_path(remote_path))
+	# 		logging.info("************** sending.. {} {} ".format(local_path, remote_path))
+	# 		for i in range(100):
+	# 			if self._cmpfiles(local_path, self._actual_path(remote_path)):
+	# 				logging.info("************** sleeping 0.1 ")
+	# 				sleep(0.1)
+	# 			else:
+	# 				logging.info("************** sleeping 0.1 ")
+	# 				break
+	# 	else:
+	# 		logging.info("************** NOT SENDING?!?! ")
+	# 		sys.exit(-1)
+	#
+	# 	return should_put
+
 
 	def get(self, remote_path, local_path):
 		if self.connected and self.chkfile(self._actual_path(remote_path)):

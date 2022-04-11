@@ -21,14 +21,19 @@ class WorkerDaemon(Daemon):
 		self.sleep_seconds = sleep_seconds
 
 	def run(self):
+		busy = False
+		last_timestamp = time.time()
+		actual_timestamp = time.time()
 
 		cfg = WorkerClient.load_config_file(ACTOR_CONFIG)
 		wclient = WorkerClient(cfg["server"], cfg["hostname"])
+		wclient.worker_keep_alive(actual_timestamp - last_timestamp, busy)
 		wclient.exp_load()
-		last_timestamp = time.time()
+		#wclient.worker_keep_alive(actual_timestamp - last_timestamp, busy)
+
 
 		while True:
-			busy = False
+
 			actual_timestamp = time.time()
 			try:
 				for exp_obj in wclient.current_experiments:

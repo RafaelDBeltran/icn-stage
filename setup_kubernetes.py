@@ -446,9 +446,11 @@ def main():
 
         logging.info("Applying pods...")
         count_changed_pods = 0
+        count_pods = 0
         for type in local_pods.keys():
             logging.info("\t{}:".format(type))
             for i in range(1, local_pods[type] + 1):
+                count_pods += 1
                 file_name = get_deployment_file_name(type, i)
                 cmd = 'kubectl apply -f {}'.format(file_name)
                 r = run_cmd_get_output(cmd)
@@ -457,9 +459,26 @@ def main():
                 else:
                     count_changed_pods += 1
 
-        if count_changed_pods > 0:
-            for i in tqdm(range(0, SLEEP_SECS_PER_POD*count_changed_pods), desc="Waiting pods wakeup..."):
-                sleep(1)
+        if count_pods > 0:
+            cmd = "kubectl get pods | grep Running | wc -l"
+            previous = 0
+            count = 0
+            with tqdm(total=count_pods, desc="Waiting pods...") as pbar:
+                while count < count_pods:
+                    p = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
+                    out, err = p.communicate()
+                    try:
+                        current = int(out)
+                    except:
+                        print("except: {}".format(out))
+                        current = previous
+                    update = current - previous
+                    count += update
+                    pbar.update(update)
+                    #logging.debug("Total: {}  count: {}   current: {}   previous: {}   update: {}".format(count_pods, count, current, previous, update))
+                    previous = current
+                    sleep(0.1)
+
         logging.info("Applying pods... DONE!\n\n")
 
 
