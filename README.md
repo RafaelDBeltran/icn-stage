@@ -34,9 +34,14 @@ python3 setup_kubernets.py local
 kubectl exec --stdin --tty director1 -- /bin/bash
 ```
 
-3. Executar o icn-stage
+3. Executar a interface por linha de comando do icn-stage
 ```sh
-cd icn-stage; python3 cli.py
+python3 icn-stage/cli.py
+```
+
+4. Na interface, listar comandos
+```sh
+icn-stage>> help
 ```
 
 ----
