@@ -353,6 +353,7 @@ def run_setup(local_pods, args):
     zk_config_file.write(zk_config_data)
     zk_config_file.close()
     logging.info("Creating ZK zoo.cfg file... DONE!")
+    logging.info("\n\n\n")
 
     size = 100
     logging.info("Configuring pods...")
@@ -453,6 +454,7 @@ def main():
                 count_pods += 1
                 file_name = get_deployment_file_name(type, i)
                 cmd = 'kubectl apply -f {}'.format(file_name)
+                logging.info("\t\t{}:".format(cmd))
                 r = run_cmd_get_output(cmd)
                 if 'unchanged' in r:
                     pass
@@ -480,11 +482,9 @@ def main():
                     sleep(0.1)
 
         logging.info("Applying pods... DONE!\n\n")
-
-
-        logging.info("Setup pods...")
+ 
         run_setup(local_pods, args)
-        logging.info("Setup pods... DONE!\n\n")
+
 
     elif args.mode == mode_choices[1]: #fibre
         logging.warning("TBD mode: {} ".format(args.mode))

@@ -16,7 +16,9 @@ import logging
 import subprocess
 from time import sleep
 import shlex
+import multiprocessing
 import daemon_director
+from tqdm import tqdm
 
 try:
     import kazoo
@@ -52,7 +54,7 @@ from modules.util.tools import View
 from modules.util.tools import Sundry
 #root imports
 from zookeeper_controller import ZookeeperController
-from experiments_resources import call_tcp_server
+import  experiments_resources
 from experiments_resources import call_ndn_exp
 from experiments_resources import call_ndn_traffic
 from experiments_resources import call_ndn_traffic_server
@@ -114,26 +116,25 @@ def add_worker(controller_client, nodes_json_file=DEFAULT_NODES_JSON_FILE, max_a
     logging.info("Adding Actors...DONE!")
 
 
-# TODO Add loading time while adding workers
 def experiment_skeleton(experiment_name, commands, controller_client, experiment_dir=None, experiment_file_name=None):
-    logging.info("\t Executing experiment {} \t".format(experiment_name))
+    logging.info("\tExecuting experiment {} \t".format(experiment_name))
 
     experiment_name = '%s_%s' % (experiment_name, datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
 
-    logging.info("\t Experiment_name   : {}\t".format(experiment_name))
-    logging.info("\t Experiment command: {}\t".format(' '.join(str(x) for x in commands)))
-
+    logging.info("\tExperiment_name   : {}\t".format(experiment_name))
+    logging.info("\tExperiment command: {}\t".format(' '.join(str(x) for x in commands)))
+    #cmd_array = shlex.split(cmd_str)
     simple_role = Role(experiment_name, ' '.join(str(x) for x in commands), 1)
     roles = [simple_role]
 
     dir_source = _local_experiments_dir + experiment_dir
     if experiment_file_name is not None:
-        logging.info("Compressing dir source '{}' to file '{}".format(dir_source, experiment_file_name))
+        logging.info("\tCompressing dir source '{}' to file '{}".format(dir_source, experiment_file_name))
         sundry.compress_dir(dir_source, experiment_file_name)
 
-    logging.info("Sending experiment... ")
+    logging.info("\tSending experiment... ")
     experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
-    logging.debug("Experiment instantiated %s", experiment_)
+    logging.debug("\tExperiment instantiated %s", experiment_)
     
     controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
     logging.debug("\tSending experiment done.\n")
@@ -143,40 +144,19 @@ def help_msg():
     return '''
     Available commands
     ------------------
-    start    : 
-    stop     :
-    restart  :
-    status   :
-    addactors: max actors
-    test     :
-    iperf    : file_out_name_str iperf_interval_secs client_time_secs (tcp|udp)
-    ndn      :
-    help, ?  : prints this message
-    print    :
-    printc   :
-    printd   :
-    reset    : clean zookeeper tree
-    reset-tasks : reset tasks and experiments
-    verbosity: setup logging verbosity level (default=%d, current=%d)
+    addactors           : [max actors] [nodes.json]
+    test                : tcp client/server test
+    iperf               : file_out_name_str iperf_interval_secs client_time_secs (tcp|udp)
+    ndn                 :
+    help, h, ?          : prints this message
+    print, p            : print zookeeper tree
+    printc              : print zookeeper subtree: connected workers
+    printd              : print zookeeper subtree: disconnected workers
+    reset               : clear zookeeper tree
+    reset-tasks         : reset tasks and experiments
+    verbosity, log, v, l:  level (default=%d, current=%d)
     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
-# TODO migrate commands to the following syntax
-# def help_msg():
-#     return '''
-#     [COMMNAND] [ARGUMENT]
-#     Available commands
-#     ------------------
-#       COMMAND     ARGUMENTS
-#       start     {director, actors, all, ?}                :
-#       stop      {director, actors, all, ?}                :
-#       restart   {director, actors, all, ?}                : stop; start
-#       status    {director, actors, zookeeper, all, ?}
-#       clean     {all, tasks}                              : clean the zookeeper tree
-#       test      {tcp, ndn, ?}                             : basic connectivity tests assuming stage_mininet.py
-#       eva       {iperf, ndn, ?}                           : performance evaluation assuming stage_mininet.py
-#       help, ?   {COMMANDS}                                : prints this message
-#       verbosity {10, 20}                                  : setup logging verbosity level (default=%d, current=%d)
-#     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 zookeeper_controller = None
 def get_zookeeper_controller_singleton():
     global zookeeper_controller
@@ -192,7 +172,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
         logging.info('Goodbye!')
         sys.exit(0)
 
-    elif command == 'help' or command == '?':
+    elif command == 'help' or command == '?' or command == 'h':
         print(help_msg())
 
     elif command == 'log' or command == 'verbosity' or command == 'v' or command == 'l':
@@ -207,7 +187,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
         zookeeper_controller = get_zookeeper_controller_singleton()
 
         if command == 'test':
-            logging.info("*** test tcp begin\n")
+            logging.info("*** test tcp begin")
             test_port = 10002
 
             zookeeper_controller.set_controller_client()
@@ -220,9 +200,37 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                                     zookeeper_controller.controller_client,
                                     "experiments/test_tcp/",
                                     "test_tcp.tar.gz")
-                call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
+                #experiments_resources.call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
+                # Start bar as a process
+                p = multiprocessing.Process(target=experiments_resources.call_tcp_server, args=(zookeeper_controller.get_ip_adapter(), test_port))
+                p.start()
+                TIMEOUT = 10 #seconds
+                SLEEP = 1 #seconds
+                print("a")
+               # while time.time() - start <= TIMEOUT:
+                for i in tqdm(range(int(TIMEOUT/SLEEP)), "Waiting max. {} secs.".format(TIMEOUT)):
+                    sleep(SLEEP)
+                    if not p.is_alive():
+                        break
+
+                # Wait for 10 seconds or until process finishes
+               # p.join(10)
+                result = "[OK]"
+                # If thread is still active
+                if p.is_alive():
+                    result = "[FAIL]"
+                    logging.info("\t server is still waiting... let's kill it...")
+
+                    # Terminate - may not work if process is stuck for good
+                    p.terminate()
+                    # OR Kill - will work for sure, no chance for process to finish nicely however
+                    # p.kill()
+
+                    p.join()
+
+
                 logging.info("\n")
-                logging.info("*** test tcp end!")
+                logging.info("*** test tcp end! result: {}".format(result))
 
             except Exception as e:
                 logging.error("Exception: {}".format(e))
@@ -296,6 +304,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                                     "experiments/test_traffic2/",
                                     "test_traffic2.tar.gz")
                 call_ndn_traffic_server(zookeeper_controller.get_ip_adapter(),10000)
+
             except Exception as e:
                 logging.error("Exception: {}".format(e))
                 msg = "Hint: don't forget to add actors!"

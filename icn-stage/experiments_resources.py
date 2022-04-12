@@ -32,11 +32,11 @@ class TCPServer:
 
 def call_tcp_server(host_, port_):
 
-    logging.debug("Starting TCP Server")
+    logging.info("\tStarting TCP Server")
     tcp_server = TCPServer(host_, port_)
-    logging.debug("TCP Server listen")
+    logging.info("\tTCP Server listen")
     tcp_server.listen()
-    logging.debug(" TCP Server done.")
+    logging.info("\tTCP Server done.")
 
 import subprocess
 import time

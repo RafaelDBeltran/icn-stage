@@ -20,6 +20,7 @@ DEFAULT_ZOOKEEPER_PATH = DEFAULT_USER_PATH + "/zookeeper"
 ZK_CMD = '{}/bin/zkServer.sh'.format(DEFAULT_ZOOKEEPER_PATH.replace("''", "'"))
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 MAX_ATTEMPTS = 60*3
+DEFAULT_ADAPTER = "eth0"
 
 def get_source(zk_addr='127.0.0.0:2181'):
 
@@ -85,7 +86,7 @@ def run_cmd(cmd_str, shell=False, check=True):
 class ZookeeperController:
 
 
-    def __init__(self):
+    def __init__(self, adapter=DEFAULT_ADAPTER):
 
         if not self.is_running():
             logging.info("Zookeeper Service is not running.")
@@ -97,6 +98,7 @@ class ZookeeperController:
 
         # instantiating it is costly and might not be need at all, so leave the decision for the caller
         self.controller_client = None
+        self.adapter = adapter
 
     def set_controller_client(self, controller_client=None):
         if controller_client is None and self.controller_client is None:

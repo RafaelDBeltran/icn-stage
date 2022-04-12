@@ -18,6 +18,7 @@ def MD5(filename):
 class Channel(object):
 	def __init__(self, hostname, username=None, password=None,
 		pkey=None, timeout=None):
+		
 		self.password = password
 		self.ssh = paramiko.SSHClient()
 		self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -50,18 +51,19 @@ class Channel(object):
 		self.path = "~/"
 		try:
 			#logging.debug('connect_y')
-			logging.debug(self.hostname)
-			logging.debug(self.username)
-			logging.debug(self.password)
-			logging.debug(self.pkey)
-			logging.debug(self.timeout)
+			logging.debug("Channel hostname: {}  username: {}   password: {}   pkey: {}   timeout: {} ".format(
+				self.hostname,  self.username, self.password, self.pkey, self.timeout))
+
 			self.ssh.connect(hostname=self.hostname, username=self.username,
 				password=self.password, pkey=self.pkey, timeout=self.timeout)
-			#logging.debug('connect_n')
+			logging.debug('Channel connected! hostname: {} '.format(self.hostname))
+			self.scp = scp.SCPClient(self.ssh.get_transport())
+
 		except Exception as e:
-			print('Exception: {}'.format(e))
+			self.connected = False
+			print('Channel Exception: {}'.format(e))
 			raise e
-		self.scp = scp.SCPClient(self.ssh.get_transport())
+
 		self.connected = True
 
 	def _actual_path(self, path):
@@ -76,7 +78,7 @@ class Channel(object):
 			return tuple(self.ssh.exec_command(cmd)[1:])
 
 		_,stdout,stderr = self.ssh.exec_command(cmd)
-		
+		logging.debug("Channel.run()")
 		logging.debug(stdout.readlines())
 		logging.debug(stderr.readlines())
 		stdout.channel.recv_exit_status()
@@ -119,6 +121,7 @@ class Channel(object):
 
 	def put(self, local_path, remote_path):
 		#logging.debug('putt start')
+		logging.debug("Channel.put(local_path={}, remote_path={})".format(local_path, remote_path))
 		local_path = local_path.replace('//','/')
 		remote_path = remote_path.replace('//','/')
 		if self.connected and os.path.isfile(local_path):
@@ -136,6 +139,7 @@ class Channel(object):
 				#logging.debug('putt 6')
 				return True
 			#logging.debug('putt 7')
+		
 		return False
 
 	# def put(self, local_path, remote_path):

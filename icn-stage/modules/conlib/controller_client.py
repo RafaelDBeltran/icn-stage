@@ -381,7 +381,7 @@ class ControllerClient:
 			self.zk.set('%s/failures' % worker_path, value=str(failures + 1).encode())
 
 		logging.debug('node: %s/connection', worker_path)
-		#RM: 2022-04-11 tentando evitar esta muleta
+		#RM:Mansilha:TODO:FixME 2022-04-11 tentando evitar esta muleta
 		# logging.debug('Sleeping 10 secs...')
 		# time.sleep(10)
 		# logging.debug('Sleeping Done')

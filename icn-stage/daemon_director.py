@@ -284,78 +284,72 @@ class DirectorDaemon(Daemon):
 
 			if task_cmd == COMMANDS.SEND_EXPERIMENT:
 
-				logging.debug("SEND_EXPERIMENT 1")
+				logging.debug("SEND_EXPERIMENT[01]")
 
 				exp = Experiment.decode(task_args["experiment"].decode('utf-8'))
-				logging.debug("SEND_EXPERIMENT 2")
+				logging.debug("SEND_EXPERIMENT[02]")
 				no_workers_total = 0
 				for role in exp.roles:
 					logging.debug('role %s', role)
 					logging.debug('role.no_workers %s', role.no_workers)
 					no_workers_total += role.no_workers
 					logging.debug('no_workers_total %s', no_workers_total)
-				logging.debug("SEND_EXPERIMENT 3")
+				logging.debug("SEND_EXPERIMENT[03]")
 				worker_path_list = []
 				worker_path_list = self.controller_client.worker_allocate(no_workers_total, alloc_list=worker_path_list)
-				logging.debug("SEND_EXPERIMENT 4")
-				logging.debug("worker_path_list %s", worker_path_list)
+		
+				logging.debug("SEND_EXPERIMENT[04] worker_path_list %s", worker_path_list)
 				ready = []
 				failed = False
-				logging.debug("SEND_EXPERIMENT 4.5 %s", no_workers_total)
+				
 				if worker_path_list:
 					last = 0
-					logging.debug("SEND_EXPERIMENT 5")
+					logging.debug("SEND_EXPERIMENT[05")
 					for role in exp.roles:
 						remaining = role.no_workers
 						tries = len(worker_path_list)  # number of possible allocate workers
-						logging.debug("SEND_EXPERIMENT 6 remaining: {}".format(remaining))
+						logging.debug("SEND_EXPERIMENT[06] remaining: {}".format(remaining))
 						i = 0
 						# worker_path_list = [new_path.decode('utf-8') for new_path in worker_path_list]
 						while remaining and tries > 0:
 							try:
-								logging.debug("SEND_EXPERIMENT 6.5 actor: {}".format(worker_path_list[last + i]))
+								logging.debug("SEND_EXPERIMENT[07] actor: {}".format(worker_path_list[last + i]))
 								worker = self.controller_client.worker_get(worker_path_list[last + i])
 
-								logging.debug("SEND_EXPERIMENT 7")
-								logging.info(" connecting to %s " % worker.hostname)
+								logging.info("\t connecting to %s " % worker.hostname)
 								channel = Channel(hostname=worker.hostname, username=worker.username,
 												  password=worker.password, pkey=worker.pkey, timeout=_timeout)
 
 								remote_path = worker.get_remote_experiment_path()
-								logging.debug("SEND_EXPERIMENT 7.1 changing dir to {} ".format(remote_path))
-								stdout,stderr = channel.chdir(remote_path)
-								logging.debug(stdout.readlines())
-								logging.debug(stderr.readlines())
+								logging.debug("SEND_EXPERIMENT[08] changing dir to {} ".format(remote_path))
+								channel.chdir(remote_path)
+								
+								
 								if type(exp.name) is bytes:
 									exp.name = exp.name.decode('utf-8')
 
-								logging.info("SEND_EXPERIMENT 7.2 making dir {}".format(exp.name))
+								logging.info("SEND_EXPERIMENT[09] making dir {}/{}".format(remote_path, exp.name))
 								channel.mkdir(exp.name)
-								logging.debug(stdout.readlines())
-								logging.debug(stderr.readlines())
+				
 
-								logging.info("SEND_EXPERIMENT 7.3 changing to dir {}".format(exp.name))
+								logging.info("SEND_EXPERIMENT[10]changing to dir {}".format(remote_path, exp.name))
 								channel.chdir(exp.name)
-								logging.debug(stdout.readlines())
-								logging.debug(stderr.readlines())
+				
 
 								if exp.filename is not None and exp.filename != "":
-									logging.debug("SEND_EXPERIMENT 8 file: {} to: {}".format(
+									logging.debug("SEND_EXPERIMENT[11] file: {} to: {}".format(
 										_local_experiments_dir + exp.filename, remote_path))
 									channel.put(_local_experiments_dir + exp.filename, exp.filename)
-									logging.debug(stdout.readlines())
-									logging.debug(stderr.readlines())
 
-									logging.debug("SEND_EXPERIMENT 9 unzipping file {}".format(exp.filename))
+									logging.debug("SEND_EXPERIMENT[12] unzipping file {}".format(exp.filename))
 									channel.run("tar -xzf %s" % exp.filename)
-									logging.debug("SEND_EXPERIMENT 10 unzipping done.")
-									logging.debug(stdout.readlines())
-									logging.debug(stderr.readlines())
+									logging.debug("SEND_EXPERIMENT[13] unzipping done.")
+
 								actor_id = self.controller_client.exp_create_actor(exp.id, worker.path, role.id)
 								channel.run(
 									"echo \"parameters=%s\nexp_id=%s\nrole_id=%s\nactor_id=%s\nis_snapshot=%s\" > info.cfg" % (
 									role.parameters, exp.id, role.id, actor_id, exp.is_snapshot))
-								logging.debug("SEND_EXPERIMENT 11")
+								logging.debug("SEND_EXPERIMENT[14]")
 								channel.close()
 								remaining -= 1
 								i += 1
@@ -364,12 +358,11 @@ class DirectorDaemon(Daemon):
 							except Exception as e:
 								tries -= 1
 								# print(datetime.datetime.now(), " ##Exception: ", e)
-								logging.error('SEND_EXPERIMENT Try: {} Exception: {}'.format(tries, e))
-								logging.error("SEND_EXPERIMENT 12")
+								logging.error('SEND_EXPERIMENT[exception][1] Try: {} Exception: {}'.format(tries, e))
 								new_worker = self.controller_client.worker_allocate(alloc_list=worker_path_list)
 								# print(datetime.datetime.now(), " New worker: ", new_worker)
-								logging.error('6.5NewWorker {}'.format(new_worker))
-								logging.error("SEND_EXPERIMENT 13")
+								logging.error('SEND_EXPERIMENT[exception][2] new_worker: {}'.format(new_worker))
+	
 								if new_worker == []:
 									failed = True
 									break
