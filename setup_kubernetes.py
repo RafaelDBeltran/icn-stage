@@ -37,6 +37,8 @@ DEFAULT_SLEEP_SECONDS = 5
 ZK_VERSION="zookeeper-3.8.0"
 DEFAULT_QTY_DIRECTORS = 1
 DEFAULT_QTY_ACTORS = 1
+DEFAULT_QTY_PUBLISHERS = 1
+
 NODES_JSON_FILE = "nodes.json"
 
 SLEEP_SECS_PER_POD = 2
@@ -105,7 +107,7 @@ def run_cmd(cmd_str, shell=False):
         subprocess.run(cmd_array, check=True, shell=shell)
 
 def run_cmd_get_output(cmd_str, shell=False):
-    logging.debug("Cmd_str: {}".format(cmd_str))
+    logging.info("Cmd: {}".format(cmd_str))
     # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
     cmd_array = shlex.split(cmd_str)
     result = subprocess.run(cmd_array, check=True, stdout=subprocess.PIPE)
@@ -114,11 +116,11 @@ def run_cmd_get_output(cmd_str, shell=False):
     return str(result.stdout)
 
 def run_cmd_kubernete(pod, cmd_str):
-    logging.debug("\tPod: {} Command: {}".format(pod, cmd_str))
+    logging.info("\tPod: {} Command: {}".format(pod, cmd_str))
     subprocess.run('kubectl exec -it {} -- /bin/bash -c "{}"'.format(pod, cmd_str), shell=True)
 
 def run_cmd_kubernete_get_output(pod, cmd_str):
-    logging.debug("\tPod: {} Command: {}".format(pod, cmd_str))
+    logging.info("\tPod: {} Command: {}".format(pod, cmd_str))
     cmd_kubernete = 'kubectl exec -it {} -- /bin/bash -c "{}"'.format(pod, cmd_str)
     return run_cmd_get_output(cmd_kubernete)
 
@@ -393,6 +395,7 @@ def run_setup(local_pods, args):
             run_cmd('kubectl cp experiments/ {}:/icn/'.format(pod))
             run_cmd_kubernete(pod, "sudo /etc/init.d/ssh start")
 
+       
             if group == 'director':
                 run_cmd('kubectl cp {} {}:/icn/'.format(NODES_JSON_FILE, pod))  # {}:/icn/icn-stage
                 run_cmd('kubectl cp zookeeper/ {}:/icn/'.format(pod))
@@ -405,6 +408,13 @@ def run_setup(local_pods, args):
                 cmd_director += " --log {}".format(args.log)
                 #run_cmd_kubernete(pod, cmd_director + " stop")
                 run_cmd_kubernete(pod, cmd_director + " start")
+
+            elif group == 'publisher':
+                files = ['traffic_ndn_publisher.py', 'daemon.py', 'ndn-traffic-server.conf', 'nfd.conf']
+                for f in files:
+                    run_cmd('kubectl cp ./experiments/traffic_ndn/{} {}:/icn/'.format(f, pod))
+
+                run_cmd_kubernete(pod,"python3 traffic_ndn_publisher.py start")
              
     logging.info("Configuring pods... DONE!")
 
@@ -455,7 +465,7 @@ def main():
         install_zookeeper()
         logging.info("Removing all deployment files...")
         run_cmd('rm deployment_*')
-        local_pods = {'director': args.directors, 'actor': args.actors}
+        local_pods = {'director': args.directors, 'actor': args.actors, 'publisher': DEFAULT_QTY_PUBLISHERS}
         logging.info("Creating deployment files...")
         for type in local_pods.keys():
             logging.info("\t{}:".format(type))

@@ -167,16 +167,16 @@ def get_zookeeper_controller_singleton():
 
 def run_command(zookeeper_controller = None, command = None, options=None):
     nodes_json_file = DEFAULT_NODES_JSON_FILE
-    if command == 'exit' or command == 'quit':
+    if command  in ['exit', 'quit', 'e', 'q']:
         # subprocess.call("fixNoNodeError.sh", shell=True)
         # subprocess.call("clean.sh", shell=True)
         logging.info('Goodbye!')
         sys.exit(0)
 
-    elif command == 'help' or command == '?' or command == 'h':
+    elif command  in ['help', 'h', '?']:
         print(help_msg())
 
-    elif command == 'log' or command == 'verbosity' or command == 'v' or command == 'l':
+    elif command  in ['log', 'verbosity', 'l', 'v']:
         try:
             set_logging(int(options[0]))
 
@@ -192,11 +192,11 @@ def run_command(zookeeper_controller = None, command = None, options=None):
 
             zookeeper_controller.set_controller_client()
             try:
-                cmd = ['python3 {}'.format('tcp_client.py'),
-                      '--host {}'.format(zookeeper_controller.get_ip_adapter()),
-                      '--port {}'.format(test_port)]
-
-                experiment_skeleton('test_tcp', cmd,
+                cmd = "python3 tcp_client.py --host {} --port {}".format(
+                    zookeeper_controller.get_ip_adapter(), test_port)
+                
+                experiment_skeleton('test_tcp',
+                                    shlex.split(cmd),
                                     zookeeper_controller.controller_client,
                                     "experiments/test_tcp/",
                                     "test_tcp.tar.gz")
@@ -238,29 +238,9 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                                     zookeeper_controller.controller_client,
                                     "experiments/test_ndn/",
                                     "test_ndn.tar.gz")
-                #experiments_resources.call_ndn_exp()
-                #experiments_resources.call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
-                # Start bar as a process
-               # TEST_TIMEOUT = 10
-               #  p = multiprocessing.Process(target=experiments_resources.call_ndn_exp, args=(TEST_TIMEOUT))
-               #  p.start()
-               #
-               # # while time.time() - start <= TIMEOUT:
-               #
-               #  for i in tqdm(range(int(TEST_TIMEOUT/TEST_SLEEP)), "Waiting max. {} secs.".format(TEST_TIMEOUT)):
-               #      sleep(TEST_SLEEP)
-               #      if not p.is_alive():
-               #          break
-                TEST_TIMEOUT = 60
-                result = experiments_resources.call_ndn_exp(TEST_TIMEOUT, data_name)
 
-                # result = "[OK]"
-                # # If thread is still active
-                # if r:
-                #     result = "[FAIL]"
-                #     #logging.info("\t ndn server is still waiting... let's terminate it...")
-                #     #p.terminate()
-                #     #p.join()
+                ndn_test_timeout = 60
+                result = experiments_resources.call_ndn_exp(ndn_test_timeout, data_name)
 
                 logging.info("\n")
                 logging.info("*** ndn test end! result: {}".format(result))
@@ -270,80 +250,29 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 msg = "Hint: don't forget to add actors!"
                 logging.error(msg)
 
-        # elif command == 'ndn':
-        #     zookeeper_controller.set_controller_client()
-        #     try:
-        #         cmd = ['python3',
-        #         'poke.py',
-        #         '{}'.format(zookeeper_controller.get_ip_adapter())]
-        #
-        #         experiment_skeleton('test_ndn', cmd,
-        #                             zookeeper_controller.controller_client,
-        #                             "experiments/test_ndn/",
-        #                             "test_ndn.tar.gz")
-        #         call_ndn_exp()
-        #     except Exception as e:
-        #         logging.error("Exception: {}".format(e))
-        #         msg = "Hint: don't forget to add actors!"
-        #         logging.error(msg)
-        #
-        # elif command == 'traffic':
-        #     zookeeper_controller.set_controller_client()
-        #     _timeout = 2
-        #     try:
-        #         logging.debug("nodes_json_file: {}".format(nodes_json_file))
-        #         data = json.load(open(nodes_json_file))
-        #         auxiliar_ip = None
-        #
-        #         for auxiliar in data['auxiliars']:
-        #
-        #             auxiliar_ip = auxiliar['remote_hostname']
-        #
-        #             channel = Channel(hostname=auxiliar['remote_hostname'], username=auxiliar['remote_username'],
-        #                     password=auxiliar['remote_password'], pkey=sundry.get_pkey(auxiliar["remote_pkey_path"]), timeout=_timeout)
-        #
-        #             channel.put('./experiments/test_traffic/low.conf', 'low.conf')
-        #             channel.put('./experiments/test_traffic/traffic_server.py','traffic_server.py')
-        #             channel.put('./experiments/test_traffic/ndn-traffic-server.conf','ndn-traffic-server.conf')
-        #             channel.put('./experiments/test_traffic/run_server.sh','run_server.sh')
-        #             channel.run('bash run_server.sh')
-        #
-        #
-        #         sleep(10)
-        #         logging.info(sys.argv[2:])
-        #         logging.info(sys.argv[3:])
-        #         # cmd = ['python3', 'traffic_client.py', auxiliar_ip, '\''+ sys.argv[2:] + '\'','\''+  sys.argv[3:]+ '\'']
-        #         cmd = ['python3', 'traffic_client.py', auxiliar_ip]
-        #
-        #         experiment_skeleton('ndn_traffic_generator', cmd,
-        #                             zookeeper_controller.controller_client,
-        #                             "experiments/test_traffic/",
-        #                             "test_traffic.tar.gz")
-        #
-        #     except Exception as e:
-        #         logging.error("Exception: {}".format(e))
-        #         msg = "Hint: don't forget to add actors!"
-        #         logging.error(msg)
-        #
-        # elif command == 'traffic2':
-        #     zookeeper_controller.set_controller_client()
-        #     try:
-        #         cmd = ['python3',
-        #         'ndn_client.py',
-        #         '{}'.format(str(zookeeper_controller.get_ip_adapter()))]
-        #
-        #         experiment_skeleton('ndn_traffic_generator2', cmd,
-        #                             zookeeper_controller.controller_client,
-        #                             "experiments/test_traffic2/",
-        #                             "test_traffic2.tar.gz")
-        #         call_ndn_traffic_server(zookeeper_controller.get_ip_adapter(),10000)
-        #
-        #     except Exception as e:
-        #         logging.error("Exception: {}".format(e))
-        #         msg = "Hint: don't forget to add actors!"
-        #         logging.error(msg)
+        elif command in ['traffic', 't']:
+            zookeeper_controller.set_controller_client()
+            _timeout = 2
+            try:
+                logging.debug("nodes_json_file: {}".format(nodes_json_file))
+                nodes = json.load(open(nodes_json_file))
+                publisher = nodes['publisher'][0]
+                publisher_ip = publisher['remote_hostname']
 
-        elif command == 'addactors':
+                cmd = "python3 traffic_ndn_consumer.py {}".format(publisher_ip)
+                
+                experiment_skeleton('traffic_ndn_consumer',
+                                    shlex.split(cmd),
+                                    zookeeper_controller.controller_client,
+                                    "experiments/traffic_ndn/",
+                                    "traffic_ndn.tar.gz")
+
+            except Exception as e:
+                logging.error("Exception: {}".format(e))
+                msg = "Hint: don't forget to add actors!"
+                logging.error(msg)
+
+        elif command in ['addactors', 'a']:
             logging.debug("nodes_json_file: {}".format(nodes_json_file))
 
             zookeeper_controller.set_controller_client()
@@ -353,7 +282,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
 
             add_worker(controller_client=zookeeper_controller.controller_client, nodes_json_file=nodes_json_file, max_actors=max_actors)
           
-        elif command == 'reset':
+        elif command  in ['reset', 'r']:
             zookeeper_controller = get_zookeeper_controller_singleton()
             data = json.load(open(nodes_json_file))
             for i in data['actor']:
@@ -389,7 +318,7 @@ def run_command(zookeeper_controller = None, command = None, options=None):
             except Exception as e:
                 logging.error("Exception: {}".format(e))
 
-        elif command == 'print' or command == 'p':
+        elif command in ['print', 'p']:
             try:
                 if options is not None:
                     root = "/"
