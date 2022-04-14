@@ -69,6 +69,15 @@ syncLimit=120\n\
 # server.2=your_zookeeper_node_2:2888:3888\n\
 # server.3=your_zookeeper_node_3:2888:3888\n\
 
+def header(msg):
+    size = len(msg)+20
+    logging.info("+" + "-" * size + "+")
+    logging.info("|" + " " * size + "|")
+    #msg = " group: {}    pod: {}    IP: {}    count: {}".format(group, pod, ip, count)
+    logging.info("|" + msg + " " * (size - len(msg)) + "|")
+    logging.info("|" + " " * size + "|")
+    logging.info("+" + "-" * size + "+")
+
 def run_cmd(cmd_str, shell=False):
     logging.debug("Cmd_str: {}".format(cmd_str))
     # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
@@ -108,6 +117,12 @@ def run_cmd_kubernete(pod, cmd_str):
     logging.debug("\tPod: {} Command: {}".format(pod, cmd_str))
     subprocess.run('kubectl exec -it {} -- /bin/bash -c "{}"'.format(pod, cmd_str), shell=True)
 
+def run_cmd_kubernete_get_output(pod, cmd_str):
+    logging.debug("\tPod: {} Command: {}".format(pod, cmd_str))
+    cmd_kubernete = 'kubectl exec -it {} -- /bin/bash -c "{}"'.format(pod, cmd_str)
+    return run_cmd_get_output(cmd_kubernete)
+
+
 
 def install_zookeeper():
     bin_name = "apache-{}-bin".format(ZK_VERSION)
@@ -127,8 +142,9 @@ def install_zookeeper():
 
 
 def get_deployment_file_name(type_, id):
-    return "deployment_{}{}.yaml_".format(type_, id)
-   
+    return "deployment_{}{}.yaml".format(type_, id)
+   #cbmckni/ndn-tools
+#"rafabeltran/icn-stage:v2-teste"
 
 def create_deployment_file(type, id):
     metadata_name = "{}{}".format(type, id)
@@ -145,7 +161,7 @@ metadata:
 spec:
     containers:
       - name: {}
-        image: rafabeltran/icn-stage:v2-teste
+        image: rafabeltran/icn-stage:v3-nfd5
         command: ["/bin/sleep", "3650d"]
         imagePullPolicy: IfNotPresent
         env:
@@ -160,6 +176,10 @@ spec:
               name: ensemble1
             - containerPort: 3888
               name: ensemble2
+            - containerPort: 6363
+              name: ndn
+              protocol: UDP
+            
     restartPolicy: Always
     
     '''.format(metadata_name, container_name)

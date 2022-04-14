@@ -42,17 +42,34 @@ import subprocess
 import time
 import logging
 import os
-class NDNExp:
-    def peek_start(self):
-        subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        time.sleep(5)
-        subprocess.run(["echo 'Message: HELLO WORLD' | ndnpoke /demo/hello"], shell=True)
-        time.sleep(20)
-        subprocess.run(["nfd-stop"])
 
-def call_ndn_exp():
-    intance_NDNExp = NDNExp()
-    intance_NDNExp.peek_start()
+
+def call_ndn_exp(timeout, data_name):
+    # subprocess.run(["nfd-start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    cmd_str = "sudo nfd &> /dev/null &"
+    # cmd_array = shlex.split(cmd_str)
+    logging.info("cmd_str: {}".format(cmd_str))
+    subprocess.run([cmd_str], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(5)
+    cmd_str = "echo 'Message: HELLO WORLD' | ndnpoke --timeout {} {}".format(timeout*1000, data_name) #ms
+    logging.info("cmd_str: {}".format(cmd_str))
+    proc =  subprocess.run([cmd_str], shell=True)
+    logging.info("returncode: {}".format(proc.returncode))
+    if proc.returncode == 0:
+        return "[OK]"
+    else:
+        return "[FAIL]"
+
+#     '''
+#     ndnpoke https://github.com/named-data/ndn-tools/blob/master/manpages/ndnpoke.rst
+# 0: Success
+# 1: An unspecified error occurred
+# 2: Malformed command line
+# 3: No Interests received before the timeout
+# 5: Prefix registration failed'''
+    #time.sleep(20)
+    #cmd_str = "sudo pkill ndn"
+    #subprocess.run([cmd_str])
 
 
 class NDN_traffic:
