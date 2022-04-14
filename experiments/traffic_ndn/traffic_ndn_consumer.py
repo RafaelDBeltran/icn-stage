@@ -11,12 +11,7 @@ import shlex
 publisher = "udp://"+sys.argv[1]
 data_name = "/example/" #sys.argv[2]
 
-#cmd = "sudo nfd -c nfd.conf > /dev/null &"
-#cmd = "sudo nfd > /dev/null &"
-#print("cmd: {}".format(cmd))
-#subprocess.run([cmd], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-subprocess.run(["sudo nfd nfd.conf&"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+subprocess.run(["sudo nfd -c nfd.conf&"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 sleep(5)
 
 cmd = "nfdc face create {}".format(publisher)
@@ -35,7 +30,7 @@ subprocess.run(shlex.split(cmd))
 # -q [ --quiet ]                turn off logging of Interest generation/Data reception
 # interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds
 # '''
-cmd = "ndn-traffic-client -c 10000 -i 100 ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
+cmd = "ndn-traffic-client -c 1000 -i 100 ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
 print("cmd: {}".format(cmd))
 subprocess.run([cmd], shell=True)
 

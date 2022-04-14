@@ -414,7 +414,7 @@ def run_setup(local_pods, args):
                 for f in files:
                     run_cmd('kubectl cp ./experiments/traffic_ndn/{} {}:/icn/'.format(f, pod))
 
-                run_cmd_kubernete(pod,"python3 traffic_ndn_publisher.py start")
+                run_cmd_kubernete(pod, "python3 traffic_ndn_publisher.py start")
              
     logging.info("Configuring pods... DONE!")
 

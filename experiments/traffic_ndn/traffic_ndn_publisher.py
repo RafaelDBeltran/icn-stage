@@ -14,8 +14,7 @@ from daemon import Daemon
 class NDN_Publisher(Daemon):
 
     def run(self):
-        #cmd = "nfd -c nfd.conf > /dev/null &"
-        cmd = "sudo nfd nfd.conf&"
+        cmd = "sudo nfd -c nfd.conf&"
         print("cmd: {}".format(cmd))
         subprocess.run([cmd], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         sleep(5)
