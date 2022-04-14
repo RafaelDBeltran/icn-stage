@@ -169,7 +169,7 @@ def main():
         cmd = "python3 setup_kubernetes.py --actors {} --directors {} --log {}".format(e.actors, e.directors, args.log)
         setup_kubernetes.run_cmd(cmd)
         
-        k8s_cmd = "icn-stage/cli.py log {} addactors".format(args.log)
+        k8s_cmd = "icn-stage/cli.py addactors".format(args.log)
         setup_kubernetes.run_cmd_kubernete("director1", k8s_cmd)
 
         director_leader = "director1"
