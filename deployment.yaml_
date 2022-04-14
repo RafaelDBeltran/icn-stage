@@ -8,7 +8,7 @@ spec:
 
     containers:
       - name: director
-        image: rafabeltran/icn-stage:v2-teste
+        image: rafabeltran/icn-stage:v3-nfd5
         command: ["/bin/sleep", "3650d"]
         imagePullPolicy: IfNotPresent
         ports:
