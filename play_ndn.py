@@ -176,7 +176,7 @@ def main():
         if e.directors > 1:
             director_leader = find_leader_director(e.directors)
 
-        k8s_cmd = "python3 icn-stage/cli.py log {} traffic".format(args.log)
+        k8s_cmd = "python3 icn-stage/cli.py traffic".format(args.log)
         setup_kubernetes.run_cmd_kubernete("director1", k8s_cmd)
 
         running_actor = "actor1"
