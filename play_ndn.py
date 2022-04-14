@@ -224,7 +224,7 @@ def main():
 
         choosen_actor = ""
 
-    cmd = "python3 plot/plot.py -o results_dir/{} {}".format(results_dir, try_name)
+    cmd = "python3 plot/plot.py -o {}/{} {}".format(results_dir, try_name, plot_files)
     setup_kubernetes.run_cmd(cmd)
 
 if __name__ == '__main__':
