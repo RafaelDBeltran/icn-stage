@@ -212,7 +212,7 @@ def main():
         cmd = "kubectl cp publisher1:/tmp/daemon_ndn_publisher.stdout {}".format(result_file)
         setup_kubernetes.run_cmd(cmd)
         logging.info("\t Result: {}".format(result_file))
-        
+        tqdm_sleep(10)
         #wait 60 sec
         #finish
         # cmd = "mv /tmp/daemon_ndn_publisher.stdout /tmp/daemon_ndn_publisher.stdout_{}".format(e.name)
