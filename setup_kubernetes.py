@@ -31,7 +31,7 @@ except ImportError as error:
 	sys.exit(-1)
 
 LOG_LEVEL = logging.DEBUG
-TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
 
 ZK_VERSION="zookeeper-3.8.0"

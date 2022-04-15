@@ -14,7 +14,7 @@ try:
     import subprocess
     from functools import partial
     import shlex
-    from datetime import datetime
+    from datetime import datetime, timedelta
     from tqdm import tqdm
     
 
@@ -34,7 +34,7 @@ except ImportError as error:
 import setup_kubernetes
 
 LOG_LEVEL = logging.DEBUG
-TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
 STEP_TIME_SECS = 60
 
@@ -42,6 +42,9 @@ ZK_VERSION="zookeeper-3.8.0"
 DEFAULT_QTY_DIRECTORS = 1
 DEFAULT_QTY_ACTORS = 1
 NODES_JSON_FILE = "nodes.json"
+
+DEFAULT_DURATION_SECS = STEP_TIME_SECS * 3
+DEFAULT_INTERVAL_MILLISENCONDS = 100
 
 class Experiment():
     def __init__(self, directors, actors, fails_actors, fails_directors, name):
@@ -74,29 +77,33 @@ def find_node(kind, nodes, filter):
     return pod_found
 
 
-def find_leader_director(directors):
-    logging.info("Finding leader director, qty {}".format(directors))
-    pod_director = None
-    for i in range(1, directors+1):
-        pod = "director{}".format(i)
-        logging.info("\t pod: {}".format(pod))
-        cmd = "ps aux | grep daemon_directory.py"
-        result = setup_kubernetes.run_cmd_kubernete_get_output(pod, cmd)
-        if "/bin/bash" in result:
-            logging.debug("Director found! {}".format(pod))
-            pod_director = pod
-            break
-        else:
-            logging.debug("Director not found! {}".format(pod))
-            
-    return pod_director
+# def find_leader_director(directors):
+#     logging.info("Finding leader director, qty {}".format(directors))
+#     pod_director = None
+#     for i in range(1, directors+1):
+#         pod = "director{}".format(i)
+#         logging.info("\t pod: {}".format(pod))
+#         cmd = "ps aux | grep daemon_directory.py"
+#         result = setup_kubernetes.run_cmd_kubernete_get_output(pod, cmd)
+#         if "/bin/bash" in result:
+#             logging.debug("Director found! {}".format(pod))
+#             pod_director = pod
+#             break
+#         else:
+#             logging.debug("Director not found! {}".format(pod))
+#
+#     return pod_director
+
+def find_leader_director(actors):
+    filter = "daemon_directory.py"
+    return  find_node(nodes=actors, kind='director', filter=filter)
 
 def find_running_actor(actors):
     filter = "ndn-traffic-client"
     return  find_node(nodes=actors, kind='actor', filter=filter)
 
 def tqdm_sleep(secs):
-    for i in tqdm(range(int(secs)), "Waiting max. {} secs.".format(secs)):
+    for i in tqdm(range(int(secs)), "Waiting {} secs.".format(secs)):
         sleep(1)
 
 
@@ -106,6 +113,12 @@ def main():
 
     help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
     parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
+
+    help_msg = "duration secs (default={})".format(DEFAULT_DURATION_SECS)
+    parser.add_argument("--duration", "-d", help=help_msg, default=DEFAULT_DURATION_SECS, type=int)
+
+    help_msg = "interval milliseconds (default={})".format(DEFAULT_INTERVAL_MILLISENCONDS)
+    parser.add_argument("--interval", "-i", help=help_msg, default=DEFAULT_INTERVAL_MILLISENCONDS, type=int)
 
     mode_choices = ['local', 'fibre', 'edgenet']  # the first option is the default
     help_msg = "mode {}".format(mode_choices)
@@ -136,6 +149,11 @@ def main():
     logging.info("---------------------")
     logging.info("\t logging level : {}".format(args.log))
     logging.info("\t mode option   : {}".format(args.mode))
+    logging.info("\t duration secs : {}".format(args.duration))
+    logging.info("\t interval milli: {}".format(args.interval))
+    logging.info("")
+    logging.info("CALCULATED")
+    logging.info("---------------------")
     logging.info("\t try name      : {}".format(try_name))
     logging.info("\t results_dir   : {}".format(results_dir))
     logging.info("")
@@ -153,20 +171,21 @@ def main():
     # #3. solução 1: com falha de ator, com backup
     experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=0,
                                name="ndn_traffic_Peça_com_falha_e_recuperação")]
-    
+    #
     #
     # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
-    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1)]
+    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
+    #                            name="ndn_traffic_Peça_com_falha_diretor")]
     #
     # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
-    # experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1)]
+    # experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
+    #                            name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
     plot_files = ""
     cmd = "kubectl delete pod --all"
     setup_kubernetes.run_cmd(cmd)
     for e in experiments:
         setup_kubernetes.header("Experiment: {}".format(e))
          
-
         cmd = "python3 setup_kubernetes.py --actors {} --directors {} --log {}".format(e.actors, e.directors, args.log)
         setup_kubernetes.run_cmd(cmd)
         
@@ -177,18 +196,35 @@ def main():
         if e.directors > 1:
             director_leader = find_leader_director(e.directors)
 
-        k8s_cmd = "python3 icn-stage/cli.py traffic".format(args.log)
+        start_time = datetime.now()
+        start_time = start_time.replace(second=0, microsecond=0)
+        start_time += timedelta(seconds=120)
+        
+        k8s_cmd = "python3 icn-stage/cli.py traffic"
+        k8s_cmd += " {}".format(start_time.strftime(TIME_FORMAT))
+        k8s_cmd += " {}".format(args.duration*2)
+        k8s_cmd += " {}".format(args.interval)
+        
         setup_kubernetes.run_cmd_kubernete("director1", k8s_cmd)
 
         running_actor = "actor1"
         if e.actors > 1:
             running_actor = find_running_actor(e.actors)
 
-        datetime_begin = datetime.now()
-        logging.info("")
+        now = datetime.now()
+        wait = (start_time - now)
+
+        ####################################################
+        logging.info("Running STEP 0 - wait for start time: {}".format(start_time))
+        logging.info("wait: {}".format(wait))
+        tqdm_sleep(wait.seconds)
+
+        ####################################################
+        logging.info("Running STEP 1 - warming up")
         tqdm_sleep(STEP_TIME_SECS)
-        #wait 60 secs
-        #fail director if need
+
+        ##########################################################
+        logging.info("Running STEP 2 - failed director")
         if e.fails_directors > 0:
             cmd = "kubectl delete pod {}".format(director_leader)
             setup_kubernetes.run_cmd(cmd)
@@ -196,7 +232,15 @@ def main():
         else:
             logging.info("\t Skipping fail director")
 
-        tqdm_sleep(STEP_TIME_SECS)
+        step2_finish_time = start_time + timedelta(seconds=STEP_TIME_SECS*2)
+        now = datetime.now()
+        wait = (step2_finish_time - now)
+        logging.info("Running STEP 2 - wating step2_finish_time: {}".format(step2_finish_time))
+        logging.info("wait: {}".format(wait))
+        tqdm_sleep(wait.seconds)
+
+        ##########################################################
+        logging.info("Running STEP 3 - failed actor")
         #fail actor if need
         if e.fails_actors > 0:
             cmd = "kubectl delete pod {}".format(running_actor)
@@ -204,24 +248,32 @@ def main():
             logging.info("\t fail actor done {}".format(running_actor))
         else:
             logging.info("\t Skipping fail actor")
+        step3_finish_time = start_time + timedelta(seconds=STEP_TIME_SECS*3)
+        now = datetime.now()
+        wait = (step3_finish_time - now)
+        logging.info("Running STEP 3 - wating step3_finish_time: {}".format(step3_finish_time))
+        logging.info("wait: {}".format(wait))
+        tqdm_sleep(wait.seconds)
 
-        tqdm_sleep(STEP_TIME_SECS)
-        logging.info("\t Experiment finished {}".format(e.name))
 
+        logging.info("Experiment finished {}!".format(e.name))
+        logging.info("Planned: {}    Now: {}".format(start_time + timedelta(seconds=STEP_TIME_SECS*3), datetime.now()))
         result_file = "{}/{}.txt".format(results_dir, e.name)
 
         cmd = "kubectl cp publisher1:/tmp/daemon_ndn_publisher.stdout {}".format(result_file)
         setup_kubernetes.run_cmd(cmd)
-        logging.info("\t Result: {}".format(result_file))
+        logging.info("\t Getting Result: {}".format(result_file))
         tqdm_sleep(10)
+        plot_files += " {}".format(result_file)
+        
         #wait 60 sec
         #finish
         # cmd = "mv /tmp/daemon_ndn_publisher.stdout /tmp/daemon_ndn_publisher.stdout_{}".format(e.name)
         # setup_kubernetes.run_cmd_kubernete(cmd)
 
-        plot_files += " {}".format(result_file)
-        cmd = "kubectl delete pod --all"
-        setup_kubernetes.run_cmd(cmd)
+
+        # cmd = "kubectl delete pod --all"
+        # setup_kubernetes.run_cmd(cmd)
 
         choosen_actor = ""
 

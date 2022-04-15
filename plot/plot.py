@@ -34,6 +34,8 @@ key_titles["results_fail-ON_recover-OFF"] = "One fault; one actor"
 key_titles["ndn_traffic_Peça_sem_falha"] = "Zero falha"
 key_titles["ndn_traffic_Peça_com_falha_e_recuperação"] = "Uma falha; Um reserva"
 key_titles["ndn_traffic_Peça_com_falha"] = "Uma falha; Zero reserva"
+key_titles["ndn_traffic_Peça_com_falha_diretor"] = "Uma falha; Um reserva; falha diretor"
+key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor"] = "Uma falha; Um reserva; falha diretor; reserva diretor"
 
 key_titles["fibre_sem_falha"] = "FIBRE"
 

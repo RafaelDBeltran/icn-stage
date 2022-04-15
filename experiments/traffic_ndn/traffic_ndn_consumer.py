@@ -1,116 +1,144 @@
-#imports do controle baseado em NTP
-#import ntplib
-from datetime import datetime, timezone
-import threading
-#imports da peca
-import subprocess
-from time import sleep
+#!/usr/bin/python3
+# -*- coding: iso-8859-15 -*-
+
+import argparse
+import logging
+import os
 import sys
+import subprocess
+import threading
+from time import sleep
+import time
+import subprocess
+from functools import partial
 import shlex
+from datetime import datetime, timedelta
+from tqdm import tqdm
+from math import ceil
 
-publisher = "udp://"+sys.argv[1]
-data_name = "/example/" #sys.argv[2]
+TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
+DEFAULT_DURATION_SECS = 180
+DEFAULT_INTERVAL_MILLISENCONDS = 100
 
-subprocess.run(["sudo nfd -c nfd.conf&"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-sleep(5)
+def prepare(publisher):
+    publisher = "udp://{}".format(publisher)
+    data_name = "/example/"
 
-cmd = "nfdc face create {}".format(publisher)
-print("cmd: {}".format(cmd))
-subprocess.run(shlex.split(cmd))
-sleep(5)
+    subprocess.run(["sudo nfd -c nfd.conf&"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    sleep(5)
 
-cmd = "nfdc route add {} {}".format(data_name, publisher)
-print("cmd: {}".format(cmd))
-subprocess.run(shlex.split(cmd))
+    cmd = "nfdc face create {}".format(publisher)
+    print("cmd: {}".format(cmd))
+    subprocess.run(shlex.split(cmd))
+    sleep(5)
 
-# '''
-# -h [ --help ]                 print this help message and exit
-# -c [ --count ] arg            total number of Interests to be generated
-# -i [ --interval ] arg (=1000) Interest generation interval in milliseconds
-# -q [ --quiet ]                turn off logging of Interest generation/Data reception
-# interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds
-# '''
-cmd = "ndn-traffic-client -c 10000 -i 100 ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
-print("cmd: {}".format(cmd))
-subprocess.run([cmd], shell=True)
+    cmd = "nfdc route add {} {}".format(data_name, publisher)
+    print("cmd: {}".format(cmd))
+    subprocess.run(shlex.split(cmd))
 
 
-#
-# # Start_time = datetime.strptime(sys.argv[2],'%d-%m-%y %H:%M:%S')
-# # Finish_time = datetime.strptime(sys.argv[3],'%d-%m-%y %H:%M:%S')
-#
-# Start_time = datetime.strptime('16-02-22 20:42:00','%d-%m-%y %H:%M:%S')
-# Finish_time = datetime.strptime('16-02-22 20:45:00','%d-%m-%y %H:%M:%S')
-#
-# c = ntplib.NTPClient()
-# # Provide the respective ntp server ip in below function
-#
-# def get_current_time():
-#
-#     NTPcontrol = False
-#     var_time = None
-#     while True:
-#         try:
-#             c = ntplib.NTPClient()
-#
-#             response = c.request('0.br.pool.ntp.org', version=3)
-#             response.offset
-#
-#             time_from_ntp = datetime.fromtimestamp(response.tx_time).strftime('%d-%m-%y %H:%M:%S')
-#             var_time = datetime.strptime(time_from_ntp,'%d-%m-%y %H:%M:%S')
-#             NTPcontrol = True
-#         except ntplib.NTPException as e:
-#             print('NTP client request error: {}'.format(str(e)))
-#
-#         if NTPcontrol == True:
-#             break
-#
-#     return var_time
-#
-# def peca():
-#
-#     subprocess.run(["nfd-stop"],shell = True)
-#     subprocess.run(["cp low.conf /usr/local/etc/mini-ndn/"],shell = True)
-#
-#     subprocess.run(["nfd -c /usr/local/etc/mini-ndn/low.conf > /dev/null &"],shell = True  ,stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
-#     subprocess.run(["nfdc", "face", "create", "udp://"+sys.argv[1]])
-#     subprocess.run(["nfdc", "route", "add", "/example/", "udp://"+sys.argv[1]])
-#
-#     '''
-#     -h [ --help ]                 print this help message and exit
-#     -c [ --count ] arg            total number of Interests to be generated
-#     -i [ --interval ] arg (=1000) Interest generation interval in milliseconds
-#     -q [ --quiet ]                turn off logging of Interest generation/Data reception
-#     interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds
-#     '''
-#     try:
-#         subprocess.run(["ndn-traffic-client -c 100 -i 100 ndn-traffic-client.conf >> /home/vagrant/ndn_traffic_client_output.txt"],shell = True)
-#     finally:
-#         subprocess.run(["nfd-stop"], shell = True)
-#
-# def stop_play():
-#
-#     print('Thread Iniciada {}'.format(get_current_time()))
-#     while ((get_current_time() < Finish_time)):
-#
-#         peca()
-#
-#         # sleep(5)
-#     print('Peca Finalizada')
-#
-# time_from_ntp = get_current_time()
-#
-# Seconds_to_start = ((Start_time - time_from_ntp).total_seconds())
-#
-# if Seconds_to_start > 0:
-#     print('Começando Peça')
-#     sleep(Seconds_to_start)
-#     play_thread = threading.Thread(target=stop_play, args=())
-#     play_thread.start()
-# elif get_current_time() < Finish_time:
-#     print('Voltando a Peça')
-#     play_thread = threading.Thread(target=stop_play, args=())
-#     play_thread.start()
-# else:
-#     print('Peca já encerrada')
-#
+def act(duration_secs=DEFAULT_DURATION_SECS, interval_millisecs=DEFAULT_INTERVAL_MILLISENCONDS):
+    # '''
+    # -h [ --help ]                 print this help message and exit
+    # -c [ --count ] arg            total number of Interests to be generated
+    # -i [ --interval ] arg (=1000) Interest generation interval in milliseconds
+    # -q [ --quiet ]                turn off logging of Interest generation/Data reception
+    # interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds
+    # '''
+    count = duration_secs * ceil(1000/interval_millisecs)
+    cmd = "ndn-traffic-client "
+    cmd += " -c {}".format(count)
+    cmd += " -i {}".format(interval_millisecs)
+    cmd += " ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
+    print("cmd: {}".format(cmd))
+    subprocess.run([cmd], shell=True)
+
+def main():
+    # arguments
+    parser = argparse.ArgumentParser(description='Daemon NDN Publisher')
+
+    help_msg = "logging level (INFO={} DEBUG={})".format(logging.INFO, logging.DEBUG)
+    parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
+
+    help_msg = "start time (Y-m-d_H:M:S)"
+    parser.add_argument("--start", "-s", help=help_msg, default=None, type=str)
+
+    help_msg = "duration secs (default={})".format(DEFAULT_DURATION_SECS)
+    parser.add_argument("--duration", "-d", help=help_msg, default=DEFAULT_DURATION_SECS, type=int)
+
+    help_msg = "interval milliseconds (default={})".format(DEFAULT_INTERVAL_MILLISENCONDS)
+    parser.add_argument("--interval", "-i", help=help_msg, default=DEFAULT_INTERVAL_MILLISENCONDS, type=int)
+
+    help_msg = "publisher (IPv4)"
+    parser.add_argument("--publisher", "-p", help=help_msg, default=None, type=str, required=True)
+
+
+
+    # read arguments from the command line
+    args = parser.parse_args()
+
+    # setup the logging facility
+    if args.log == logging.DEBUG:
+        logging.basicConfig(format='%(asctime)s %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
+                            datefmt=TIME_FORMAT, level=args.log)
+
+    else:
+        logging.basicConfig(format='%(asctime)s %(message)s',
+                            datefmt=TIME_FORMAT, level=args.log)
+
+    # shows input parameters
+    logging.info("")
+    logging.info("INPUT")
+    logging.info("---------------------------------")
+    logging.info("\t logging level    : {}".format(args.log))
+    logging.info("\t start time       : {}".format(args.start))
+    logging.info("\t plan. dur. (secs): {}".format(args.duration))
+
+    logging.info("")
+
+    prepare(args.publisher)
+
+    start_time = datetime.now()
+    start_time = start_time.replace(second=0, microsecond=0)
+    start_time += timedelta(seconds=60)
+    if args.start is not None:
+        start_time = datetime.strptime(args.start, TIME_FORMAT)
+
+    finish_time = start_time + timedelta(seconds=args.duration)
+
+    now = datetime.now().replace(microsecond=0)
+    duration = (finish_time - now)
+    wait = (start_time - now)
+
+    logging.info("")
+    logging.info("CALCULATED")
+    logging.info("---------------------------------")
+    logging.info("\t start time       : {}".format(start_time))
+    logging.info("\t finish time      : {}".format(finish_time))
+    logging.info("\t now              : {}".format(now))
+    logging.info("\t real dur.        : {}".format(duration))
+    logging.info("\t real dur. (secs) : {}".format(duration.seconds))
+    logging.info("\t wait             : {}".format(wait))
+    logging.info("\t wait      (secs) : {}".format(wait.seconds))
+    # logging.info("")
+
+    if now > finish_time:
+        logging.error("ERROR: {} > {}".format(now, finish_time))
+        sys.exit(-1)
+
+    duration_secs = args.duration
+    if now < start_time:
+        logging.info("sleeping {} seconds".format(wait.seconds))
+        sleep(wait.seconds)
+    else:
+        duration = (finish_time - now)
+        duration_secs = duration.seconds
+
+    logging.info("\t duration_secs   : {}".format(duration_secs))
+    logging.info("")
+
+    act(duration_secs=duration_secs, interval_millisecs=args.interval)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

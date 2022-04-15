@@ -11,7 +11,7 @@ import sys
 
 import json
 import argparse
-import datetime
+from datetime import datetime, timedelta
 import logging
 import subprocess
 from time import sleep
@@ -60,7 +60,7 @@ from experiments_resources import call_ndn_traffic
 from experiments_resources import call_ndn_traffic_server
 #Variables Define
 _local_experiments_dir = "./"
-TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 DEFAULT_LOG_LEVEL = logging.INFO 
 
 DEFAULT_IPERF_EXPERIMENT_SECS = 60 * 4
@@ -121,7 +121,7 @@ def add_worker(controller_client, nodes_json_file=DEFAULT_NODES_JSON_FILE, max_a
 def experiment_skeleton(experiment_name, commands, controller_client, experiment_dir=None, experiment_file_name=None):
     logging.info("\tExecuting experiment {} \t".format(experiment_name))
 
-    experiment_name = '%s_%s' % (experiment_name, datetime.datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
+    experiment_name = '%s_%s' % (experiment_name, datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
 
     logging.info("\tExperiment_name   : {}\t".format(experiment_name))
     logging.info("\tExperiment command: {}\t".format(' '.join(str(x) for x in commands)))
@@ -146,16 +146,17 @@ def help_msg():
     return '''
     Available commands
     ------------------
-    addactors           : adds all 'actor' nodes from nodes.json
-    tcp                 : basic test using tcp client/server 
-    ndn                 : basic test using ndn poke app 
-    help, h, ?          : prints this message
-    print, p            : print zookeeper tree
-    printc              : print zookeeper subtree: connected workers
-    printd              : print zookeeper subtree: disconnected workers
-    reset               : reset zookeeper tree
-    reset-tasks         : reset tasks and experiments from zookeeper tree
-    verbosity, log, v, l:  level (default=%d, current=%d)
+    addactors              : adds all 'actor' nodes from nodes.json
+    tcp                    : basic test using tcp client/server 
+    ndn                    : basic test using ndn poke app 
+    traffic                : [start Y-m-d_H:M:S][duration_secs][interval_millisecs] generate traffic using ndn-traffic-client app
+    help, h, ?             : prints this message
+    print, p               : print zookeeper tree
+    printc                 : print zookeeper subtree: connected workers
+    printd                 : print zookeeper subtree: disconnected workers
+    reset                  : reset zookeeper tree
+    reset-tasks            : reset tasks and experiments from zookeeper tree
+    verbosity, log, v, l   :  level (default=%d, current=%d)
     ''' %(DEFAULT_LOG_LEVEL, _log_level)
 
 zookeeper_controller = None
@@ -258,9 +259,30 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 nodes = json.load(open(nodes_json_file))
                 publisher = nodes['publisher'][0]
                 publisher_ip = publisher['remote_hostname']
+                duration_secs = 180
+                interval_millisecs = 100
 
-                cmd = "python3 traffic_ndn_consumer.py {}".format(publisher_ip)
-                
+                start_time = datetime.now()
+                if options is not None and len(options) > 0:
+                    start_time = datetime.strptime(options[0], TIME_FORMAT)
+
+
+
+                    if len(options) > 1:
+                        duration_secs = options[1]
+
+                    if len(options) > 2:
+                        interval_millisecs = options[2]
+
+                start_time = start_time.replace(second=0, microsecond=0)
+                start_time += timedelta(seconds=60)
+
+                cmd = "python3 traffic_ndn_consumer.py"
+                cmd += " --publisher {}".format(publisher_ip)
+                cmd += " --duration {}".format(duration_secs)
+                cmd += " --interval {}".format(interval_millisecs)
+                cmd += " --start {}".format(start_time.strftime(TIME_FORMAT))
+
                 experiment_skeleton('traffic_ndn_consumer',
                                     shlex.split(cmd),
                                     zookeeper_controller.controller_client,
@@ -367,38 +389,6 @@ def main():
 
             logging.debug("command: {} options: {}".format(command, options))
             run_command(zookeeper_controller, command, options)
-            
-        # # interactive mode
-        # # Initialize view
-        # view = View()
-        # view.print_view()
-        # import socket
-        # serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # serv.bind((sundry.get_ip_adapter('eth0'), 8081))
-        # serv.listen(5)
-        # while True:
-        #     conn, addr = serv.accept()
-        #
-        #     while True:
-        #         data = conn.recv(4096)
-        #         #commands = input('ICN-Stage >> ')
-        #         #commands = commands.split(" ")
-        #         #command = commands[0]
-        #
-        #         options = None
-        #         #if len(commands) > 1:
-        #         #    options = commands[1:]
-        #         print(data.decode('utf-8'))
-        #         logging.debug("command: {} options: {}".format(data.decode('utf-8'), options))
-        #         run_command(zookeeper_controller, data.decode('utf-8'), options)
-        #         if data.decode('utf-8') == 'ensemble-start':
-        #             conn.send(b'reconnect')
-        #         else:
-        #             conn.send(b'next')
-        #         if not data:
-        #             break
-        # print('here')
-        # conn.close()
 
 
 if __name__ == '__main__':
