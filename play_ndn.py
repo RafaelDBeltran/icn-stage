@@ -67,7 +67,7 @@ def find_node(kind, nodes, filter):
         logging.info("\t pod: {}".format(pod))
         cmd = "ps aux | grep {}".format(filter)
         result = setup_kubernetes.run_cmd_kubernete_get_output(pod, cmd)
-        if "/bin/bash" in result and 'grep' not in result:
+        if "/bin/bash" in result:#TODO FIX and 'grep' not in result:
             logging.info("Pod found! {}".format(pod))
             pod_found = pod
             break
