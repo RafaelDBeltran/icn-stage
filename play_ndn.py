@@ -272,8 +272,8 @@ def main():
         # setup_kubernetes.run_cmd_kubernete(cmd)
 
 
-        # cmd = "kubectl delete pod --all"
-        # setup_kubernetes.run_cmd(cmd)
+        cmd = "kubectl delete pod --all"
+        setup_kubernetes.run_cmd(cmd)
 
         choosen_actor = ""
 
