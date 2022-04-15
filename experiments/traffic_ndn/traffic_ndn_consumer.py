@@ -30,7 +30,7 @@ subprocess.run(shlex.split(cmd))
 # -q [ --quiet ]                turn off logging of Interest generation/Data reception
 # interval: 1000 / (16packets * 8Kbytes) = 1Mbits/second ~ 63milliseconds
 # '''
-cmd = "ndn-traffic-client -c 1000 -i 100 ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
+cmd = "ndn-traffic-client -c 10000 -i 100 ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
 print("cmd: {}".format(cmd))
 subprocess.run([cmd], shell=True)
 
