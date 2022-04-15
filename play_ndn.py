@@ -142,7 +142,8 @@ def main():
 
     experiments = []
     #1. benchmark: sem falha
-    experiments += [Experiment(actors=1, directors=1, fails_actors=9, fails_directors=0, name="ndn_traffic_Peça_sem_falha")]
+    experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
+                               name="ndn_traffic_Peça_sem_falha")]
 
     # #2. problema 1: com falha de ator, sem backup
     experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
@@ -224,7 +225,7 @@ def main():
 
         choosen_actor = ""
 
-    cmd = "python3 plot/plot.py -o {}/{} {}".format(results_dir, try_name, plot_files)
+    cmd = "python3 plot/plot.py -x {} -o {}/{} {}".format((STEP_TIME_SECS*3), results_dir, try_name, plot_files)
     setup_kubernetes.run_cmd(cmd)
 
 if __name__ == '__main__':
