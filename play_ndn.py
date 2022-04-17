@@ -160,7 +160,7 @@ def main():
     logging.info("")
 
     experiments = []
-    1. benchmark: sem falha
+    ##1. benchmark: sem falha
     experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
                                name="ndn_traffic_Peça_sem_falha")]
 
@@ -168,7 +168,7 @@ def main():
     experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
                                name="ndn_traffic_Peça_com_falha")]
 
-    #
+   
     # #3. solução 1: com falha de ator, com backup
     experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=0,
                                name="ndn_traffic_Peça_com_falha_e_recuperação")]
