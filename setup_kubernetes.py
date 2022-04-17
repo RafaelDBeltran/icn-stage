@@ -113,7 +113,7 @@ def run_cmd_get_output(cmd_str, shell=False):
     result = subprocess.run(cmd_array, check=True, stdout=subprocess.PIPE)
     logging.debug("result std_err: {}".format(result.stderr))
     logging.debug("result std_out: {}".format(result.stdout))
-    return str(result.stdout)
+    return result.stdout.decode('utf-8')
 
 def run_cmd_kubernete(pod, cmd_str):
     logging.info("\tPod: {} Command: {}".format(pod, cmd_str))

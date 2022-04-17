@@ -36,7 +36,7 @@ import setup_kubernetes
 LOG_LEVEL = logging.DEBUG
 TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 DEFAULT_SLEEP_SECONDS = 5
-STEP_TIME_SECS = 60
+STEP_TIME_SECS = 60*3
 
 ZK_VERSION="zookeeper-3.8.0"
 DEFAULT_QTY_DIRECTORS = 1
@@ -67,12 +67,14 @@ def find_node(kind, nodes, filter):
         logging.info("\t pod: {}".format(pod))
         cmd = "ps aux | grep {}".format(filter)
         result = setup_kubernetes.run_cmd_kubernete_get_output(pod, cmd)
-        if "/bin/bash" in result:#TODO FIX and 'grep' not in result:
-            logging.info("Pod found! {}".format(pod))
-            pod_found = pod
-            break
-        else:
-            logging.info("Pod not found! {}".format(pod))
+        for line in result.split('\n'):
+            logging.info("line: {}".format(line))
+            if filter in line and 'grep' not in line:
+                logging.info("Pod found! {}".format(pod))
+                pod_found = pod
+                return pod_found
+            else:
+                logging.info("Pod not found! {}".format(pod))
 
     return pod_found
 
@@ -95,12 +97,11 @@ def find_node(kind, nodes, filter):
 #     return pod_director
 
 def find_leader_director(actors):
-    filter = "daemon_directory.py"
+    filter = "daemon_director.py"
     return  find_node(nodes=actors, kind='director', filter=filter)
 
-def find_running_actor(actors):
-    filter = "ndn-traffic-client"
-    return  find_node(nodes=actors, kind='actor', filter=filter)
+def find_running_actor(actors, script):
+    return  find_node(nodes=actors, kind='actor', filter=script)
 
 def tqdm_sleep(secs):
     for i in tqdm(range(int(secs)), "Waiting {} secs.".format(secs)):
@@ -159,7 +160,7 @@ def main():
     logging.info("")
 
     experiments = []
-    #1. benchmark: sem falha
+    1. benchmark: sem falha
     experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
                                name="ndn_traffic_Peça_sem_falha")]
 
@@ -174,12 +175,12 @@ def main():
     #
     #
     # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
-    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
-    #                            name="ndn_traffic_Peça_com_falha_diretor")]
-    #
-    # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
-    # experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
-    #                            name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
+    experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
+                               name="ndn_traffic_Peça_com_falha_diretor")]
+
+    #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
+    experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
+                               name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
     plot_files = ""
     cmd = "kubectl delete pod --all"
     setup_kubernetes.run_cmd(cmd)
@@ -188,34 +189,55 @@ def main():
          
         cmd = "python3 setup_kubernetes.py --actors {} --directors {} --log {}".format(e.actors, e.directors, args.log)
         setup_kubernetes.run_cmd(cmd)
-        
-        k8s_cmd = "icn-stage/cli.py addactors".format(args.log)
-        setup_kubernetes.run_cmd_kubernete("director1", k8s_cmd)
+        logging.info("Running STEP 0 a - wait after config nodes {}".format(60))
+        tqdm_sleep(60)
 
         director_leader = "director1"
         if e.directors > 1:
+            logging.info("\tFinding leader director...")
             director_leader = find_leader_director(e.directors)
+        logging.info("\tLeader director: {}".format(director_leader))
+
+
+        k8s_cmd = "icn-stage/cli.py addactors".format(args.log)
+        setup_kubernetes.run_cmd_kubernete(director_leader, k8s_cmd)
+        logging.info("Running STEP 0 b - wait after add actors {}".format(60))
+        tqdm_sleep(60)
 
         start_time = datetime.now()
         start_time = start_time.replace(second=0, microsecond=0)
-        start_time += timedelta(seconds=120)
+        start_time += timedelta(seconds=60*5)
         
         k8s_cmd = "python3 icn-stage/cli.py traffic"
         k8s_cmd += " {}".format(start_time.strftime(TIME_FORMAT))
         k8s_cmd += " {}".format(args.duration*2)
         k8s_cmd += " {}".format(args.interval)
         
-        setup_kubernetes.run_cmd_kubernete("director1", k8s_cmd)
+        setup_kubernetes.run_cmd_kubernete(director_leader, k8s_cmd)
 
-        running_actor = "actor1"
-        if e.actors > 1:
-            running_actor = find_running_actor(e.actors)
+        logging.info("Running STEP 0 c - wait for finding nodes {}".format(60))
+        tqdm_sleep(60)
 
+
+
+        running_actor = None
+        logging.info("\tFinding occupied actor")
+        count = 0
+        while running_actor is None:
+            running_actor = find_running_actor(e.actors, "traffic_ndn_consumer.py")
+            sleep(1)
+            count += 1
+            if count >10:
+                sys.exit(-1)
+        logging.info("\tOccupied actor: {}".format(running_actor))
+
+
+        
         now = datetime.now()
         wait = (start_time - now)
 
         ####################################################
-        logging.info("Running STEP 0 - wait for start time: {}".format(start_time))
+        logging.info("Running STEP 0 d - wait for start time: {}".format(start_time))
         logging.info("wait: {}".format(wait))
         tqdm_sleep(wait.seconds)
 
@@ -231,6 +253,7 @@ def main():
             logging.info("\t fail directors done {}".format(director_leader))
         else:
             logging.info("\t Skipping fail director")
+
 
         step2_finish_time = start_time + timedelta(seconds=STEP_TIME_SECS*2)
         now = datetime.now()
@@ -263,7 +286,7 @@ def main():
         cmd = "kubectl cp publisher1:/tmp/daemon_ndn_publisher.stdout {}".format(result_file)
         setup_kubernetes.run_cmd(cmd)
         logging.info("\t Getting Result: {}".format(result_file))
-        tqdm_sleep(10)
+        tqdm_sleep(60)
         plot_files += " {}".format(result_file)
         
         #wait 60 sec

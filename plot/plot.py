@@ -31,17 +31,19 @@ key_titles["results_fail-OFF_recover-ON"] = "Zero fault"
 key_titles["results_fail-ON_recover-ON"] = "One fault; two actors"
 key_titles["results_fail-ON_recover-OFF"] = "One fault; one actor"
 
+key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor"] = "Uma falha; Um reserva; falha diretor; reserva diretor"
 key_titles["ndn_traffic_Peça_sem_falha"] = "Zero falha"
 key_titles["ndn_traffic_Peça_com_falha_e_recuperação"] = "Uma falha; Um reserva"
 key_titles["ndn_traffic_Peça_com_falha"] = "Uma falha; Zero reserva"
 key_titles["ndn_traffic_Peça_com_falha_diretor"] = "Uma falha; Um reserva; falha diretor"
-key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor"] = "Uma falha; Um reserva; falha diretor; reserva diretor"
+
 
 key_titles["fibre_sem_falha"] = "FIBRE"
 
 def get_key(key):
 
 	for k in key_titles.keys():
+		logging.info("k: {} key: {}".format(k, key))
 		if k in key:
 			return key_titles[k]
 
@@ -102,6 +104,7 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 			continue
 
 	for key in sorted(results.keys()):
+
 		logging.debug("x:{} y:{} ".format(key, results[key]))
 		result_x += [key]
 		result_y += [results[key]]
@@ -160,7 +163,7 @@ def plot_bar(dataset, fileout, xlim, ylim, data_type):
 
 	logging.info("number of plots: {}".format(plots))
 	if plots == 3:
-		plt.rcParams.update({'font.size': 40})
+		plt.rcParams.update({'font.size': 12})
 		fig = plt.figure(figsize=(12, 16))
 	else:
 		plt.rcParams.update({'font.size': 20})
@@ -184,7 +187,7 @@ def plot_bar(dataset, fileout, xlim, ylim, data_type):
 	logging.info("Plotting {}".format(plots))
 	logging.info("-------------")
 	for key in dataset.keys():
-		logging.debug("\tkey : {}".format(key))
+		logging.info("\tkey : {}".format(key))
 
 		# data = dataset[key]
 		# logging.debug("data: {}".format(data))
