@@ -390,7 +390,7 @@ def run_setup(local_pods, args):
     logging.info("\n\n\n")
 
     logging.info("Creating experiments packages...")
-    experiments_str = "test_ndn test_tcp traffic_iperf traffic_ndn"
+    experiments_str = "test_ndn test_tcp traffic_ndn"
     for e in experiments_str.split(" "):
         print("\tCreating {} ... ".format(e))
         input_dir = "experiments/{}/".format(e)
