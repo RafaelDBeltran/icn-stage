@@ -118,29 +118,48 @@ def add_worker(controller_client, nodes_json_file=DEFAULT_NODES_JSON_FILE, max_a
     logging.info("Adding Actors...DONE!")
 
 
-def experiment_skeleton(experiment_name, commands, controller_client, experiment_dir=None, experiment_file_name=None):
+# def experiment_skeleton(experiment_name, commands, controller_client, experiment_dir=None, experiment_file_name=None):
+#     logging.info("\tExecuting experiment {} \t".format(experiment_name))
+#
+#     experiment_name = '%s_%s' % (experiment_name, datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
+#
+#     logging.info("\tExperiment_name   : {}\t".format(experiment_name))
+#     logging.info("\tExperiment command: {}\t".format(' '.join(str(x) for x in commands)))
+#     #cmd_array = shlex.split(cmd_str)
+#     simple_role = Role(experiment_name, ' '.join(str(x) for x in commands), 1)
+#     roles = [simple_role]
+#
+#     dir_source = _local_experiments_dir + experiment_dir
+#     if experiment_file_name is not None:
+#         logging.info("\tCompressing dir source '{}' to file '{}".format(dir_source, experiment_file_name))
+#         sundry.compress_dir(dir_source, experiment_file_name)
+#
+#     logging.info("\tSending experiment... ")
+#     experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
+#     logging.debug("\tExperiment instantiated %s", experiment_)
+#
+#     controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
+#     logging.debug("\tSending experiment done.\n")
+
+
+def experiment_skeleton(experiment_name, commands, controller_client, experiment_file_name=None):
     logging.info("\tExecuting experiment {} \t".format(experiment_name))
 
-    experiment_name = '%s_%s' % (experiment_name, datetime.now().strftime(TIME_FORMAT).replace(':','-').replace(',','-'))
+    experiment_name = '%s_%s' % (
+    experiment_name, datetime.now().strftime(TIME_FORMAT).replace(':', '-').replace(',', '-'))
 
     logging.info("\tExperiment_name   : {}\t".format(experiment_name))
     logging.info("\tExperiment command: {}\t".format(' '.join(str(x) for x in commands)))
-    #cmd_array = shlex.split(cmd_str)
+    # cmd_array = shlex.split(cmd_str)
     simple_role = Role(experiment_name, ' '.join(str(x) for x in commands), 1)
     roles = [simple_role]
-
-    dir_source = _local_experiments_dir + experiment_dir
-    if experiment_file_name is not None:
-        logging.info("\tCompressing dir source '{}' to file '{}".format(dir_source, experiment_file_name))
-        sundry.compress_dir(dir_source, experiment_file_name)
 
     logging.info("\tSending experiment... ")
     experiment_ = Experiment(name=experiment_name, filename=experiment_file_name, roles=roles, is_snapshot=False)
     logging.debug("\tExperiment instantiated %s", experiment_)
-    
+
     controller_client.task_add(COMMANDS.NEW_EXPERIMENT, experiment=experiment_)
     logging.debug("\tSending experiment done.\n")
-
 
 def help_msg():
     return '''
@@ -199,7 +218,6 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 experiment_skeleton('test_tcp',
                                     shlex.split(cmd),
                                     zookeeper_controller.controller_client,
-                                    "experiments/test_tcp/",
                                     "test_tcp.tar.gz")
                 #experiments_resources.call_tcp_server(zookeeper_controller.get_ip_adapter(), test_port)
                 # Start bar as a process
@@ -237,7 +255,6 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 experiment_skeleton('test_ndn',
                                     shlex.split(cmd),
                                     zookeeper_controller.controller_client,
-                                    "experiments/test_ndn/",
                                     "test_ndn.tar.gz")
 
                 ndn_test_timeout = 60
@@ -266,8 +283,6 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 if options is not None and len(options) > 0:
                     start_time = datetime.strptime(options[0], TIME_FORMAT)
 
-
-
                     if len(options) > 1:
                         duration_secs = options[1]
 
@@ -286,7 +301,6 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 experiment_skeleton('traffic_ndn_consumer',
                                     shlex.split(cmd),
                                     zookeeper_controller.controller_client,
-                                    "experiments/traffic_ndn/",
                                     "traffic_ndn.tar.gz")
 
             except Exception as e:

@@ -16,6 +16,7 @@ try:
     import glob
     from tqdm import tqdm
     from time import sleep
+    import tarfile
 
 except ImportError as error:
 	print(error)
@@ -42,6 +43,7 @@ DEFAULT_QTY_PUBLISHERS = 1
 NODES_JSON_FILE = "nodes.json"
 
 SLEEP_SECS_PER_POD = 2
+DIRECTOR_SLEEP_SECS = 1
 
 config.load_kube_config()
 ZK_DIR = "/icn/zookeeper/"
@@ -80,7 +82,7 @@ def header(msg):
     logging.info("|" + " " * size + "|")
     logging.info("+" + "-" * size + "+")
 
-def run_cmd(cmd_str, shell=False):
+def run_cmd(cmd_str, shell=False, check=True):
     logging.debug("Cmd_str: {}".format(cmd_str))
     # transforma em array por questões de segurança -> https://docs.python.org/3/library/shlex.html
     cmd_array = shlex.split(cmd_str)
@@ -98,13 +100,13 @@ def run_cmd(cmd_str, shell=False):
         if len(files) > 0 :
             for f in files:
                 logging.debug("Cmd_array_glob: {}".format(cmd_array_glob+[f]))
-                subprocess.run(cmd_array_glob+[f], check=True, shell=shell)
+                subprocess.run(cmd_array_glob+[f], check=check, shell=shell)
         else:
             logging.debug("None file found.")
 
     else:
         # executa comando em subprocesso
-        subprocess.run(cmd_array, check=True, shell=shell)
+        subprocess.run(cmd_array, check=check, shell=shell)
 
 def run_cmd_get_output(cmd_str, shell=False):
     logging.info("Cmd: {}".format(cmd_str))
@@ -297,6 +299,16 @@ spec:
 #     # subprocess.run('kubectl cp config.json controlador:/icn/playground',shell=True)
 #     # subprocess.run('cp config.json playground',shell=True)
 
+def compress_dir(input_dir_, output_file_):
+    tar_file = tarfile.open(output_file_, "w:gz")
+    current_dir = os.getcwd()
+    os.chdir(input_dir_)
+    for name in os.listdir("."):
+        tar_file.add("%s" % (name))
+    tar_file.close()
+    os.chdir(current_dir)
+
+
 
 def run_setup(local_pods, args):
     Diretores = {}
@@ -377,6 +389,19 @@ def run_setup(local_pods, args):
     logging.info("Creating ZK zoo.cfg file... DONE!")
     logging.info("\n\n\n")
 
+    logging.info("Creating experiments packages...")
+    experiments_str = "test_ndn test_tcp traffic_iperf traffic_ndn"
+    for e in experiments_str.split(" "):
+        print("\tCreating {} ... ".format(e))
+        input_dir = "experiments/{}/".format(e)
+        output_file = "experiments/{}.tar.gz".format(e)
+        compress_dir(input_dir_=input_dir, output_file_=output_file)
+        print("\tCreating {} ... DONE!".format(e))
+        print("")
+    logging.info("Creating experiments packages... DONE!")
+
+
+
     size = 100
     logging.info("Configuring pods...")
     for group in config_itens.keys():
@@ -392,7 +417,7 @@ def run_setup(local_pods, args):
             logging.info("+" + "-" * size + "+")
             
             run_cmd('kubectl cp icn-stage/ {}:/icn/'.format(pod))
-            run_cmd('kubectl cp experiments/ {}:/icn/'.format(pod))
+    
             run_cmd_kubernete(pod, "sudo /etc/init.d/ssh start")
 
        
@@ -401,11 +426,17 @@ def run_setup(local_pods, args):
                 run_cmd('kubectl cp zookeeper/ {}:/icn/'.format(pod))
                 run_cmd_kubernete(pod, "echo {} > zookeeper/data/myid".format(count+1))
 
+                logging.info("Sending experiments packages...")
+                for e in experiments_str.split(" "):
+                    run_cmd('kubectl cp ./experiments/{}.tar.gz {}:/icn/'.format(e, pod))
+                logging.info("Sending experiments packages... DONE!")
+
                 if ensemble_mode:
                     cmd_director = "python3 icn-stage/daemon_director_ensemble.py"
                 else:
                     cmd_director = "python3 icn-stage/daemon_director.py"
                 cmd_director += " --log {}".format(args.log)
+                cmd_director += " --sleep {}".format(DIRECTOR_SLEEP_SECS)
                 #run_cmd_kubernete(pod, cmd_director + " stop")
                 run_cmd_kubernete(pod, cmd_director + " start")
 

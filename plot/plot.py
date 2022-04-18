@@ -3,7 +3,7 @@
 import os
 import sys
 import shlex
-
+from datetime import datetime, timedelta
 
 # import matplotlib.font_manager
 # from matplotlib import rcParams
@@ -17,7 +17,7 @@ import subprocess
 import argparse
 import logging
 
-TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
+TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 Y_LIM = None
 X_LIM = None
 
@@ -31,11 +31,12 @@ key_titles["results_fail-OFF_recover-ON"] = "Zero fault"
 key_titles["results_fail-ON_recover-ON"] = "One fault; two actors"
 key_titles["results_fail-ON_recover-OFF"] = "One fault; one actor"
 
-key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor"] = "Uma falha; Um reserva; falha diretor; reserva diretor"
-key_titles["ndn_traffic_Peça_sem_falha"] = "Zero falha"
-key_titles["ndn_traffic_Peça_com_falha_e_recuperação"] = "Uma falha; Um reserva"
-key_titles["ndn_traffic_Peça_com_falha"] = "Uma falha; Zero reserva"
-key_titles["ndn_traffic_Peça_com_falha_diretor"] = "Uma falha; Um reserva; falha diretor"
+
+key_titles["ndn_traffic_Peça_sem_falha."] = "Zero falha"
+key_titles["ndn_traffic_Peça_com_falha."] = "Uma falha; Zero reserva"
+key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor."] = "Uma falha; Um reserva; falha diretor; reserva diretor"
+key_titles["ndn_traffic_Peça_com_falha_diretor."] = "Uma falha; Um reserva; falha diretor"
+key_titles["ndn_traffic_Peça_com_falha_e_recuperação."] = "Uma falha; Um reserva"
 
 
 key_titles["fibre_sem_falha"] = "FIBRE"
@@ -56,7 +57,8 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 	results = {}
 	result_x = []
 	result_y = []
-
+	start_time = None
+	time_fmt = "%Y-%b-%d %H:%M:%S"
 	for line in data:
 		# it's [SUM] line cuted by awk
 		if "Mbits/sec" in line:
@@ -75,14 +77,32 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 			# value_x = "%03d-%03d" % (interval_begin, interval_end)
 			# value_y = float(line.split(" ")[3])
 
-			value_x = line.split(" ")[0]
-			# x format: HH:MM:SS example: 00:02:59
-			value_x = (int(value_x.split(":")[0]) * 60 * 60) + (int(value_x.split(":")[1]) * 60) + (
-				int(value_x.split(":")[2]))
-			if first_value is None:
-				first_value = value_x
 
-			value_x -= first_value
+			# x format: HH:MM:SS example: 00:02:59
+			if data_type == "ndn":
+				line_time_str = "{} {}".format(line.split(" ")[0], line.split(" ")[1])
+				line_time = datetime.strptime(line_time_str, time_fmt)
+
+				if start_time is None:
+					# 2022-Apr-17 17:29:15
+					start_time = line_time
+
+				value_x = (line_time - start_time).seconds
+
+			else:
+				value_x = line.split(" ")[0]
+				time_fmt = "%Y-%b-%d %H:%M:%S"
+				value_x = (int(value_x.split(":")[0]) * 60 * 60) + (int(value_x.split(":")[1]) * 60) + (
+				int(value_x.split(":")[2]))
+
+				if first_value is None:
+					#2022-Apr-17 17:29:15
+					start_time = datetime.strptime(value_x, time_fmt)
+					first_value = value_x
+
+
+
+				value_x -= first_value
 
 			value_y = 0.0
 			if data_type == "iperf":
@@ -290,7 +310,7 @@ def main():
 		cmd = """awk -F'[ -]+' '/sec/{print $1,$9}' %s""" % filename
 
 		if args.type == "ndn":
-			cmd = """awk  '/Interest received/{print $2,$7}' %s""" % filename
+			cmd = """awk  '/Interest received/{print $1,$2,$7}' %s""" % filename
 
 		logging.info("cmd         : {}".format(cmd))
 		result_process = subprocess.getoutput(cmd)

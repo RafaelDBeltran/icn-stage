@@ -71,7 +71,6 @@ class Sundry:
 
     @staticmethod
     def compress_dir(input_dir_, output_file_):
-
         tar_file = tarfile.open(output_file_, "w:gz")
         current_dir = os.getcwd()
         os.chdir(input_dir_)
@@ -79,6 +78,7 @@ class Sundry:
             tar_file.add("%s" % (name))
         tar_file.close()
         os.chdir(current_dir)
+
     @staticmethod
     def get_ensemble_ips(json_file):
         f = open(json_file)

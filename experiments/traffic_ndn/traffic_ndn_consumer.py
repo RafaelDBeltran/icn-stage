@@ -49,7 +49,7 @@ def act(duration_secs=DEFAULT_DURATION_SECS, interval_millisecs=DEFAULT_INTERVAL
     cmd = "ndn-traffic-client "
     cmd += " -c {}".format(count)
     cmd += " -i {}".format(interval_millisecs)
-    cmd += " ndn-traffic-client.conf >> ndn_traffic_receiver_output.txt"
+    cmd += " ndn-traffic-client.conf >> /tmp/ndn_traffic_receiver_output.txt"
     print("cmd: {}".format(cmd))
     subprocess.run([cmd], shell=True)
 

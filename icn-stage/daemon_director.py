@@ -252,7 +252,7 @@ class DirectorDaemon(Daemon):
 
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null', 
 				 sleep_seconds=DEFAULT_SLEEP_SECONDS, zookeeper_ip_port=DEFAULT_ZK_IP_PORT):
-		super().__init__(pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null')
+		super().__init__(pidfile, stdin=stdin, stdout=stdout, stderr=stderr)
 		self.zookeeper_controller = ZookeeperController()
 		self.zookeeper_controller.create_data_structure()
 		
@@ -764,7 +764,7 @@ def main():
 	parser.add_argument("--ipport", "-p", help=help_msg, default=DEFAULT_ZK_IP_PORT, type=str)
 
 	help_msg = "loop sleep seconds (int)"
-	parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=int)
+	parser.add_argument("--sleep", "-s", help=help_msg, default=DEFAULT_SLEEP_SECONDS, type=float)
 
 	cmd_choices = ['foreground', 'start', 'stop', 'restart', 'status']
 	parser.add_argument('cmd', choices=cmd_choices)
@@ -823,12 +823,12 @@ def main():
 		if args.cmd == 'start':
 			logging.info("Starting director daemon")
 			director_daemon.start()
-			director_daemon_pid = director_daemon.getpid()
-
-			if not director_daemon_pid:
-				logging.info("Unable to run director daemon")
-			else:
-				logging.info("Director daemon is running [PID=%d]" % director_daemon_pid)
+			# director_daemon_pid = director_daemon.getpid()
+			#
+			# if not director_daemon_pid:
+			# 	logging.info("Unable to run director daemon")
+			# else:
+			# 	logging.info("Director daemon is running [PID=%d]" % director_daemon_pid)
 
 		elif args.cmd == 'stop':
 			logging.info("Stopping director daemon")

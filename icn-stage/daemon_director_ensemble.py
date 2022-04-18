@@ -65,7 +65,8 @@ class DirectorEnsembleDaemon(Daemon):
    
                 if not daemon_controller_is_running():
                     logging.debug("daemon_director isn't running\n")
-                    run_daemon_controller("--log {} start".format(self.log))
+                    logging.debug("We must start daemon_director")
+                    run_daemon_controller("--log {} --sleep {} start".format(self.log, self.sleep_secs))
 
                 else:
                     logging.debug("daemon_director is already running!\n")
@@ -75,7 +76,7 @@ class DirectorEnsembleDaemon(Daemon):
                 
                 if daemon_controller_is_running():
                     logging.debug("daemon_director is running")
-                    logging.debug("We must start daemon_director")
+                    logging.debug("We must stop daemon_director")
                     run_daemon_controller("--log {} stop".format(self.log))
 
                 else:
