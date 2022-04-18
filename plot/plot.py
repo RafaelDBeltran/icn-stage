@@ -186,11 +186,12 @@ def plot_bar(dataset, fileout, xlim, ylim, data_type):
 	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=tab10)
 
 	logging.info("number of plots: {}".format(plots))
-	if plots == 3:
-		plt.rcParams.update({'font.size': 12})
-		fig = plt.figure(figsize=(12, 16))
+	if plots == 5:
+		plt.rcParams.update({'font.size': 18})
+		fig = plt.figure(figsize=(13, 10))
 	else:
-		plt.rcParams.update({'font.size': 20})
+		plt.rcParams.update({'font.size': 12})
+		fig = plt.figure(figsize=(2, 6))
 		fig = plt.figure()
 
 	# add a big axis, hide frame invisible
