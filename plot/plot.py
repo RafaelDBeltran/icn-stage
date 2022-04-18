@@ -58,6 +58,9 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 	result_x = []
 	result_y = []
 	start_time = None
+	line_time = None
+	value_x = None
+	count = 0
 	time_fmt = "%Y-%b-%d %H:%M:%S"
 	for line in data:
 		# it's [SUM] line cuted by awk
@@ -88,7 +91,7 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 					start_time = line_time
 
 				value_x = (line_time - start_time).seconds
-
+				count += 1
 			else:
 				value_x = line.split(" ")[0]
 				time_fmt = "%Y-%b-%d %H:%M:%S"
@@ -129,6 +132,7 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 		result_x += [key]
 		result_y += [results[key]]
 
+	print("Start: {}   Finish: {}   Duration: {} secs   Count: {}".format(start_time, line_time, value_x, count))
 	return result_x, result_y
 
 

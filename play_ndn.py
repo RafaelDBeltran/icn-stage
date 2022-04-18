@@ -115,8 +115,8 @@ def main():
     help_msg = "logging level (INFO=%d DEBUG=%d)" % (logging.INFO, logging.DEBUG)
     parser.add_argument("--log", "-l", help=help_msg, default=logging.INFO, type=int)
 
-    help_msg = "duration secs (default={})".format(DEFAULT_DURATION_SECS)
-    parser.add_argument("--duration", "-d", help=help_msg, default=DEFAULT_DURATION_SECS, type=int)
+    # help_msg = "duration secs (default={})".format(DEFAULT_DURATION_SECS)
+    # parser.add_argument("--duration", "-d", help=help_msg, default=DEFAULT_DURATION_SECS, type=int)
 
     help_msg = "interval milliseconds (default={})".format(DEFAULT_INTERVAL_MILLISENCONDS)
     parser.add_argument("--interval", "-i", help=help_msg, default=DEFAULT_INTERVAL_MILLISENCONDS, type=int)
@@ -150,7 +150,7 @@ def main():
     logging.info("---------------------")
     logging.info("\t logging level : {}".format(args.log))
     logging.info("\t mode option   : {}".format(args.mode))
-    logging.info("\t duration secs : {}".format(args.duration))
+    #logging.info("\t duration secs : {}".format(args.duration))
     logging.info("\t interval milli: {}".format(args.interval))
     logging.info("")
     logging.info("CALCULATED")
@@ -162,27 +162,27 @@ def main():
     
     experiments = []
 
-    # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
-    experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
-                               name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
+    # # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
+    # experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
+    #                            name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
 
     ##1. benchmark: sem falha
-    experiments += [Experiment(actors=2, directors=1, fails_actors=0, fails_directors=0,
+    experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
                                name="ndn_traffic_Peça_sem_falha")]
 
-    # #2. problema 1: com falha de ator, sem backup
-    experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
-                               name="ndn_traffic_Peça_com_falha")]
-
-
-    # #3. solução 1: com falha de ator, com backup
-    experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=0,
-                               name="ndn_traffic_Peça_com_falha_e_recuperação")]
+    # # #2. problema 1: com falha de ator, sem backup
+    # experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
+    #                            name="ndn_traffic_Peça_com_falha")]
     #
     #
-    # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
-    experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
-                               name="ndn_traffic_Peça_com_falha_diretor")]
+    # # #3. solução 1: com falha de ator, com backup
+    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=0,
+    #                            name="ndn_traffic_Peça_com_falha_e_recuperação")]
+    # #
+    # #
+    # # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
+    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
+    #                            name="ndn_traffic_Peça_com_falha_diretor")]
     # #
 
     plot_files = ""
@@ -208,7 +208,7 @@ def main():
         
         k8s_cmd = "python3 icn-stage/cli.py traffic"
         k8s_cmd += " {}".format(start_time.strftime(TIME_FORMAT))
-        k8s_cmd += " {}".format(args.duration*2)
+        k8s_cmd += " {}".format(STEP_TIME_SECS*3)
         k8s_cmd += " {}".format(args.interval)
         
         setup_kubernetes.run_cmd_kubernete(director_leader, k8s_cmd)
@@ -244,7 +244,7 @@ def main():
 
         ####################################################
         logging.info("Running STEP 1 - warming up")
-        tqdm_sleep(STEP_TIME_SECS)
+        tqdm_sleep(STEP_TIME_SECS*1)
 
         ##########################################################
         logging.info("Running STEP 2 - failed director")

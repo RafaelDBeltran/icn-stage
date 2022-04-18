@@ -280,6 +280,8 @@ def run_command(zookeeper_controller = None, command = None, options=None):
                 interval_millisecs = 100
 
                 start_time = datetime.now()
+                start_time = start_time.replace(second=0, microsecond=0)
+                start_time += timedelta(seconds=60)
                 if options is not None and len(options) > 0:
                     start_time = datetime.strptime(options[0], TIME_FORMAT)
 
@@ -288,9 +290,6 @@ def run_command(zookeeper_controller = None, command = None, options=None):
 
                     if len(options) > 2:
                         interval_millisecs = options[2]
-
-                start_time = start_time.replace(second=0, microsecond=0)
-                start_time += timedelta(seconds=60)
 
                 cmd = "python3 traffic_ndn_consumer.py"
                 cmd += " --publisher {}".format(publisher_ip)
