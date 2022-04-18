@@ -313,7 +313,7 @@ def main():
 
         choosen_actor = ""
 
-    cmd = "python3 plot/plot.py -x {} -o {}/{} {}".format((STEP_TIME_SECS*3), results_dir, try_name, plot_files)
+    cmd = "python3 plot/plot.py -x {} -o {}/{} {}".format((STEP_TIME_SECS*3+60), results_dir, try_name, plot_files)
     setup_kubernetes.run_cmd(cmd)
 
 if __name__ == '__main__':
