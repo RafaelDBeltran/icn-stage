@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
-
+from matplotlib.collections import LineCollection
 import subprocess
 import argparse
 import logging
@@ -32,12 +32,11 @@ key_titles["results_fail-ON_recover-ON"] = "One fault; two actors"
 key_titles["results_fail-ON_recover-OFF"] = "One fault; one actor"
 
 
-key_titles["ndn_traffic_Peça_sem_falha."] = "Zero falha"
-key_titles["ndn_traffic_Peça_com_falha."] = "Uma falha; Zero reserva"
-key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor."] = "Uma falha; Um reserva; falha diretor; reserva diretor"
-key_titles["ndn_traffic_Peça_com_falha_diretor."] = "Uma falha; Um reserva; falha diretor"
-key_titles["ndn_traffic_Peça_com_falha_e_recuperação."] = "Uma falha; Um reserva"
-
+key_titles["ndn_traffic_Peça_sem_falha."] = "C1 - sem falha de ator e de diretor"
+key_titles["ndn_traffic_Peça_com_falha."] = "C2 - com falha e sem redundância de ator e sem falha de diretor"
+key_titles["ndn_traffic_Peça_com_falha_e_recuperação."] = "C3 - com falha e redundância de ator e sem falha de diretor"
+key_titles["ndn_traffic_Peça_com_falha_diretor."] = "C4 - com falha e redundância de ator e com falha e sem redundância de diretor"
+key_titles["ndn_traffic_Peça_com_falha_e_recuperação_diretor."] = "C5 - com falha e redundância de ator e com falha e redundância de diretor"
 
 key_titles["fibre_sem_falha"] = "FIBRE"
 
@@ -62,25 +61,13 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 	value_x = None
 	count = 0
 	time_fmt = "%Y-%b-%d %H:%M:%S"
+	old_x = -1
 	for line in data:
 		# it's [SUM] line cuted by awk
 		if "Mbits/sec" in line:
 			continue
 
 		try:
-			# clock = line.split(" ")[0]
-			#
-			# # x format: HH:MM:SS example: 00:02:59
-			# clock = (int(clock.split(":")[0])*60*60) + (int(clock.split(":")[1])*60) + (int(clock.split(":")[2]))
-			# if first_value is None:
-			# 	first_value = clock
-			# clock -= first_value
-			# interval_begin = int(float(line.split(" ")[1]) + clock)
-			# interval_end = int(float(line.split(" ")[2]) + clock)
-			# value_x = "%03d-%03d" % (interval_begin, interval_end)
-			# value_y = float(line.split(" ")[3])
-
-
 			# x format: HH:MM:SS example: 00:02:59
 			if data_type == "ndn":
 				line_time_str = "{} {}".format(line.split(" ")[0], line.split(" ")[1])
@@ -103,8 +90,6 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 					start_time = datetime.strptime(value_x, time_fmt)
 					first_value = value_x
 
-
-
 				value_x -= first_value
 
 			value_y = 0.0
@@ -120,12 +105,18 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 				results[value_x] = value_y
 			else:
 				results[value_x] += value_y
-			logging.debug("x:{} y:{} line:'{}'".format(value_x, value_y, line))
+
+			if old_x != value_x and old_x > -1:
+				logging.info("x:{} y:{}  ".format(old_x, results[old_x], line))
+			old_x = value_x
+
+			logging.debug("\tx:{} y:{} line:'{}'".format(value_x, old_x, line))
 
 		except Exception as e:
 			logging.error("Exception while reading line: '{}' exception: {} ".format(line, e))
 			continue
-
+	logging.info("x:{} y:{}  ".format(old_x, results[old_x], line))
+	
 	for key in sorted(results.keys()):
 
 		logging.debug("x:{} y:{} ".format(key, results[key]))
@@ -134,44 +125,6 @@ def process_sum(data, data_type=DEFAULT_TYPE):
 
 	print("Start: {}   Finish: {}   Duration: {} secs   Count: {}".format(start_time, line_time, value_x, count))
 	return result_x, result_y
-
-
-# def process(data, data_type=DEFAULT_TYPE):
-# 	first_value = None
-# 	result_x = []
-# 	result_y = []
-# 	for line in data:
-# 		# it's [SUM] line
-# 		if "Mbits/sec" in line:
-# 			continue
-#
-# 		try:
-# 			value_x = line.split(" ")[0]
-#
-# 			# x format: HH:MM:SS example: 00:02:59
-# 			value_x = (int(value_x.split(":")[0])*60*60) + (int(value_x.split(":")[1])*60) + (int(value_x.split(":")[2]))
-# 			if first_value is None:
-# 				first_value = value_x
-#
-# 			value_x -= first_value
-# 			value_y = 0.0
-# 			if data_type == "iperf":
-# 				value_y = float(line.split(" ")[1])
-# 			elif data_type == "ndn":
-# 				value_y = 1
-# 			else:
-# 				logging.error("Data unknown: {}".format(data_type))
-#
-# 			logging.debug("{} {} {}".format(line.split(" ")[0], value_x, value_y))
-#
-# 		except Exception as e:
-# 			logging.error("Exception while reading line: {} exception: {} ".format(line, e))
-# 			continue
-#
-# 		result_x += [value_x]
-# 		result_y += [value_y]
-#
-# 	return result_x, result_y
 
 
 def plot_bar(dataset, fileout, xlim, ylim, data_type):
@@ -188,7 +141,7 @@ def plot_bar(dataset, fileout, xlim, ylim, data_type):
 	logging.info("number of plots: {}".format(plots))
 	if plots == 5:
 		plt.rcParams.update({'font.size': 18})
-		fig = plt.figure(figsize=(13, 10))
+		fig = plt.figure(figsize=(15, 10))
 	else:
 		plt.rcParams.update({'font.size': 12})
 		fig = plt.figure(figsize=(2, 6))
@@ -235,6 +188,12 @@ def plot_bar(dataset, fileout, xlim, ylim, data_type):
 		# if i == plots:
 		# 	ax.set_xlabel("Running time (seconds)")
 
+		# Takes list of lines, where each line is a sequence of coordinates
+		# l1 = [(180, 0), (180, 10)]
+		# l2 = [(360, 0), (360, 10)]
+		# lc = LineCollection([l1, l2], color=["black", "black"], lw=2)
+		# plt.gca().add_collection(lc)
+		
 		if ylim == 1:
 			ax.set_yticks([1.0, 0.5, 0.0])
 		elif ylim == 10:

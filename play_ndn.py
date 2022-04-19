@@ -165,26 +165,26 @@ def main():
 
 
     ##1. benchmark: sem falha
-    experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
-                               name="ndn_traffic_Peça_sem_falha")]
-
-    # #2. problema 1: com falha de ator, sem backup
-    experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
-                               name="ndn_traffic_Peça_com_falha")]
-
-
+    # experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
+    #                            name="ndn_traffic_Peça_sem_falha")]
+    #
+    # # #2. problema 1: com falha de ator, sem backup
+    # experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
+    #                            name="ndn_traffic_Peça_com_falha")]
+    #
+    #
     # #3. solução 1: com falha de ator, com backup
     experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=0,
                                name="ndn_traffic_Peça_com_falha_e_recuperação")]
-    #
-    #
-    # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
-    experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
-                               name="ndn_traffic_Peça_com_falha_diretor")]
-    #
-    # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
-    experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
-                               name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
+    # #
+    # #
+    # # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
+    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
+    #                            name="ndn_traffic_Peça_com_falha_diretor")]
+    # #
+    # # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
+    # experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
+    #                            name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
 
     plot_files = ""
     cmd = "kubectl delete pod --all"
@@ -268,11 +268,18 @@ def main():
         logging.info("Running STEP 3 - failed actor")
         #fail actor if need
         if e.fails_actors > 0:
+            actor_file = "{}/{}_{}.txt".format(results_dir, e.name, running_actor)
+            cmd = "kubectl cp {}:/tmp/ndn_traffic_receiver_output.txt {}".format(running_actor, actor_file)
+            setup_kubernetes.run_cmd(cmd, check=False)
+            logging.info("\t Getting Result: {}".format(actor_file))
+            
             cmd = "kubectl delete pod {}".format(running_actor)
             setup_kubernetes.run_cmd(cmd)
             logging.info("\t fail actor done {}".format(running_actor))
         else:
             logging.info("\t Skipping fail actor")
+
+
         step3_finish_time = start_time + timedelta(seconds=STEP_TIME_SECS*3)
         now = datetime.now()
         wait = (step3_finish_time - now)
