@@ -165,26 +165,26 @@ def main():
 
 
     ##1. benchmark: sem falha
-    # experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
-    #                            name="ndn_traffic_Peça_sem_falha")]
-    #
-    # # #2. problema 1: com falha de ator, sem backup
-    # experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
-    #                            name="ndn_traffic_Peça_com_falha")]
-    #
-    #
+    experiments += [Experiment(actors=1, directors=1, fails_actors=0, fails_directors=0,
+                               name="ndn_traffic_Peça_sem_falha")]
+
+    # #2. problema 1: com falha de ator, sem backup
+    experiments += [Experiment(actors=1, directors=1, fails_actors=1, fails_directors=0,
+                               name="ndn_traffic_Peça_com_falha")]
+
+
     # #3. solução 1: com falha de ator, com backup
     experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=0,
                                name="ndn_traffic_Peça_com_falha_e_recuperação")]
-    # #
-    # #
-    # # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
-    # experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
-    #                            name="ndn_traffic_Peça_com_falha_diretor")]
-    # #
-    # # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
-    # experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
-    #                            name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
+    #
+    #
+    # #4. problema 2: com falha de ator e diretor, sem backup de diretor (e backup de ator)
+    experiments += [Experiment(actors=2, directors=1, fails_actors=1, fails_directors=1,
+                               name="ndn_traffic_Peça_com_falha_diretor")]
+    #
+    # #5. problema 2: com falha de ator e diretor, com backup de diretor (e backup de ator)
+    experiments += [Experiment(actors=2, directors=3, fails_actors=1, fails_directors=1,
+                               name="ndn_traffic_Peça_com_falha_e_recuperação_diretor")]
 
     plot_files = ""
     cmd = "kubectl delete pod --all"
