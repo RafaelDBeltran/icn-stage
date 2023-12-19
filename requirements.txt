@@ -1,5 +1,5 @@
 kazoo==2.7
-paramiko==2.7.1
+paramiko==3.4.0
 scp
 netifaces
 pyfiglet
